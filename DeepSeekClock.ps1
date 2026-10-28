@@ -778,12 +778,21 @@ function Update-Widget {
     }
 }
 
+function Get-WindowSizeEstimate {
+    # 窗口尺寸在 Loaded / ContentRendered 阶段可能还没算出来（ActualWidth 会是 0 或极小值），
+    # 直接用会把窗口算到屏幕外，这里给一个合理下限。
+    $width = [double]$script:Window.ActualWidth
+    $height = [double]$script:Window.ActualHeight
+    if ([double]::IsNaN($width) -or $width -lt 200) { $width = 316 }
+    if ([double]::IsNaN($height) -or $height -lt 100) { $height = 196 }
+    return @($width, $height)
+}
+
 function Place-WindowBottomRight {
     $workArea = [System.Windows.SystemParameters]::WorkArea
-    $width = $script:Window.ActualWidth
-    $height = $script:Window.ActualHeight
-    if ($width -le 10) { $width = 316 }
-    if ($height -le 10) { $height = 176 }
+    $size = Get-WindowSizeEstimate
+    $width = $size[0]
+    $height = $size[1]
     $script:Window.Left = [Math]::Max($workArea.Left, $workArea.Right - $width - 24)
     $script:Window.Top = [Math]::Max($workArea.Top, $workArea.Bottom - $height - 24)
 }
@@ -793,10 +802,9 @@ function Clamp-WindowPosition {
     $virtualTop = [System.Windows.SystemParameters]::VirtualScreenTop
     $virtualRight = $virtualLeft + [System.Windows.SystemParameters]::VirtualScreenWidth
     $virtualBottom = $virtualTop + [System.Windows.SystemParameters]::VirtualScreenHeight
-    $width = $script:Window.ActualWidth
-    $height = $script:Window.ActualHeight
-    if ($width -le 10) { $width = 316 }
-    if ($height -le 10) { $height = 176 }
+    $size = Get-WindowSizeEstimate
+    $width = $size[0]
+    $height = $size[1]
     $minLeft = $virtualLeft - $width + 80
     $maxLeft = $virtualRight - 80
     $minTop = $virtualTop
