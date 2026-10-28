@@ -657,7 +657,6 @@ $script:ThemeKey = ''
 $script:LastNextIsPeak = $null
 $script:LastIsPeakDay = $null
 $script:LastTimelineWidth = $null
-$script:LastTooltip = ''
 $script:LastStatus = $null
 
 function Apply-Theme {
@@ -753,28 +752,6 @@ function Update-Widget {
         if ($markerLeft -lt 0) { $markerLeft = 0 }
         if ($markerLeft -gt ($timelineWidth - 2)) { $markerLeft = $timelineWidth - 2 }
         [System.Windows.Controls.Canvas]::SetLeft($script:TimeMarker, $markerLeft)
-    }
-
-    $tipLines = @()
-    $tipLines += 'DeepSeek 时段挂件'
-    $tipLines += ''
-    $tipLines += '规则：北京时间周一至周五（不含中国法定节假日）09:00-12:00、14:00-18:00 为高峰时段；其余时间（含周末与法定节假日全天）为空闲时段，价格为高峰时段的一半。'
-    $tipLines += ''
-    $tipLines += $status.TodayText
-    $tipLines += (Get-CoverageText -Data $script:Data)
-    if ($script:Data.Updated) { $tipLines += ('数据更新日期：' + $script:Data.Updated) }
-    $tipLines += ''
-    $tipLines += '拖动可移动 · 右键打开菜单'
-    $tipText = $tipLines -join [Environment]::NewLine
-    if ($script:LastTooltip -ne $tipText) {
-        $script:LastTooltip = $tipText
-        $tipBlock = New-Object System.Windows.Controls.TextBlock
-        $tipBlock.Text = $tipText
-        $tipBlock.TextWrapping = [System.Windows.TextWrapping]::Wrap
-        $tipBlock.MaxWidth = 380
-        $toolTip = New-Object System.Windows.Controls.ToolTip
-        $toolTip.Content = $tipBlock
-        $script:Card.ToolTip = $toolTip
     }
 }
 
@@ -875,7 +852,6 @@ function Show-Rules {
         '· 按住鼠标左键拖动可移动挂件位置',
         '· 右键打开菜单：置顶、开机自启、更新节假日数据、退出等',
         '· 托盘图标左键单击可显示 / 隐藏挂件；重复启动也会把它叫回前台',
-        '· 鼠标悬停在挂件上可查看规则和今日时段说明',
         '',
         '节假日数据：',
         '· 右键“联网更新节假日数据”可获取当年及次年数据',

@@ -50,7 +50,7 @@
 | **04** | **05** | **06** |
 | ![04](design/previews/design-04.jpg) | ![05](design/previews/design-05.jpg) | ![06](design/previews/design-06.jpg) |
 
-> 当前仓库中的挂件代码仍是 v1.0 视觉；选定方案后会把新 UI 更新进来（同时去掉鼠标悬停的大段浮窗，改为信息常驻）。
+> 当前仓库中的挂件代码仍是 v1.0 视觉；选定方案后会把新 UI 更新进来。
 
 ## 计费规则（来自 DeepSeek 官网）
 
