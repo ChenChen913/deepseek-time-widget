@@ -102,7 +102,8 @@ function Find-NextTransition {
     $currentIsPeak = Test-IsPeakTime -Time $beijing -Holidays $Holidays
     $offset = [TimeSpan]::FromHours(8)
     $boundaries = @(540, 720, 840, 1080)
-    for ($dayOffset = 0; $dayOffset -le 14; $dayOffset++) {
+    # 21 天窗口：足够跨过最长的连续假期（春节 9 天 + 前后周末），留有余量
+    for ($dayOffset = 0; $dayOffset -le 21; $dayOffset++) {
         $day = $beijing.Date.AddDays($dayOffset)
         foreach ($minuteOfDay in $boundaries) {
             $candidate = [System.DateTimeOffset]::new($day.AddMinutes($minuteOfDay), $offset)

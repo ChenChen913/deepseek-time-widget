@@ -39,6 +39,8 @@ if ([string]::IsNullOrWhiteSpace($script:AppDir)) {
 $script:DataPath = Join-Path $script:AppDir 'holidays.json'
 $script:SettingsDir = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'DeepSeekClock'
 $script:SettingsPath = Join-Path $script:SettingsDir 'settings.json'
+# 联网更新后的节假日数据写到用户目录，避免程序装在 Program Files 等只读位置时写入失败
+$script:UserDataPath = Join-Path $script:SettingsDir 'holidays.json'
 $script:IconPath = Join-Path $script:AppDir 'assets\deepseek-clock.ico'
 $script:LauncherPath = Join-Path $script:AppDir '启动挂件.vbs'
 $script:RequestedCapturePath = $CapturePath
@@ -74,6 +76,12 @@ function Show-Dialog {
     [void][System.Windows.MessageBox]::Show($Message, $Title, $button, $image)
 }
 
+function Get-HolidayDataPath {
+    # 用户目录里的数据优先（联网更新写在这里），否则用程序自带的 holidays.json
+    if (Test-Path -LiteralPath $script:UserDataPath) { return $script:UserDataPath }
+    return $script:DataPath
+}
+
 function Load-HolidayData {
     $result = [pscustomobject]@{
         Holidays = @()
@@ -83,13 +91,16 @@ function Load-HolidayData {
         Source   = ''
         Loaded   = $false
         Error    = ''
+        Path     = ''
     }
-    if (-not (Test-Path -LiteralPath $script:DataPath)) {
+    $readPath = Get-HolidayDataPath
+    $result.Path = $readPath
+    if (-not (Test-Path -LiteralPath $readPath)) {
         $result.Error = '找不到 holidays.json'
         return $result
     }
     try {
-        $rawText = Get-Content -LiteralPath $script:DataPath -Raw -Encoding UTF8
+        $rawText = Get-Content -LiteralPath $readPath -Raw -Encoding UTF8
         if ([string]::IsNullOrWhiteSpace($rawText)) {
             $result.Error = '数据文件为空'
             return $result
@@ -254,34 +265,56 @@ function Update-HolidaysOnline {
         return [pscustomobject]@{ Success = $false; Message = ('联网更新失败：' + ($errors -join '；')) }
     }
 
+    # 先读出现有数据，完整保留 holidays.json 里的其它字段（makeupWorkdays / sources / notes 等），
+    # 只覆盖本次真正更新的字段，避免"联网更新一次就把证据链抹掉"。
+    $readPath = Get-HolidayDataPath
+    $existing = $null
+    if (Test-Path -LiteralPath $readPath) {
+        try {
+            $rawText = Get-Content -LiteralPath $readPath -Raw -Encoding UTF8
+            if (-not [string]::IsNullOrWhiteSpace($rawText)) { $existing = $rawText | ConvertFrom-Json }
+        } catch {
+            $existing = $null
+        }
+    }
+
     $mergedHolidays = [ordered]@{}
-    foreach ($year in @($script:Data.Years | Sort-Object)) {
-        $prefix = [string]$year + '-'
-        $existing = @($script:Data.Holidays | Where-Object { ([string]$_).StartsWith($prefix) } | Sort-Object -Unique)
-        if ($existing.Count -gt 0) { $mergedHolidays[[string]$year] = $existing }
+    if ($null -ne $existing -and $null -ne $existing.holidays) {
+        foreach ($prop in $existing.holidays.PSObject.Properties) {
+            $dates = @($prop.Value | Sort-Object -Unique)
+            if ($dates.Count -gt 0) { $mergedHolidays[[string]$prop.Name] = $dates }
+        }
     }
     foreach ($year in @($fetchedHolidays.Keys | Sort-Object)) {
         $mergedHolidays[[string]$year] = @($fetchedHolidays[$year] | Sort-Object -Unique)
     }
 
     $mergedNames = [ordered]@{}
-    foreach ($key in $script:Data.Names.Keys) { $mergedNames[[string]$key] = [string]$script:Data.Names[$key] }
+    if ($null -ne $existing -and $null -ne $existing.holidayNames) {
+        foreach ($prop in $existing.holidayNames.PSObject.Properties) { $mergedNames[[string]$prop.Name] = [string]$prop.Value }
+    }
     foreach ($key in $fetchedNames.Keys) { $mergedNames[[string]$key] = [string]$fetchedNames[$key] }
     $sortedNames = [ordered]@{}
     foreach ($key in @($mergedNames.Keys | Sort-Object)) { $sortedNames[[string]$key] = [string]$mergedNames[$key] }
 
-    $payload = [ordered]@{
-        updated       = $now.ToString('yyyy-MM-dd')
-        source        = '国务院办公厅节假日安排（通过 timor.tech API 同步）'
-        coverageYears = @($mergedHolidays.Keys | ForEach-Object { [int]$_ })
-        holidays      = $mergedHolidays
-        holidayNames  = $sortedNames
+    $payload = [ordered]@{}
+    if ($null -ne $existing) {
+        foreach ($prop in $existing.PSObject.Properties) { $payload[[string]$prop.Name] = $prop.Value }
     }
+    $payload['updated'] = $now.ToString('yyyy-MM-dd')
+    $payload['source'] = '国务院办公厅节假日安排（通过 timor.tech API 同步）'
+    $payload['coverageYears'] = @($mergedHolidays.Keys | ForEach-Object { [int]$_ })
+    $payload['holidays'] = $mergedHolidays
+    $payload['holidayNames'] = $sortedNames
+
     $jsonText = $payload | ConvertTo-Json -Depth 6
-    if (Test-Path -LiteralPath $script:DataPath) {
-        Copy-Item -LiteralPath $script:DataPath -Destination ($script:DataPath + '.bak') -Force
+    if (-not (Test-Path -LiteralPath $script:SettingsDir)) {
+        New-Item -ItemType Directory -Path $script:SettingsDir -Force | Out-Null
     }
-    [System.IO.File]::WriteAllText($script:DataPath, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
+    if (Test-Path -LiteralPath $readPath) {
+        try { Copy-Item -LiteralPath $readPath -Destination ($readPath + '.bak') -Force } catch { }
+    }
+    [System.IO.File]::WriteAllText($script:UserDataPath, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
 
     $counts = @()
     foreach ($year in @($fetchedHolidays.Keys | Sort-Object)) {
@@ -299,7 +332,7 @@ function Update-HolidaysOnline {
 }
 
 function Load-Settings {
-    $settings = [pscustomobject]@{ Left = $null; Top = $null; Topmost = $true }
+    $settings = [pscustomobject]@{ Left = $null; Top = $null; Topmost = $true; LaunchCount = 0 }
     try {
         if (Test-Path -LiteralPath $script:SettingsPath) {
             $raw = Get-Content -LiteralPath $script:SettingsPath -Raw -Encoding UTF8
@@ -308,6 +341,7 @@ function Load-Settings {
                 if ($null -ne $json.Left) { $settings.Left = [double]$json.Left }
                 if ($null -ne $json.Top) { $settings.Top = [double]$json.Top }
                 if ($null -ne $json.Topmost) { $settings.Topmost = [bool]$json.Topmost }
+                if ($null -ne $json.LaunchCount) { $settings.LaunchCount = [int]$json.LaunchCount }
             }
         }
     } catch { }
@@ -324,9 +358,10 @@ function Save-Settings {
             New-Item -ItemType Directory -Path $script:SettingsDir -Force | Out-Null
         }
         $payload = [ordered]@{
-            Left    = $left
-            Top     = $top
-            Topmost = [bool]$script:Window.Topmost
+            Left        = $left
+            Top         = $top
+            Topmost     = [bool]$script:Window.Topmost
+            LaunchCount = [int]$script:Settings.LaunchCount
         }
         $jsonText = $payload | ConvertTo-Json
         [System.IO.File]::WriteAllText($script:SettingsPath, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
@@ -416,6 +451,12 @@ try {
 [System.Runtime.InteropServices.DllImport("user32.dll")]
 public static extern bool SetProcessDPIAware();
 
+[System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+public static extern uint RegisterWindowMessage(string lpString);
+
+[System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+public static extern bool PostMessage(System.IntPtr hWnd, uint msg, System.IntPtr wParam, System.IntPtr lParam);
+
 [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
 public struct RECT
 {
@@ -428,8 +469,14 @@ public struct RECT
 [System.Runtime.InteropServices.DllImport("user32.dll")]
 public static extern bool GetWindowRect(System.IntPtr hWnd, out RECT rect);
 '@
-        [void][DeepSeekClock.Win32Api]::SetProcessDPIAware()
     }
+    [void][DeepSeekClock.Win32Api]::SetProcessDPIAware()
+} catch { }
+
+# 单实例：第二个实例不再静默退出，而是广播一条自定义消息，让已在运行的挂件自己回到前台。
+$script:ShowMessage = 0
+try {
+    $script:ShowMessage = [int][DeepSeekClock.Win32Api]::RegisterWindowMessage('DeepSeekClockWidgetShow')
 } catch { }
 
 $script:InstanceMutex = New-Object -TypeName System.Threading.Mutex -ArgumentList @($false, 'Local\DeepSeekClockWidget')
@@ -440,7 +487,12 @@ try {
     $script:HasMutex = $true
 }
 if (-not $script:HasMutex) {
-    [Console]::Error.WriteLine('DeepSeek 时段挂件已在运行（单实例模式），本次启动已退出。')
+    if ($script:ShowMessage -ne 0) {
+        try {
+            [void][DeepSeekClock.Win32Api]::PostMessage([System.IntPtr]0xFFFF, [uint32]$script:ShowMessage, [System.IntPtr]::Zero, [System.IntPtr]::Zero)
+        } catch { }
+    }
+    [Console]::Error.WriteLine('DeepSeek 时段挂件已在运行，已通知它回到前台，本次启动退出。')
     if ($script:RequestedCapturePath) { exit 2 }
     return
 }
@@ -468,6 +520,8 @@ function Get-VirtualNow {
 
 $script:Data = Load-HolidayData
 $script:Settings = Load-Settings
+# 启动次数用于控制一次性操作提示的显示时长（前 3 次启动才提示）
+$script:Settings.LaunchCount = [int]$script:Settings.LaunchCount + 1
 
 $xamlText = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -597,6 +651,7 @@ $script:PeakSegment1 = Get-UiElement 'PeakSegment1'
 $script:PeakSegment2 = Get-UiElement 'PeakSegment2'
 $script:TimeMarker = Get-UiElement 'TimeMarker'
 $script:CountdownText = Get-UiElement 'CountdownText'
+$script:HintText = Get-UiElement 'HintText'
 
 $script:ThemeKey = ''
 $script:LastNextIsPeak = $null
@@ -623,9 +678,8 @@ function Apply-Theme {
     if ($null -ne $glow) {
         $glow.Color = [System.Windows.Media.ColorConverter]::ConvertFromString($accentColor)
     }
-    $nextColor = '#6EE7B7'
-    if ($Status.NextChangeIsPeak) { $nextColor = '#FCD34D' }
-    $script:CountdownText.Foreground = ConvertTo-Brush $nextColor
+    # 倒计时跟随「当前状态」配色，避免琥珀色卡片里出现绿色倒计时造成的语义错乱
+    $script:CountdownText.Foreground = ConvertTo-Brush $accentSoft
     $segmentColor = ConvertTo-Brush '#F59E0B'
     $script:PeakSegment1.Fill = $segmentColor
     $script:PeakSegment2.Fill = $segmentColor
@@ -662,6 +716,12 @@ function Update-Widget {
     }
     $script:DateText.Text = $dateLine
     $script:CountdownText.Text = $status.CountdownText
+    # 操作提示只在最初几次启动时显示，之后收起，把空间让给倒计时
+    if ([int]$script:Settings.LaunchCount -le 3) {
+        $script:HintText.Visibility = [System.Windows.Visibility]::Visible
+    } else {
+        $script:HintText.Visibility = [System.Windows.Visibility]::Collapsed
+    }
 
     $timelineWidth = $script:TimelineCanvas.ActualWidth
     if ($timelineWidth -gt 20) {
@@ -806,10 +866,12 @@ function Show-Rules {
         '操作：',
         '· 按住鼠标左键拖动可移动挂件位置',
         '· 右键打开菜单：置顶、开机自启、更新节假日数据、退出等',
+        '· 托盘图标左键单击可显示 / 隐藏挂件；重复启动也会把它叫回前台',
         '· 鼠标悬停在挂件上可查看规则和今日时段说明',
         '',
         '节假日数据：',
         '· 右键“联网更新节假日数据”可获取当年及次年数据',
+        '· 更新后的数据保存在 %APPDATA%\DeepSeekClock\holidays.json，不会改动程序目录',
         '· 也可直接编辑程序目录下的 holidays.json 后重启挂件',
         '',
         '说明：按 DeepSeek 官网字面规则，周末即使遇到调休上班日也属于空闲时段。'
@@ -817,33 +879,171 @@ function Show-Rules {
     Show-Dialog -Message ($lines -join [Environment]::NewLine) -Kind 'Information'
 }
 
+# ============================ 右键菜单（自定义样式） ============================
+# 不使用系统默认的 ContextMenu 外观（直角、系统蓝高亮、默认行高），
+# 用自定义 ControlTemplate 重绘：圆角玻璃面板 + 柔和悬停 + 勾选标记 + 危险项配色。
+
+$script:MenuStyleXaml = @'
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Style x:Key="GlassMenu" TargetType="{x:Type ContextMenu}">
+    <Setter Property="OverridesDefaultStyle" Value="True" />
+    <Setter Property="HasDropShadow" Value="True" />
+    <Setter Property="SnapsToDevicePixels" Value="True" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ContextMenu}">
+          <Border Margin="12" CornerRadius="12" BorderThickness="1" BorderBrush="#28FFFFFF">
+            <Border.Background>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#F71B2432" Offset="0" />
+                <GradientStop Color="#F70D131E" Offset="1" />
+              </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+              <DropShadowEffect BlurRadius="22" ShadowDepth="4" Direction="270" Opacity="0.42" Color="#000000" />
+            </Border.Effect>
+            <StackPanel IsItemsHost="True" Margin="0,6" KeyboardNavigation.DirectionalNavigation="Cycle" />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="GlassMenuItem" TargetType="{x:Type MenuItem}">
+    <Setter Property="Foreground" Value="#C6D1E0" />
+    <Setter Property="FontSize" Value="12.5" />
+    <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type MenuItem}">
+          <Border x:Name="Row" Margin="5,1" Height="31" CornerRadius="7" Padding="9,0,11,0" Background="Transparent">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="15" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock x:Name="Tick" Grid.Column="0" Text="&#x2713;" FontSize="10.5" FontWeight="Bold"
+                         Foreground="#5EEAD4" VerticalAlignment="Center" Visibility="Collapsed" />
+              <ContentPresenter Grid.Column="1" ContentSource="Header" VerticalAlignment="Center" RecognizesAccessKey="True" />
+              <TextBlock Grid.Column="2" Margin="14,0,0,0" VerticalAlignment="Center"
+                         FontSize="9.5" Foreground="#5C6A80"
+                         Text="{Binding InputGestureText, RelativeSource={RelativeSource TemplatedParent}}" />
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+              <Setter TargetName="Row" Property="Background" Value="#1FFFFFFF" />
+              <Setter Property="Foreground" Value="#FFFFFF" />
+            </Trigger>
+            <MultiTrigger>
+              <MultiTrigger.Conditions>
+                <Condition Property="IsHighlighted" Value="True" />
+                <Condition Property="Tag" Value="danger" />
+              </MultiTrigger.Conditions>
+              <MultiTrigger.Setters>
+                <Setter TargetName="Row" Property="Background" Value="#33F87171" />
+                <Setter Property="Foreground" Value="#FECACA" />
+              </MultiTrigger.Setters>
+            </MultiTrigger>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Foreground" Value="#5A6577" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="GlassMenuHeader" TargetType="{x:Type MenuItem}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type MenuItem}">
+          <StackPanel Margin="24,7,14,8">
+            <TextBlock FontSize="12.5" FontWeight="SemiBold" Foreground="#E9EFF8"
+                       Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}" />
+            <TextBlock Margin="0,3,0,0" FontSize="10" Foreground="#6B7891"
+                       Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
+          </StackPanel>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="GlassSeparator" TargetType="{x:Type Separator}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Separator}">
+          <Border Height="1" Margin="14,5" Background="#1AFFFFFF" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>
+'@
+
+$script:MenuStyles = $null
+try {
+    $script:MenuStyles = [System.Windows.Markup.XamlReader]::Parse($script:MenuStyleXaml)
+} catch {
+    [Console]::Error.WriteLine('右键菜单样式解析失败，已回退系统默认样式：' + $_.Exception.Message)
+    $script:MenuStyles = $null
+}
+
+function Get-MenuStyle {
+    param([string]$Key)
+    if ($null -eq $script:MenuStyles) { return $null }
+    if ($script:MenuStyles.Contains($Key)) { return $script:MenuStyles[$Key] }
+    return $null
+}
+
 function New-ContextMenuItem {
-    param([string]$Header, [bool]$Checkable = $false, [bool]$Checked = $false)
+    param(
+        [string]$Header,
+        [bool]$Checkable = $false,
+        [bool]$Checked = $false,
+        [string]$Tag = '',
+        [string]$StyleKey = 'GlassMenuItem'
+    )
     $item = New-Object System.Windows.Controls.MenuItem
     $item.Header = $Header
+    if ($Tag -ne '') { $item.Tag = $Tag }
     if ($Checkable) {
         $item.IsCheckable = $true
         $item.IsChecked = $Checked
     }
+    $style = Get-MenuStyle -Key $StyleKey
+    if ($null -ne $style) { $item.Style = $style }
     return $item
+}
+
+function New-MenuSeparator {
+    $separator = New-Object System.Windows.Controls.Separator
+    $style = Get-MenuStyle -Key 'GlassSeparator'
+    if ($null -ne $style) { $separator.Style = $style }
+    return $separator
 }
 
 function Build-ContextMenu {
     $menu = New-Object System.Windows.Controls.ContextMenu
-    $menu.Background = ConvertTo-Brush '#1B2333'
-    $menu.Foreground = ConvertTo-Brush '#E2E8F0'
-    $menu.BorderBrush = ConvertTo-Brush '#3A4A5F'
+    $menuStyle = Get-MenuStyle -Key 'GlassMenu'
+    if ($null -ne $menuStyle) { $menu.Style = $menuStyle }
+    $menu.MinWidth = 214
     $menu.HasDropShadow = $true
-    $menu.Padding = New-Object -TypeName System.Windows.Thickness -ArgumentList 2
+    $menu.Padding = New-Object -TypeName System.Windows.Thickness -ArgumentList 0
 
-    $headerItem = New-ContextMenuItem -Header 'DeepSeek 时段挂件'
-    $headerItem.IsEnabled = $false
-    [void]$menu.Items.Add($headerItem)
-
-    $script:MenuDataInfo = New-ContextMenuItem -Header (Get-CoverageText -Data $script:Data)
-    $script:MenuDataInfo.IsEnabled = $false
-    [void]$menu.Items.Add($script:MenuDataInfo)
-    [void]$menu.Items.Add((New-Object System.Windows.Controls.Separator))
+    # 头部：项目名 + 数据覆盖情况（不可点击，也不参与高亮）
+    $script:MenuHeader = New-ContextMenuItem -Header 'DeepSeek 时段挂件' -StyleKey 'GlassMenuHeader'
+    $script:MenuHeader.Tag = (Get-CoverageText -Data $script:Data)
+    $script:MenuHeader.IsEnabled = $false
+    [void]$menu.Items.Add($script:MenuHeader)
+    [void]$menu.Items.Add((New-MenuSeparator))
 
     $script:MenuTopmost = New-ContextMenuItem -Header '窗口置顶' -Checkable $true -Checked ([bool]$script:Window.Topmost)
     $script:MenuTopmost.Add_Click({
@@ -875,7 +1075,7 @@ function Build-ContextMenu {
         try {
             $result = Update-HolidaysOnline
             $script:Data = Load-HolidayData
-            $script:MenuDataInfo.Header = Get-CoverageText -Data $script:Data
+            $script:MenuHeader.Tag = Get-CoverageText -Data $script:Data
             $script:ThemeKey = ''
             $script:LastIsPeakDay = $null
             $script:LastTimelineWidth = $null
@@ -892,6 +1092,8 @@ function Build-ContextMenu {
         }
     })
     [void]$menu.Items.Add($script:MenuSync)
+
+    [void]$menu.Items.Add((New-MenuSeparator))
 
     $itemOpenFolder = New-ContextMenuItem -Header '打开程序文件夹'
     $itemOpenFolder.Add_Click({ Start-Process -FilePath $script:AppDir })
@@ -912,8 +1114,9 @@ function Build-ContextMenu {
     $itemRules.Add_Click({ Show-Rules })
     [void]$menu.Items.Add($itemRules)
 
-    [void]$menu.Items.Add((New-Object System.Windows.Controls.Separator))
-    $itemExit = New-ContextMenuItem -Header '退出挂件'
+    [void]$menu.Items.Add((New-MenuSeparator))
+
+    $itemExit = New-ContextMenuItem -Header '退出挂件' -Tag 'danger'
     $itemExit.Add_Click({ $script:Window.Close() })
     [void]$menu.Items.Add($itemExit)
 
@@ -921,6 +1124,79 @@ function Build-ContextMenu {
 }
 
 $script:Card.ContextMenu = Build-ContextMenu
+
+# ---------- 单实例唤起 ----------
+# 第二个实例广播自定义窗口消息，已运行的挂件收到后把自己拉回前台，
+# 解决"重复启动没反应""卡片被全屏挡住后叫不回来"的问题。
+function Bring-WidgetToFront {
+    try {
+        if (-not $script:Window.IsVisible) { $script:Window.Show() }
+        $previousTopmost = $script:Window.Topmost
+        $script:Window.Topmost = $true
+        $script:Window.Activate()
+        $script:Window.Topmost = $previousTopmost
+        $script:Window.Focus()
+    } catch { }
+}
+
+$script:Window.Add_SourceInitialized({
+    try {
+        if ($script:ShowMessage -eq 0) { return }
+        $interopHelper = New-Object -TypeName System.Windows.Interop.WindowInteropHelper -ArgumentList $script:Window
+        $hwndSource = [System.Windows.Interop.HwndSource]::FromHwnd($interopHelper.Handle)
+        if ($null -eq $hwndSource) { return }
+        $hook = [System.Windows.Interop.HwndSourceHook]{
+            param($hWnd, $msg, $wParam, $lParam, $handled)
+            if ($msg -eq $script:ShowMessage) {
+                try { Bring-WidgetToFront } catch { }
+            }
+            return [System.IntPtr]::Zero
+        }
+        $hwndSource.AddHook($hook)
+    } catch { }
+})
+
+# ---------- 托盘图标 ----------
+# 卡片被其他窗口遮挡、或被拖到屏幕边缘之外时，托盘是唯一的恢复入口。
+$script:TrayIcon = $null
+
+function Initialize-TrayIcon {
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        Add-Type -AssemblyName System.Drawing
+        $icon = $null
+        if (Test-Path -LiteralPath $script:IconPath) {
+            try { $icon = New-Object -TypeName System.Drawing.Icon -ArgumentList @($script:IconPath, 16, 16) } catch { $icon = $null }
+        }
+        if ($null -eq $icon) { $icon = [System.Drawing.SystemIcons]::Application }
+        $script:TrayIcon = New-Object System.Windows.Forms.NotifyIcon
+        $script:TrayIcon.Icon = $icon
+        $script:TrayIcon.Text = 'DeepSeek 时段挂件（左键显示 / 隐藏）'
+        $script:TrayIcon.Add_MouseClick({
+            param($sender, $eventArgs)
+            try {
+                if ($eventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+                    if ($script:Window.IsVisible) {
+                        $script:Window.Hide()
+                    } else {
+                        Bring-WidgetToFront
+                    }
+                }
+            } catch { }
+        })
+        $script:TrayIcon.Visible = $true
+    } catch {
+        $script:TrayIcon = $null
+    }
+}
+
+function Remove-TrayIcon {
+    if ($null -ne $script:TrayIcon) {
+        try { $script:TrayIcon.Visible = $false } catch { }
+        try { $script:TrayIcon.Dispose() } catch { }
+        $script:TrayIcon = $null
+    }
+}
 
 $script:Card.Add_MouseLeftButtonDown({
     param($sender, $mouseArgs)
@@ -942,6 +1218,8 @@ $script:Window.Add_Loaded({
         Update-Widget
         if ($script:RequestedCapturePath) {
             Start-CaptureSequence
+        } else {
+            Initialize-TrayIcon
         }
     } catch {
         [Console]::Error.WriteLine('初始化界面失败：' + $_.Exception.Message)
@@ -958,6 +1236,7 @@ $script:Window.Add_ContentRendered({
 
 $script:Window.Add_Closing({
     try { Save-Settings } catch { }
+    try { Remove-TrayIcon } catch { }
     try { [void]$script:InstanceMutex.ReleaseMutex() } catch { }
 })
 

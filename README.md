@@ -4,6 +4,10 @@
 >
 > 非 DeepSeek 官方项目。
 
+[![test](https://github.com/ChenChen913/deepseek-time-widget/actions/workflows/test.yml/badge.svg)](https://github.com/ChenChen913/deepseek-time-widget/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-2FB89A.svg)](LICENSE)
+[![Windows 10 / 11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4.svg)](#快速开始)
+
 <p align="center">
   <img src="docs/preview-peak.png" width="380" alt="高峰时段" />
   <img src="docs/preview-idle.png" width="380" alt="空闲时段" />
@@ -16,7 +20,9 @@
 - **今日时段轴**：两个高峰窗口用琥珀色标出，白线是当前时间位置；周末/法定节假日整条变成流动青绿（全天空闲）
 - **切换倒计时**：自动跨过午休、夜间、周末和法定节假日，跨天显示「N天 HH:MM:SS」
 - **液态玻璃卡片**：透明圆角浮窗 + 光影 + 状态光晕，置顶显示、可拖动、位置自动记忆
-- **单实例**：重复启动不会开第二个窗口
+- **单实例**：重复启动不会开第二个窗口，而是把已在运行的挂件叫回前台
+- **托盘图标**：左键单击显示 / 隐藏挂件，卡片被遮挡时也有入口
+- **右键菜单**：自绘圆角玻璃面板，替代系统默认菜单外观
 - **开机自启**：右键菜单勾选即可
 - **节假日数据**：内置 2025、2026 年中国法定节假日（共 61 天），支持右键联网更新
 - **无依赖**：只需 Windows 10/11 自带的 Windows PowerShell 5.1
@@ -62,6 +68,12 @@
 
 ## 快速开始
 
+**方式一：下载即用（推荐）**
+
+到 [Releases](https://github.com/ChenChen913/deepseek-time-widget/releases/latest) 下载 `DeepSeekClock-v*.zip`，解压到任意固定目录，双击 **`启动挂件.vbs`** 即可。解压后请保持文件夹结构完整。
+
+**方式二：从源码运行**
+
 1. 克隆或下载本仓库；
 2. 双击 **`启动挂件.vbs`**（静默启动）；如果系统禁用 VBScript，可双击 **`启动挂件.cmd`**；
 3. 挂件会出现在屏幕右下角，左键拖动可移动，右键打开菜单：窗口置顶 / 开机自动启动 / 联网更新节假日数据 / 打开程序文件夹 / 创建桌面快捷方式 / 使用说明 / 退出。
@@ -71,7 +83,8 @@
 ## 节假日数据与更新
 
 - 内置 `holidays.json`：**2025 年 28 天、2026 年 33 天**放假日（来源：国务院办公厅节假日安排通知，并与 timor.tech、NateScarlet/holiday-cn 逐日交叉核对）；
-- 右键「联网更新节假日数据」会抓取当年 + 次年数据并合并（保留旧年份，自动备份 `.bak`）；日常运行不联网；
+- 右键「联网更新节假日数据」会抓取当年 + 次年数据并合并（保留旧年份和 `makeupWorkdays` 等字段，自动备份 `.bak`）；日常运行不联网；
+- 更新结果写入 `%APPDATA%\DeepSeekClock\holidays.json`，启动时优先读取它，因此程序放在 `Program Files` 等只读目录也能正常更新；
 - 2027 年安排截至 2026-10-28 尚未发布；数据缺失时挂件自动降级为“只看星期几”，并在日期行提示「数据待更新」；
 - 也可手动编辑 `holidays.json`。
 
@@ -93,6 +106,8 @@
 ├─ design/                 # 6 个液态玻璃视觉方案（HTML + 预览图）
 ├─ research/
 │  └─ notes.md             # 节假日数据来源与三方核验记录
+├─ .github/workflows/      # CI：推送后自动跑单元测试
+├─ LICENSE                 # MIT
 └─ README.md
 ```
 
@@ -117,4 +132,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -Pri
 
 ## License
 
-未指定（保留所有权利）。如需开源许可证可自行补充。
+[MIT](LICENSE) © 2026 ChenChen913

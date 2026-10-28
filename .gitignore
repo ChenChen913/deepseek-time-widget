@@ -5,6 +5,8 @@ settings.json
 # 本地内部资料
 _qa/
 _research/
+_cap/
+.workbuddy-ai/
 
 # 系统文件
 Thumbs.db

@@ -1,0 +1,23 @@
+name: test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: 核心逻辑单元测试
+    runs-on: windows-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 运行单元测试
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Core.ps1
+
+      - name: 命令行冒烟测试
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PrintStatus

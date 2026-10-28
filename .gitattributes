@@ -1,0 +1,15 @@
+# 让 GitHub 把主语言识别为 PowerShell：
+# design/ 下的 HTML 视觉提案体量远大于主程序，会抢走语言统计。
+*.ps1 linguist-language=PowerShell
+*.cmd linguist-language=PowerShell
+*.vbs linguist-language=VBScript
+
+# 设计提案与截图不计入代码统计
+design/* linguist-documentation
+design/** linguist-documentation
+docs/* linguist-documentation
+
+# 二进制资源
+*.png binary
+*.jpg binary
+*.ico binary
