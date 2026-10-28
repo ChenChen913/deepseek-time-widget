@@ -25,6 +25,8 @@
 
 `design/design-options.html` 是 6 个液态玻璃 UI 方向的网页预览（下载后用浏览器打开，包含真实背景模糊、流光、状态光晕等效果），每个方案都展示了 **高峰 / 空闲 / 周末 / 法定节假日** 四种状态。
 
+> 在线预览（GitHub Pages）：<https://chenchen913.github.io/deepseek-time-widget/design/design-options.html>
+
 | 编号 | 方向 | 一句话 |
 | --- | --- | --- |
 | 01 | 极简流光 | 很薄的一层玻璃 + 顶部折射高光，时钟为主角，最克制耐看 |
