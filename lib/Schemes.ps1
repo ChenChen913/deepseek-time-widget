@@ -293,6 +293,8 @@ $script:SchemeDefaults = @{
     PillRadius = 14
     StatusDotSize = 9
     TickDark  = $false
+    MarkerWidth = 2        # 时间轴游标的宽度（A1 需要更明显的「刻度线」）
+    MarkerGlow = $false    # 时间轴游标是否带白色辉光
     WeekFirst = $false
     DateFontSize = 13
     WeekFontSize = 11
@@ -350,17 +352,21 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'a1'; Num = 'A1'; Name = 'A1 · 极简折射流光'
     Hint = '克制通透的玻璃 + 一道缓慢扫过的折射光'
-    Layout = 'card'; Width = 416; Height = 246
+    Layout = 'card'; Width = 316
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'gradient'; From = '#D92A3448'; To = '#E6101620' }
-    Border = '#38FFFFFF'; BorderWidth = 1; Radius = 30; Margin = 14
-    BodyPad = '24,22,24,22'
-    ClockSize = 43; ClockSecSize = 16; StatusSize = 13.5; CountdownSize = 12
-    RatePad = '11,5,11,5'; RateRadius = 12
-    Shadow = @{ Blur = 34; Depth = 10; Opacity = 0.6; Color = '#000000' }
-    Text = @{ Status = '#FFFFFF'; PillBg = '#13FFFFFF'; StatusPillBorder = '#2BFFFFFF'; RateBorder = '#2BFFFFFF'; Date = '#A9B6C9'; Week = '#E8EDF6'; Hint = '#7C8AA5'; CdLabel = '#9EEBF4FF'; CdValue = '#F8FBFF' }
+    Border = '#38FFFFFF'; BorderWidth = 1; Radius = 24; Margin = 10
+    BodyPad = '18,16,18,16'
+    ClockSize = 34; ClockSecSize = 13; StatusSize = 12; CountdownSize = 10.5
+    DateFontSize = 11; WeekFontSize = 10
+    RatePad = '8,4,8,4'; RateRadius = 9
+    Shadow = @{ Blur = 26; Depth = 7; Opacity = 0.55; Color = '#000000' }
+    # 轨道改成半透明白：在彩色玻璃底上原来的深蓝几乎看不见
+    Text = @{ Status = '#FFFFFF'; PillBg = '#13FFFFFF'; StatusPillBorder = '#2BFFFFFF'; RateBorder = '#2BFFFFFF'; Date = '#A9B6C9'; Week = '#E8EDF6'; Hint = '#7C8AA5'; CdLabel = '#9EEBF4FF'; CdValue = '#F8FBFF'; Track = '#52FFFFFF'; Marker = '#FFFFFF' }
     ClockWeight = 'SemiBold'
-    PillPad = '13,7,13,7'; PillRadius = 16
+    PillPad = '9,5,9,5'; PillRadius = 13
+    StatusDotSize = 8
+    MarkerWidth = 3; MarkerGlow = $true
     Art = 'a1'; Decor = @('sheen')
 }
 
@@ -384,17 +390,21 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'a5'; Num = 'A5'; Name = 'A5 · 霜白明澈玻璃'
     Hint = '浅色壁纸首选：霜白玻璃 + 深色字，像控制中心'
-    Layout = 'card'; Width = 400; Height = 236
+    Layout = 'card'; Width = 316
     Tone = 'light'; Palette = 'glass-light'
     Surface = @{ Type = 'gradient'; From = '#F2FFFFFF'; To = '#E6E8EEF6' }
-    Border = '#EBFFFFFF'; BorderWidth = 1; Radius = 30; Margin = 14
-    BodyPad = '24,22,24,22'
-    ClockSize = 43; ClockSecSize = 16; StatusSize = 13.5; CountdownSize = 12
-    RatePad = '11,5,11,5'; RateRadius = 12
-    Shadow = @{ Blur = 30; Depth = 8; Opacity = 0.22; Color = '#1E293B' }
-    Text = @{ Status = '#0B1424'; PillBg = '#CCFFFFFF'; StatusPillBorder = '#FFFFFFFF'; RateBorder = '#E6FFFFFF'; Date = '#5A6B85'; Week = '#0B1424'; Hint = '#8A9AAE'; CdLabel = '#990B1424'; CdValue = '#0B1424' }
+    Border = '#EBFFFFFF'; BorderWidth = 1; Radius = 24; Margin = 10
+    BodyPad = '18,16,18,16'
+    ClockSize = 34; ClockSecSize = 13; StatusSize = 12; CountdownSize = 10.5
+    DateFontSize = 11; WeekFontSize = 10
+    RatePad = '8,4,8,4'; RateRadius = 9
+    Shadow = @{ Blur = 24; Depth = 6; Opacity = 0.22; Color = '#1E293B' }
+    # 浅色底上原来的 12% 深色轨道太淡，加到 25% 才看得清
+    Text = @{ Status = '#0B1424'; PillBg = '#CCFFFFFF'; StatusPillBorder = '#FFFFFFFF'; RateBorder = '#E6FFFFFF'; Date = '#5A6B85'; Week = '#0B1424'; Hint = '#8A9AAE'; CdLabel = '#990B1424'; CdValue = '#0B1424'; Track = '#400F172A' }
     ClockWeight = 'SemiBold'
-    PillPad = '13,7,13,7'; PillRadius = 16
+    PillPad = '9,5,9,5'; PillRadius = 13
+    StatusDotSize = 8
+    MarkerWidth = 3
     Art = 'a5'; Decor = @('sheen')
 }
 
@@ -2296,6 +2306,19 @@ function Apply-SchemeState {
     $script:PeakSegment2.Fill = ConvertTo-Brush ([string]$colors.Segment)
     $script:TimelineTrack.Fill = ConvertTo-Brush ([string]$colors.Track)
     $script:TimeMarker.Fill = ConvertTo-Brush ([string]$colors.Marker)
+    # 游标（刻度线）宽度与辉光：网页稿里它是压在高峰段上的一条亮线，太细会被玻璃底吃掉
+    $markerWidth = 2.0
+    if ([double]$Spec.MarkerWidth -gt 0) { $markerWidth = [double]$Spec.MarkerWidth }
+    $script:TimeMarker.Width = $markerWidth
+    $markerGlow = $null
+    if ([bool]$Spec.MarkerGlow) {
+        $markerGlow = New-Object System.Windows.Media.Effects.DropShadowEffect
+        $markerGlow.BlurRadius = 8
+        $markerGlow.ShadowDepth = 0
+        $markerGlow.Opacity = 0.9
+        $markerGlow.Color = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$colors.Marker)
+    }
+    $script:TimeMarker.Effect = $markerGlow
 
     if ($isCustom) {
         # 专属模板：价格 / 徽章形状由模板自己定，这里只换文字和描边色
