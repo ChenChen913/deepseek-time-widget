@@ -56,7 +56,7 @@
 | **04** | **05** | **06** |
 | ![04](design/previews/design-04.jpg) | ![05](design/previews/design-05.jpg) | ![06](design/previews/design-06.jpg) |
 
-> 上面 6 张图是最初的方向稿；最终落地的是审查台里的 21 个方案 + 默认界面，均已实现并可在右键菜单里切换。
+> 上面 6 张图是最初的方向稿；最终落地的是审查台里的 21 个方案 + 默认界面，均已实现并可在右键菜单里切换。每个方案的实际挂件截图见 `design/previews/scheme-*.png`（由 `tools/capture-schemes.ps1` 生成）。
 
 ## 计费规则（来自 DeepSeek 官网）
 
@@ -106,7 +106,8 @@
 │  ├─ Schemes.ps1          # 界面方案引擎：22 份配方 + 3 套通用布局 + 15 个装饰器
 │  └─ SchemesPro.ps1       # 9 套专属布局（示波器/液晶/瑞士分屏/野兽派/半谷/K线/色块/HUD/圆表）+ 6 个专属装饰器
 ├─ test/
-│  └─ Test-Core.ps1        # 单元测试（79 项断言）
+│  ├─ Test-Core.ps1        # 单元测试（79 项断言）
+│  └─ Test-Schemes.ps1     # 界面方案数据校验（826 项断言）
 ├─ tools/
 │  ├─ make-icon.ps1        # 重新生成图标
 │  ├─ capture-schemes.ps1  # 逐方案离屏截图（-Schemes a1,c6…）
@@ -126,6 +127,9 @@
 ```powershell
 # 单元测试
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Core.ps1
+
+# 界面方案数据校验
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Schemes.ps1
 
 # 命令行查看当前状态（不弹界面）
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PrintStatus

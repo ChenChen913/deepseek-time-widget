@@ -37,7 +37,7 @@ $knownLayouts = @('card', 'capsule', 'dial', 'scope', 'lcd', 'split', 'brutal', 
 $knownDecor = @(
     'sheen', 'glowcorner', 'ring', 'quartz', 'sectors', 'wave', 'sine',
     'candles', 'lamps', 'ticks', 'split', 'plate', 'lcd', 'scanlines', 'orb',
-    'scope', 'kline', 'halfsplit', 'scalebar', 'gauge', 'hudprogress'
+    'scope', 'kline', 'scalebar', 'gauge', 'hudprogress', 'lcdvig'
 )
 
 # ---------- 清单基本形态 ----------

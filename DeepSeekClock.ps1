@@ -631,6 +631,10 @@ function Update-Widget {
 
     $themeKey = 'idle'
     if ($status.IsPeak) { $themeKey = 'peak' }
+    # 周末 / 节假日有自己的整日外观（F1 青蓝平线、D6 12% 斜切、C4 整圈），
+    # 跨过零点时即使峰谷状态没变，也要让配色和装饰重新算一遍。
+    if ($status.IsWeekend) { $themeKey = $themeKey + '-weekend' }
+    elseif ($status.IsHoliday) { $themeKey = $themeKey + '-holiday' }
     if (($script:ThemeKey -ne $themeKey) -or ($script:LastNextIsPeak -ne $status.NextChangeIsPeak)) {
         $script:ThemeKey = $themeKey
         Apply-Theme -Status $status

@@ -25,20 +25,23 @@
 # ============================ 专属布局模板 ============================
 
 # ---------- F1 峰谷示波器：药丸标题 + 独立波形框 + 大钟 + 倒计时条 ----------
+# 对齐 code03.html：卡 280×202，内边距 14；波形框高 52，圆角 8，带状态色描边；
+# 标题是带折线图标的药丸，价格「1.0× 标准」等宽小字；底部是半透明倒计时条。
 $script:LayoutScope = @'
 <Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="14" Margin="12" BorderThickness="1">
-  <Border.Background><SolidColorBrush Color="#0E1116" /></Border.Background>
-  <Border.BorderBrush><SolidColorBrush Color="#1E2836" /></Border.BorderBrush>
+  <Border.Background><SolidColorBrush Color="#111827" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#1F2937" /></Border.BorderBrush>
   <Grid x:Name="CardRoot">
     <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
       <Rectangle.Fill><SolidColorBrush Color="#F59E0B" /></Rectangle.Fill>
     </Rectangle>
-    <Grid x:Name="Body" Margin="12,10,12,10">
+    <Grid x:Name="Body" Margin="14">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
       <Grid Grid.Row="0">
@@ -46,35 +49,37 @@ $script:LayoutScope = @'
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Border x:Name="StatusPill" Background="#1AF59E0B" BorderBrush="#5CF59E0B" BorderThickness="1" CornerRadius="7" Padding="9,4" HorizontalAlignment="Left">
-          <StackPanel Orientation="Horizontal">
-            <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#F59E0B" Visibility="Collapsed" />
-            <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#F59E0B" Visibility="Collapsed" />
-            <TextBlock x:Name="StatusIcon" Text="↗" FontSize="10" Foreground="#F59E0B" Margin="0,1,5,0" />
-            <TextBlock x:Name="StatusText" Text="梁文峰时段" FontSize="12" FontWeight="SemiBold" Foreground="#F59E0B" />
+        <Border x:Name="StatusPill" Background="#26F59E0B" BorderBrush="#4DF59E0B" BorderThickness="1" CornerRadius="6" Padding="8,3" HorizontalAlignment="Left">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Path x:Name="StatusIconPath" Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center"
+                  Stroke="#F59E0B" StrokeThickness="2" Stretch="None"
+                  Data="M1,11 L5.5,3.5 L9,8 L13,1.5 M9,1.5 L13,1.5 L13,5.5" />
+            <TextBlock x:Name="StatusText" Text="梁文峰时段" FontSize="12" FontWeight="Bold" Foreground="#FBBF24" />
           </StackPanel>
         </Border>
         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-          <Border x:Name="RateBadge" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0">
-            <TextBlock x:Name="RateText" Text="1.0×" FontSize="15" FontWeight="Bold" Foreground="#F59E0B" />
-          </Border>
-          <TextBlock x:Name="RateTail" Text="标准" FontSize="10" Foreground="#B45309" Margin="6,2,0,0" VerticalAlignment="Center" />
+          <TextBlock x:Name="RateText" Text="1.0×" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" FontFamily="Cascadia Mono, Consolas" VerticalAlignment="Center" />
+          <TextBlock x:Name="RateTail" Text="标准" FontSize="11" Foreground="#F59E0B" Opacity="0.85" Margin="5,0,0,0" VerticalAlignment="Center" />
+          <Border x:Name="RateBadge" Width="0" Height="0" Background="#00000000" BorderThickness="0" Visibility="Collapsed" />
+          <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#F59E0B" Visibility="Collapsed" />
+          <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#F59E0B" Visibility="Collapsed" />
         </StackPanel>
       </Grid>
-      <Border x:Name="ScopeBox" Grid.Row="1" Height="66" Margin="0,8,0,0" CornerRadius="6" Background="#00000000" BorderBrush="#55F59E0B" BorderThickness="1" />
-      <Grid Grid.Row="2" Margin="0,8,0,0">
+      <Border x:Name="ScopeBox" Grid.Row="1" Height="52" Margin="0,8,0,0" CornerRadius="8" BorderThickness="1"
+              BorderBrush="#40F59E0B" Background="#00000000" />
+      <Grid Grid.Row="2" Margin="0,10,0,0">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="ClockText" Text="10:30:24" FontSize="29" FontWeight="Bold" Foreground="#F8FAFC" />
+        <TextBlock x:Name="ClockText" Text="10:30:24" FontSize="26" FontWeight="ExtraBold" Foreground="#F8FAFC" FontFamily="Cascadia Mono, Consolas" />
         <StackPanel x:Name="DateBox" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8,0,0,4">
-          <TextBlock x:Name="DateIcon" Text="▤" FontSize="10" Foreground="#64748B" Margin="0,1,4,0" />
+          <TextBlock x:Name="DateIcon" Text="▦" FontSize="10" Foreground="#94A3B8" Margin="0,1,4,0" />
           <TextBlock x:Name="DateText" Text="10月28日" FontSize="11" Foreground="#94A3B8" />
           <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#94A3B8" Margin="5,0,0,0" />
         </StackPanel>
       </Grid>
-      <Border Grid.Row="3" Margin="0,8,0,0" CornerRadius="6" Background="#171A20" Padding="9,6">
+      <Border Grid.Row="4" Margin="0,6,0,0" CornerRadius="6" Background="#40000000" BorderBrush="#08FFFFFF" BorderThickness="1" Padding="8,6">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -82,10 +87,10 @@ $script:LayoutScope = @'
           </Grid.ColumnDefinitions>
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock x:Name="CdIcon" Text="◷" FontSize="10" Foreground="#64748B" Margin="0,0,5,0" />
-            <TextBlock x:Name="CountdownText" Text="距入谷 (0.5×)" FontSize="11" Foreground="#94A3B8" />
+            <TextBlock x:Name="CountdownText" Text="距入谷 (0.5×)" FontSize="11" Foreground="#64748B" />
             <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#475569" Margin="8,0,0,0" Visibility="Collapsed" />
           </StackPanel>
-          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12" FontWeight="Bold" Foreground="#F59E0B" VerticalAlignment="Center" />
+          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" FontFamily="Cascadia Mono, Consolas" VerticalAlignment="Center" />
         </Grid>
       </Border>
     </Grid>
@@ -101,149 +106,155 @@ $script:LayoutScope = @'
 </Border>
 '@
 
-# ---------- E5 点阵液晶：暖棕黑底 + 琥珀字 + 屏槽框 + 双虚线 ----------
+# ---------- E5 点阵液晶：屏槽 + 状态戳 + 大号 LCD 数字 + 虚线倒计时 ----------
+# 对齐 code02.html 方案 05：卡 295×160，圆角 6，2px 屏框；
+# 顶部一枚方框状态戳记 + 右侧 RATE；中间大钟；日期行；底部一条虚线切分的倒计时。
 $script:LayoutLcd = @'
-<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="8" Margin="10" BorderThickness="1">
-  <Border.Background><SolidColorBrush Color="#241A10" /></Border.Background>
-  <Border.BorderBrush><SolidColorBrush Color="#4A3820" /></Border.BorderBrush>
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="6" Margin="10" BorderThickness="2">
+  <Border.Background><SolidColorBrush Color="#262016" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#453721" /></Border.BorderBrush>
   <Grid x:Name="CardRoot">
     <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
-      <Rectangle.Fill><SolidColorBrush Color="#FFB020" /></Rectangle.Fill>
+      <Rectangle.Fill><SolidColorBrush Color="#EAB366" /></Rectangle.Fill>
     </Rectangle>
     <Grid x:Name="Body" Margin="14,12,14,12">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
-      <Grid Grid.Row="0">
+      <Border Grid.Row="0" BorderBrush="#14FFFFFF" BorderThickness="0,0,0,1" Padding="0,0,0,4">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Border x:Name="StatusPill" Background="#00000000" BorderBrush="#EAB366" BorderThickness="1" CornerRadius="2" Padding="4,1" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#EAB366" Visibility="Collapsed" />
+              <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#EAB366" Visibility="Collapsed" />
+              <TextBlock x:Name="StatusText" Text="[ PEAK MODE ]" FontSize="11" FontWeight="Bold" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" />
+            </StackPanel>
+          </Border>
+          <Border x:Name="RateBadge" Grid.Column="1" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" VerticalAlignment="Center">
+            <TextBlock x:Name="RateText" Text="RATE: 1.0X" FontSize="11" FontWeight="Bold" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" />
+          </Border>
+        </Grid>
+      </Border>
+      <TextBlock x:Name="ClockText" Grid.Row="2" Text="10:30:24" FontSize="34" FontWeight="Bold" Foreground="#FDE68A" FontFamily="Courier New, Consolas, Microsoft YaHei UI" Margin="0,6,0,6" HorizontalAlignment="Center" />
+      <Grid Grid.Row="3">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Border x:Name="StatusPill" Background="#00000000" BorderBrush="#8A6A2E" BorderThickness="1" CornerRadius="0" Padding="8,3" HorizontalAlignment="Left">
-          <StackPanel Orientation="Horizontal">
-            <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#FFB020" Visibility="Collapsed" />
-            <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#FFB020" Visibility="Collapsed" />
-            <TextBlock x:Name="StatusText" Text="[ PEAK MODE ]" FontSize="12" Foreground="#E8B961" FontFamily="Consolas, Cascadia Mono" />
-          </StackPanel>
-        </Border>
-        <Border x:Name="RateBadge" Grid.Column="1" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" VerticalAlignment="Center">
-          <TextBlock x:Name="RateText" Text="RATE: 1.0X" FontSize="12" Foreground="#C08A2E" FontFamily="Consolas, Cascadia Mono" />
-        </Border>
+        <TextBlock x:Name="DateText" Text="10-28 WED" FontSize="11" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" />
+        <TextBlock x:Name="WeekText" Text="" FontSize="11" Foreground="#EAB366" Visibility="Collapsed" />
+        <TextBlock x:Name="TzText" Grid.Column="1" Text="BJT UTC+8" FontSize="11" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" HorizontalAlignment="Right" />
       </Grid>
-      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="40" FontWeight="Bold" Foreground="#FFD166" FontFamily="Consolas, Cascadia Mono" Margin="0,6,0,0" HorizontalAlignment="Center" />
-      <StackPanel Grid.Row="2" Margin="0,4,0,0">
+      <StackPanel Grid.Row="5" Margin="0,0,0,0">
         <Canvas Height="1" ClipToBounds="True">
-          <Line X1="0" Y1="0" X2="900" Y2="0" Stroke="#4AFFB020" StrokeThickness="1" StrokeDashArray="1.5 3" />
+          <Line X1="0" Y1="0" X2="900" Y2="0" Stroke="#1AFFFFFF" StrokeThickness="1" StrokeDashArray="2 2" />
         </Canvas>
         <Grid Margin="0,6,0,0">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <TextBlock x:Name="DateText" Text="10-28 WED" FontSize="12" Foreground="#C08A2E" FontFamily="Consolas, Cascadia Mono" />
-          <TextBlock x:Name="WeekText" Text="" FontSize="12" Foreground="#C08A2E" Visibility="Collapsed" />
-          <TextBlock x:Name="TzText" Grid.Column="1" Text="BJT UTC+8" FontSize="12" Foreground="#C08A2E" FontFamily="Consolas, Cascadia Mono" HorizontalAlignment="Right" />
-        </Grid>
-      </StackPanel>
-      <StackPanel Grid.Row="3" Margin="0,8,0,0">
-        <Canvas Height="1" ClipToBounds="True">
-          <Line X1="0" Y1="0" X2="900" Y2="0" Stroke="#4AFFB020" StrokeThickness="1" StrokeDashArray="1.5 3" />
-        </Canvas>
-        <Grid Margin="0,7,0,0">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock x:Name="CountdownText" Text="NEXT IDLE:" FontSize="12" Foreground="#E8B961" FontFamily="Consolas, Cascadia Mono" />
+            <TextBlock x:Name="CountdownText" Text="NEXT IDLE:" FontSize="11" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" />
             <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#8A6A2E" Margin="8,0,0,0" Visibility="Collapsed" />
           </StackPanel>
-          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="13" FontWeight="Bold" Foreground="#FFD166" FontFamily="Consolas, Cascadia Mono" VerticalAlignment="Center" />
+          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="11" FontWeight="Bold" Foreground="#FDE68A" FontFamily="Courier New, Consolas, Microsoft YaHei UI" VerticalAlignment="Center" />
         </Grid>
       </StackPanel>
     </Grid>
     <Grid Visibility="Collapsed">
       <Canvas x:Name="TimelineCanvas" Height="8">
         <Rectangle x:Name="TimelineTrack" Height="6" Fill="#33FFFFFF" />
-        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#FFB020" />
-        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#FFB020" />
-        <Rectangle x:Name="TimeMarker" Width="2" Height="8" Fill="#FFD166" />
+        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#EAB366" />
+        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#EAB366" />
+        <Rectangle x:Name="TimeMarker" Width="2" Height="8" Fill="#FDE68A" />
       </Canvas>
     </Grid>
   </Grid>
 </Border>
 '@
 
-# ---------- E4 双色瑞士分屏：左侧实色铭牌（四行）+ 右侧黑曜石 ----------
+# ---------- E4 双色瑞士分屏：左侧 86px 实色铭牌 + 右侧黑曜石大字 ----------
+# 对齐 code02.html 方案 04：卡 310×155，圆角 10，1px 描边；
+# 左栏三段（状态/倍率/日期属性）垂直均分，右栏日期、时钟、倒计时凹槽。
 $script:LayoutSplit = @'
-<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="0" Margin="10" BorderThickness="0">
-  <Border.Background><SolidColorBrush Color="#141414" /></Border.Background>
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="10" Margin="10" BorderThickness="1">
+  <Border.Background><SolidColorBrush Color="#18181B" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#27272A" /></Border.BorderBrush>
   <Grid x:Name="CardRoot">
     <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
-      <Rectangle.Fill><SolidColorBrush Color="#F59E0B" /></Rectangle.Fill>
+      <Rectangle.Fill><SolidColorBrush Color="#B45309" /></Rectangle.Fill>
     </Rectangle>
     <Grid>
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="96" />
+        <ColumnDefinition Width="86" />
         <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
-      <Border x:Name="PlateBox" Grid.Column="0" Background="#C2600A">
-        <Grid Margin="0,16,0,14">
+      <Border x:Name="PlateBox" Grid.Column="0" Background="#B45309" CornerRadius="9,0,0,9">
+        <Grid Margin="10,12,10,12">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
           <StackPanel Grid.Row="0" HorizontalAlignment="Center">
-            <TextBlock x:Name="PlateStatus" Text="高峰" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
-            <TextBlock x:Name="PlateStatusEn" Text="PEAK" FontSize="10" Foreground="#FFE0BF" HorizontalAlignment="Center" Margin="0,5,0,0" />
+            <TextBlock x:Name="PlateStatus" Text="高峰" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+            <TextBlock x:Name="PlateStatusEn" Text="PEAK" FontSize="10" Foreground="#D9FFFFFF" HorizontalAlignment="Center" Margin="0,2,0,0" />
           </StackPanel>
-          <TextBlock x:Name="PlateRate" Grid.Row="1" Text="1.0×" FontSize="22" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <TextBlock x:Name="PlateDay" Grid.Row="2" Text="工作日" FontSize="11" Foreground="#FFE0BF" HorizontalAlignment="Center" />
+          <TextBlock x:Name="PlateRate" Grid.Row="1" Text="1.0×" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <TextBlock x:Name="PlateDay" Grid.Row="2" Text="工作日" FontSize="10" Foreground="#BFFFFFFF" HorizontalAlignment="Center" />
         </Grid>
       </Border>
-      <Grid x:Name="Body" Grid.Column="1" Margin="16,14,16,12">
+      <Border Grid.Column="1" Background="#121215" CornerRadius="0,9,9,0">
+      <Grid x:Name="Body" Grid.Column="1" Margin="16,14,16,14">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
           <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal">
-          <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#F59E0B" Visibility="Collapsed" />
-          <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#F59E0B" Visibility="Collapsed" />
+          <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#B45309" Visibility="Collapsed" />
+          <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#B45309" Visibility="Collapsed" />
           <TextBlock x:Name="StatusText" Text="" FontSize="11" Foreground="#9CA3AF" Visibility="Collapsed" />
           <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#9CA3AF" Visibility="Collapsed" />
-          <TextBlock x:Name="DateText" Text="10月28日 周三 · 北京时间" FontSize="11" Foreground="#9CA3AF" />
+          <TextBlock x:Name="DateText" Text="10月28日 周三 · 北京时间" FontSize="11" Foreground="#A1A1AA" />
         </StackPanel>
-        <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="34" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
-        <Border x:Name="CdBox" Grid.Row="2" CornerRadius="6" Background="#262626" Padding="10,7">
+        <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="32" FontWeight="Bold" Foreground="#FAFAFA" VerticalAlignment="Center" />
+        <Border x:Name="CdBox" Grid.Row="2" CornerRadius="6" Background="#27272A" Padding="8,4">
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-              <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="12" Foreground="#9CA3AF" />
+              <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="11" Foreground="#71717A" />
               <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#6B7280" Margin="8,0,0,0" Visibility="Collapsed" />
             </StackPanel>
-            <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12" FontWeight="Bold" Foreground="#F5A623" VerticalAlignment="Center" />
+            <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="11" FontWeight="SemiBold" Foreground="#FBBF24" VerticalAlignment="Center" />
           </Grid>
         </Border>
         <Border x:Name="RateBadge" Grid.Row="2" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" Visibility="Collapsed">
-          <TextBlock x:Name="RateText" Text="1.0×" FontSize="10" Foreground="#F5A623" />
+          <TextBlock x:Name="RateText" Text="1.0×" FontSize="20" Foreground="#FBBF24" />
         </Border>
       </Grid>
+      </Border>
     </Grid>
     <Grid Visibility="Collapsed">
       <Canvas x:Name="TimelineCanvas" Height="8">
         <Rectangle x:Name="TimelineTrack" Height="6" Fill="#33FFFFFF" />
-        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#F59E0B" />
-        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#F59E0B" />
+        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#FBBF24" />
+        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#FBBF24" />
         <Rectangle x:Name="TimeMarker" Width="2" Height="8" Fill="#FFFFFF" />
       </Canvas>
     </Grid>
@@ -252,6 +263,8 @@ $script:LayoutSplit = @'
 '@
 
 # ---------- E3 新野兽派：直角白底 + 2px 黑框 + 黑底白字块 + 底部方框条 ----------
+# 对齐 code02.html 方案 03：卡 290×165；徽章 / 价格 / 日期 / 倒计时全部硬描边，
+# 日期行直接压一条 2px 黑线，真正的「黑框白底」排版。
 $script:LayoutBrutal = @'
 <Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="0" Margin="12" BorderThickness="2">
   <Border.Background><SolidColorBrush Color="#FFFFFF" /></Border.Background>
@@ -261,12 +274,12 @@ $script:LayoutBrutal = @'
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
       <Rectangle.Fill><SolidColorBrush Color="#111111" /></Rectangle.Fill>
     </Rectangle>
-    <Grid x:Name="Body" Margin="14,12,14,12">
+    <Grid x:Name="Body" Margin="12">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
       <Grid Grid.Row="0">
@@ -274,41 +287,42 @@ $script:LayoutBrutal = @'
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Border x:Name="StatusPill" Background="#F5A623" BorderThickness="0" CornerRadius="0" Padding="9,4" HorizontalAlignment="Left">
-          <StackPanel Orientation="Horizontal">
-            <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#FFFFFF" Visibility="Collapsed" />
-            <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#FFFFFF" Visibility="Collapsed" />
-            <TextBlock x:Name="StatusText" Text="高峰时段 PEAK" FontSize="12" FontWeight="Bold" Foreground="#111111" />
+        <Border x:Name="StatusPill" Background="#F59E0B" BorderBrush="#111111" BorderThickness="1.5" CornerRadius="0" Padding="6,2" HorizontalAlignment="Left">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#111111" Visibility="Collapsed" />
+            <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#111111" Visibility="Collapsed" />
+            <TextBlock x:Name="StatusText" Text="高峰时段 PEAK" FontSize="11" FontWeight="Bold" Foreground="#000000" />
           </StackPanel>
         </Border>
-        <Border x:Name="RateBadge" Grid.Column="1" Background="#FFFFFF" BorderBrush="#111111" BorderThickness="1.5" CornerRadius="0" Padding="9,4" VerticalAlignment="Center">
-          <TextBlock x:Name="RateText" Text="1.0×" FontSize="12" FontWeight="Bold" Foreground="#111111" />
+        <Border x:Name="RateBadge" Grid.Column="1" Background="#E2E8F0" BorderBrush="#111111" BorderThickness="1.5" CornerRadius="0" Padding="5,2" VerticalAlignment="Center">
+          <TextBlock x:Name="RateText" Text="1.0×" FontSize="11" FontWeight="Bold" Foreground="#111111" />
         </Border>
       </Grid>
-      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="38" FontWeight="Black" Foreground="#111111" Margin="0,6,0,0" />
-      <Grid Grid.Row="2" Margin="0,4,0,0">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal">
-          <TextBlock x:Name="DateText" Text="10月28日" FontSize="13" FontWeight="Bold" Foreground="#111111" />
-          <TextBlock x:Name="WeekText" Text="周三" FontSize="13" FontWeight="Bold" Foreground="#111111" Margin="6,0,0,0" />
-        </StackPanel>
-        <TextBlock x:Name="TzText" Grid.Column="1" Text="北京时间" FontSize="13" FontWeight="Bold" Foreground="#111111" HorizontalAlignment="Right" />
-      </Grid>
-      <Rectangle x:Name="BrutalRule" Grid.Row="3" Height="2" Fill="#111111" Margin="0,8,0,0" />
-      <Border x:Name="CdBox" Grid.Row="4" BorderBrush="#111111" BorderThickness="1.5" Background="#F5F5F5" Padding="9,6" Margin="0,9,0,0">
+      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="34" FontWeight="Black" Foreground="#111111" Margin="0,4,0,4" />
+      <Border Grid.Row="2" BorderBrush="#111111" BorderThickness="0,0,0,2" Padding="0,0,0,4">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock x:Name="DateText" Text="10月28日" FontSize="11" FontWeight="Bold" Foreground="#111111" />
+            <TextBlock x:Name="WeekText" Text="周三" FontSize="11" FontWeight="Bold" Foreground="#111111" Margin="6,0,0,0" />
+          </StackPanel>
+          <TextBlock x:Name="TzText" Grid.Column="1" Text="北京时间" FontSize="11" FontWeight="Bold" Foreground="#111111" HorizontalAlignment="Right" />
+        </Grid>
+      </Border>
+      <Border x:Name="CdBox" Grid.Row="4" BorderBrush="#111111" BorderThickness="1.5" Background="#F1F5F9" Padding="8,4">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock x:Name="CountdownText" Text="距空闲倒计时" FontSize="12" FontWeight="SemiBold" Foreground="#111111" />
+            <TextBlock x:Name="CountdownText" Text="距空闲倒计时" FontSize="11" FontWeight="Bold" Foreground="#111111" />
             <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#52525B" Margin="8,0,0,0" Visibility="Collapsed" />
           </StackPanel>
-          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12" FontWeight="Bold" Foreground="#C2410C" VerticalAlignment="Center" />
+          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="11" FontWeight="Bold" Foreground="#B45309" VerticalAlignment="Center" />
         </Grid>
       </Border>
     </Grid>
@@ -324,20 +338,23 @@ $script:LayoutBrutal = @'
 </Border>
 '@
 
-# ---------- D6 半谷：整块斜切双色 + 细网格 + 细体大钟 + 今日峰谷时长 ----------
+# ---------- D6 半谷：104° 斜切双色 + 细体大钟 + 今日峰谷时长 ----------
+# 对齐 design-options-v4.html 方案 06：卡 300×170，圆角 16；
+# 斜切比例跟着峰谷走（64% / 36% / 全天 12%），由 Apply-SchemeState 填渐变。
 $script:LayoutHalf = @'
-<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="14" Margin="12" BorderThickness="0">
-  <Border.Background><SolidColorBrush Color="#E4552E" /></Border.Background>
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="16" Margin="12" BorderThickness="0">
+  <Border.Background><SolidColorBrush Color="#E85D3D" /></Border.Background>
   <Grid x:Name="CardRoot">
     <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
       <Rectangle.Fill><SolidColorBrush Color="#FFFFFF" /></Rectangle.Fill>
     </Rectangle>
-    <Grid x:Name="Body" Margin="16,14,16,12">
+    <Grid x:Name="Body" Margin="17,15,17,13">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
@@ -347,35 +364,39 @@ $script:LayoutHalf = @'
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal">
-          <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#FFFFFF" Visibility="Collapsed" />
-          <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#FFFFFF" Visibility="Collapsed" />
-          <TextBlock x:Name="StatusIcon" Text="∿" FontSize="12" Foreground="#FFFFFF" Margin="0,0,5,0" />
-          <TextBlock x:Name="StatusText" Text="梁文峰时段" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF" />
+          <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#FFFFFF" Visibility="Collapsed" />
+          <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#FFFFFF" Visibility="Collapsed" />
+          <Path x:Name="StatusIconPath" Width="12" Height="12" Margin="0,0,6,0" VerticalAlignment="Center"
+                Stroke="#FFD9C9" StrokeThickness="1.6" Stretch="None"
+                Data="M1,10 L4.2,3 L7,10 M6,10 L8.6,5 L11,10" />
+          <TextBlock x:Name="StatusText" Text="梁文峰时段" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
         </StackPanel>
-        <Border x:Name="RateBadge" Grid.Column="1" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" VerticalAlignment="Center">
-          <TextBlock x:Name="RateText" Text="1.0×" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" />
-        </Border>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock x:Name="RateText" Text="1.0" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF" />
+          <TextBlock x:Name="RateTail" Text="×" FontSize="11" Foreground="#FFFFFF" Opacity="0.65" VerticalAlignment="Bottom" Margin="1,0,0,2" />
+          <Border x:Name="RateBadge" Width="0" Height="0" Background="#00000000" BorderThickness="0" Visibility="Collapsed" />
+        </StackPanel>
       </Grid>
-      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="38" FontWeight="Light" Foreground="#FFFFFF" Margin="0,4,0,0" />
-      <StackPanel x:Name="DateBox" Grid.Row="2" Orientation="Horizontal" Margin="0,2,0,0">
-        <TextBlock x:Name="DateText" Text="10月28日" FontSize="12" Foreground="#FFE8E0" />
-        <TextBlock x:Name="WeekText" Text="周三" FontSize="12" Foreground="#FFE8E0" Margin="6,0,0,0" />
+      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="38" FontWeight="Light" Foreground="#FFFFFF" Margin="0,10,0,0" />
+      <StackPanel x:Name="DateBox" Grid.Row="2" Orientation="Horizontal" Margin="0,4,0,0">
+        <TextBlock x:Name="DateText" Text="10月28日" FontSize="11.5" Foreground="#B8FFFFFF" />
+        <TextBlock x:Name="WeekText" Text="周三" FontSize="11.5" Foreground="#B8FFFFFF" Margin="6,0,0,0" />
       </StackPanel>
-      <Grid Grid.Row="3" Margin="0,12,0,0">
+      <Grid Grid.Row="4">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <TextBlock x:Name="CountdownText" Text="距梁文谷" FontSize="12" Foreground="#FFF0EA" />
-          <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#F3C4B4" Margin="8,0,0,0" Visibility="Collapsed" />
+          <TextBlock x:Name="CountdownText" Text="距梁文谷" FontSize="11" Foreground="#8AFFFFFF" />
+          <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#70FFFFFF" Margin="8,0,0,0" Visibility="Collapsed" />
         </StackPanel>
-        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF" Margin="8,0,0,0" VerticalAlignment="Center" />
+        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12.5" FontWeight="SemiBold" Foreground="#B8FFFFFF" Margin="6,0,0,0" VerticalAlignment="Center" />
       </Grid>
-      <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,10,0,0">
-        <Rectangle x:Name="HalfRule" Width="26" Height="2" Fill="#FFFFFF" VerticalAlignment="Center" />
-        <TextBlock x:Name="HalfFootText" Text="今日 峰 7h · 谷 17h" FontSize="11" Foreground="#FFFFFF" Margin="8,0,0,0" />
+      <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,7,0,0">
+        <Rectangle x:Name="HalfRule" Width="16" Height="2" Fill="#80FFFFFF" VerticalAlignment="Center" />
+        <TextBlock x:Name="HalfFootText" Text="今日 峰 7h · 谷 17h" FontSize="10" Foreground="#9EFFFFFF" Margin="10,0,0,0" />
       </StackPanel>
     </Grid>
     <Grid Visibility="Collapsed">
@@ -390,21 +411,23 @@ $script:LayoutHalf = @'
 </Border>
 '@
 
-# ---------- D3 K 线：橙红标题 + 细体大钟 + 蜡烛区 + 底部倒计时 ----------
+# ---------- D3 K 线：细体大钟 + 24 根蜡烛 + 底部倒计时 ----------
+# 对齐 design-options-v4.html 方案 03：卡 316×180，圆角 10，无描边；
+# 蜡烛区高 44，高峰柱满高、空闲柱半高，当前小时白描边。
 $script:LayoutCandle = @'
-<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="12" Margin="12" BorderThickness="1">
-  <Border.Background><SolidColorBrush Color="#131313" /></Border.Background>
-  <Border.BorderBrush><SolidColorBrush Color="#262626" /></Border.BorderBrush>
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="10" Margin="12" BorderThickness="0">
+  <Border.Background><SolidColorBrush Color="#14161C" /></Border.Background>
   <Grid x:Name="CardRoot">
     <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
-      <Rectangle.Fill><SolidColorBrush Color="#E4552E" /></Rectangle.Fill>
+      <Rectangle.Fill><SolidColorBrush Color="#E85D3D" /></Rectangle.Fill>
     </Rectangle>
-    <Grid x:Name="Body" Margin="14,12,14,10">
+    <Grid x:Name="Body" Margin="15,13,15,11">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
@@ -414,39 +437,43 @@ $script:LayoutCandle = @'
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal">
-          <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#E4552E" Visibility="Collapsed" />
-          <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#E4552E" Visibility="Collapsed" />
-          <TextBlock x:Name="StatusIcon" Text="∿" FontSize="12" Foreground="#E4552E" Margin="0,0,5,0" />
-          <TextBlock x:Name="StatusText" Text="梁文峰时段" FontSize="13" FontWeight="Bold" Foreground="#E4552E" />
+          <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#E85D3D" Visibility="Collapsed" />
+          <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#E85D3D" Visibility="Collapsed" />
+          <Path x:Name="StatusIconPath" Width="12" Height="12" Margin="0,0,6,0" VerticalAlignment="Center"
+                Stroke="#E85D3D" StrokeThickness="1.6" Stretch="None"
+                Data="M1,10 L4.2,3 L7,10 M6,10 L8.6,5 L11,10" />
+          <TextBlock x:Name="StatusText" Text="梁文峰时段" FontSize="12.5" FontWeight="SemiBold" Foreground="#E85D3D" VerticalAlignment="Center" />
         </StackPanel>
-        <Border x:Name="RateBadge" Grid.Column="1" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" VerticalAlignment="Center">
-          <TextBlock x:Name="RateText" Text="1.0×" FontSize="14" FontWeight="SemiBold" Foreground="#E4552E" />
-        </Border>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock x:Name="RateText" Text="1.0" FontSize="16" FontWeight="Bold" Foreground="#E85D3D" />
+          <TextBlock x:Name="RateTail" Text="×" FontSize="11" Foreground="#E85D3D" Opacity="0.65" VerticalAlignment="Bottom" Margin="1,0,0,2" />
+          <Border x:Name="RateBadge" Width="0" Height="0" Background="#00000000" BorderThickness="0" Visibility="Collapsed" />
+        </StackPanel>
       </Grid>
-      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="33" FontWeight="Light" Foreground="#F5F5F5" Margin="0,2,0,0" />
-      <StackPanel x:Name="DateBox" Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,0">
-        <TextBlock x:Name="DateText" Text="10月28日" FontSize="11" Foreground="#8A8A8A" />
-        <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#8A8A8A" Margin="6,0,0,0" />
+      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="34" FontWeight="Light" Foreground="#E9EDF3" Margin="0,6,0,0" />
+      <StackPanel x:Name="DateBox" Grid.Row="2" Orientation="Horizontal" Margin="0,3,0,0">
+        <TextBlock x:Name="DateText" Text="10月28日" FontSize="11.5" Foreground="#8B94A5" />
+        <TextBlock x:Name="WeekText" Text="周三" FontSize="11.5" Foreground="#8B94A5" Margin="6,0,0,0" />
       </StackPanel>
-      <Border x:Name="CandleBox" Grid.Row="3" Height="70" Margin="0,6,0,0" Background="#00000000" />
-      <Grid Grid.Row="4" Margin="0,8,0,0">
+      <Border x:Name="CandleBox" Grid.Row="4" Height="44" Margin="0,4,0,0" Background="#00000000" />
+      <Grid Grid.Row="5" Margin="0,7,0,0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <TextBlock x:Name="CountdownText" Text="距梁文谷" FontSize="11" Foreground="#8A8A8A" />
-          <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#5A5A5A" Margin="8,0,0,0" Visibility="Collapsed" />
+          <TextBlock x:Name="CountdownText" Text="距梁文谷" FontSize="11" Foreground="#5A6272" />
+          <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#4E5665" Margin="8,0,0,0" Visibility="Collapsed" />
         </StackPanel>
-        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12" FontWeight="Bold" Foreground="#F5F5F5" Margin="8,0,0,0" VerticalAlignment="Center" />
+        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12.5" FontWeight="SemiBold" Foreground="#8B94A5" Margin="6,0,0,0" VerticalAlignment="Center" />
       </Grid>
     </Grid>
     <Grid Visibility="Collapsed">
       <Canvas x:Name="TimelineCanvas" Height="8">
         <Rectangle x:Name="TimelineTrack" Height="6" Fill="#33FFFFFF" />
-        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#E4552E" />
-        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#E4552E" />
+        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#E85D3D" />
+        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#E85D3D" />
         <Rectangle x:Name="TimeMarker" Width="2" Height="8" Fill="#FFFFFF" />
       </Canvas>
     </Grid>
@@ -455,19 +482,23 @@ $script:LayoutCandle = @'
 '@
 
 # ---------- C6 色块：满版琥珀 + 方块标记 + 刻度尺 ----------
+# 对齐 design-options-v3.html 方案 06：卡 280×160，圆角 8，1px 描边；
+# 刻度尺高 14，每小时一根刻线，高峰段压深色带，当前时刻黑圆点 + 竖线。
 $script:LayoutSolid = @'
-<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="12" Margin="12" BorderThickness="0">
-  <Border.Background><SolidColorBrush Color="#E8A33D" /></Border.Background>
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="8" Margin="12" BorderThickness="1">
+  <Border.Background><SolidColorBrush Color="#E8A33A" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#D08F28" /></Border.BorderBrush>
   <Grid x:Name="CardRoot">
     <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
       <Rectangle.Fill><SolidColorBrush Color="#111111" /></Rectangle.Fill>
     </Rectangle>
-    <Grid x:Name="Body" Margin="16,12,16,10">
+    <Grid x:Name="Body" Margin="15,13,15,12">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
@@ -476,34 +507,34 @@ $script:LayoutSolid = @'
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal">
-          <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#111111" Visibility="Collapsed" />
-          <Rectangle x:Name="StatusSquare" Width="8" Height="8" Fill="#111111" VerticalAlignment="Center" />
-          <TextBlock x:Name="StatusText" Text="高峰时段" FontSize="16" FontWeight="Bold" Foreground="#111111" Margin="7,0,0,0" />
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#1A1206" Visibility="Collapsed" />
+          <Rectangle x:Name="StatusSquare" Width="7" Height="7" Fill="#1A1206" VerticalAlignment="Center" />
+          <TextBlock x:Name="StatusText" Text="高峰时段" FontSize="12" FontWeight="Bold" Foreground="#1A1206" Margin="6,0,0,0" />
         </StackPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
           <Border x:Name="RateBadge" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0">
-            <TextBlock x:Name="RateText" Text="1.0" FontSize="17" FontWeight="Bold" Foreground="#111111" />
+            <TextBlock x:Name="RateText" Text="1.0" FontSize="16" FontWeight="Bold" Foreground="#1A1206" FontFamily="Cascadia Mono, Consolas" />
           </Border>
-          <TextBlock x:Name="RateTail" Text="×" FontSize="11" Foreground="#3A2A12" Margin="1,0,0,2" VerticalAlignment="Bottom" />
+          <TextBlock x:Name="RateTail" Text="×" FontSize="11" Foreground="#1A1206" Opacity="0.6" Margin="1,0,0,2" VerticalAlignment="Bottom" />
         </StackPanel>
       </Grid>
-      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="36" FontWeight="Bold" Foreground="#111111" Margin="0,2,0,0" />
-      <StackPanel x:Name="DateBox" Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,0">
-        <TextBlock x:Name="DateText" Text="10月28日" FontSize="12" Foreground="#6B4413" />
-        <TextBlock x:Name="WeekText" Text="周三" FontSize="12" Foreground="#6B4413" Margin="6,0,0,0" />
+      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="38" FontWeight="Medium" Foreground="#1A1206" FontFamily="Cascadia Mono, Consolas" Margin="0,12,0,0" />
+      <StackPanel x:Name="DateBox" Grid.Row="2" Orientation="Horizontal" Margin="0,7,0,0">
+        <TextBlock x:Name="DateText" Text="10月28日" FontSize="11.5" Foreground="#9E1A1206" />
+        <TextBlock x:Name="WeekText" Text="周三" FontSize="11.5" Foreground="#9E1A1206" Margin="6,0,0,0" />
       </StackPanel>
-      <Border x:Name="ScaleBox" Grid.Row="3" Height="22" Margin="0,8,0,0" Background="#00000000" />
-      <Grid Grid.Row="4" Margin="0,6,0,0">
+      <Border x:Name="ScaleBox" Grid.Row="4" Height="14" Margin="0,0,0,0" Background="#00000000" />
+      <Grid Grid.Row="5" Margin="0,7,0,0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="11" Foreground="#6B4413" />
+          <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="11" Foreground="#701A1206" />
           <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#8A5E1E" Margin="8,0,0,0" Visibility="Collapsed" />
         </StackPanel>
-        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12" FontWeight="Bold" Foreground="#111111" VerticalAlignment="Center" />
+        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12.5" FontWeight="Bold" Foreground="#1A1206" FontFamily="Cascadia Mono, Consolas" VerticalAlignment="Center" />
       </Grid>
     </Grid>
     <Grid Visibility="Collapsed">
@@ -518,24 +549,28 @@ $script:LayoutSolid = @'
 </Border>
 '@
 
-# ---------- E2 工业级 HUD：顶部琥珀条 + 描边框 + 分段进度 ----------
+# ---------- E2 工业级 HUD：顶部琥珀条 + 虚线分隔 + 8 段发光进度 ----------
+# 对齐 code02.html 方案 02：卡 290×165，圆角 4，碳黑底；顶条 2px；
+# 头部虚线切分，时钟 28px 等宽，8 段进度块（5px 高）每秒随窗口推进。
 $script:LayoutHud = @'
 <Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="4" Margin="12" BorderThickness="1">
-  <Border.Background><SolidColorBrush Color="#111318" /></Border.Background>
-  <Border.BorderBrush><SolidColorBrush Color="#242833" /></Border.BorderBrush>
+  <Border.Background><SolidColorBrush Color="#0A0E14" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#1E293B" /></Border.BorderBrush>
   <Grid x:Name="CardRoot">
     <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
-    <Rectangle x:Name="HudTopBar" Height="3" VerticalAlignment="Top" Fill="#FFB020" />
+    <Rectangle x:Name="HudTopBar" Height="2" VerticalAlignment="Top" Fill="#F59E0B" />
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
-      <Rectangle.Fill><SolidColorBrush Color="#FFB020" /></Rectangle.Fill>
+      <Rectangle.Fill><SolidColorBrush Color="#F59E0B" /></Rectangle.Fill>
     </Rectangle>
-    <Grid x:Name="Body" Margin="14,13,14,12">
+    <Grid x:Name="Body" Margin="14,12,14,11">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
       <Grid Grid.Row="0">
@@ -544,52 +579,54 @@ $script:LayoutHud = @'
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#FFB020" Visibility="Collapsed" />
-          <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#FFB020" Visibility="Collapsed" />
-          <TextBlock x:Name="StatusIcon" Text="▲" FontSize="9" Foreground="#FFB020" Margin="0,1,6,0" />
-          <TextBlock x:Name="StatusText" Text="PEAK ACTIVE" FontSize="12" FontWeight="Bold" Foreground="#FFB020" FontFamily="Consolas, Cascadia Mono" />
+          <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#F59E0B" Visibility="Collapsed" />
+          <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#F59E0B" Visibility="Collapsed" />
+          <TextBlock x:Name="StatusIcon" Text="▲" FontSize="9" Foreground="#F59E0B" Margin="0,1,6,0" />
+          <TextBlock x:Name="StatusText" Text="PEAK ACTIVE" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" FontFamily="Cascadia Mono, Consolas" />
         </StackPanel>
-        <Border x:Name="RateBadge" Grid.Column="1" Background="#00000000" BorderBrush="#FFB020" BorderThickness="1" CornerRadius="0" Padding="7,3" VerticalAlignment="Center">
-          <TextBlock x:Name="RateText" Text="RATE 1.0X" FontSize="11" Foreground="#FFB020" FontFamily="Consolas, Cascadia Mono" />
+        <Border x:Name="RateBadge" Grid.Column="1" Background="#00000000" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="2" Padding="4,1" VerticalAlignment="Center">
+          <TextBlock x:Name="RateText" Text="RATE 1.0X" FontSize="10" Foreground="#F59E0B" FontFamily="Cascadia Mono, Consolas" />
         </Border>
       </Grid>
-      <Canvas Grid.Row="1" Height="1" Margin="0,8,0,0" ClipToBounds="True">
-        <Line X1="0" Y1="0" X2="900" Y2="0" Stroke="#3AFFB020" StrokeThickness="1" StrokeDashArray="1.5 3" />
+      <Canvas Grid.Row="1" Height="1" Margin="0,7,0,0" ClipToBounds="True">
+        <Line X1="0" Y1="0" X2="900" Y2="0" Stroke="#1AFFFFFF" StrokeThickness="1" StrokeDashArray="2 2" />
       </Canvas>
-      <Grid Grid.Row="2" Margin="0,8,0,0">
+      <Grid Grid.Row="3" Margin="0,8,0,0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="ClockText" Text="10:30:24" FontSize="30" FontWeight="Bold" Foreground="#F1F5F9" FontFamily="Consolas, Cascadia Mono" VerticalAlignment="Center" />
+        <TextBlock x:Name="ClockText" Text="10:30:24" FontSize="28" FontWeight="Bold" Foreground="#E2E8F0" FontFamily="Cascadia Mono, Consolas" VerticalAlignment="Center" />
         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-          <TextBlock x:Name="DateText" Text="OCT. 28 WED" FontSize="10" Foreground="#6B7C93" FontFamily="Consolas, Cascadia Mono" HorizontalAlignment="Right" />
-          <TextBlock x:Name="WeekText" Text="" FontSize="10" Foreground="#6B7C93" Visibility="Collapsed" />
-          <TextBlock x:Name="TzText" Text="UTC+8 BJT" FontSize="10" Foreground="#6B7C93" FontFamily="Consolas, Cascadia Mono" HorizontalAlignment="Right" Margin="0,4,0,0" />
+          <TextBlock x:Name="DateText" Text="OCT.28 WED" FontSize="10" Foreground="#64748B" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Right" />
+          <TextBlock x:Name="WeekText" Text="" FontSize="10" Foreground="#64748B" Visibility="Collapsed" />
+          <TextBlock x:Name="TzText" Text="UTC+8 BJT" FontSize="10" Foreground="#64748B" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Right" />
         </StackPanel>
       </Grid>
-      <Grid Grid.Row="3" Margin="0,10,0,0">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <TextBlock x:Name="WinLeft" Text="09:00" FontSize="9.5" Foreground="#6B7C93" FontFamily="Consolas, Cascadia Mono" />
-        <TextBlock x:Name="WinMid" Grid.Column="1" Text="PEAK WINDOW 1/2" FontSize="9.5" Foreground="#6B7C93" FontFamily="Consolas, Cascadia Mono" HorizontalAlignment="Center" />
-        <TextBlock x:Name="WinRight" Grid.Column="2" Text="12:00" FontSize="9.5" Foreground="#6B7C93" FontFamily="Consolas, Cascadia Mono" HorizontalAlignment="Right" />
-      </Grid>
-      <Canvas x:Name="HudProgress" Grid.Row="4" Height="8" Margin="0,5,0,0" ClipToBounds="True" />
-      <Border x:Name="CdBox" Grid.Row="5" BorderBrush="#242833" BorderThickness="1" CornerRadius="3" Background="#0C0E12" Padding="9,6" Margin="0,9,0,0">
+      <StackPanel Grid.Row="5" Margin="0,0,0,0">
+        <Grid Margin="0,0,0,3">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <TextBlock x:Name="WinLeft" Text="09:00" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" />
+          <TextBlock x:Name="WinMid" Grid.Column="1" Text="PEAK WINDOW 1/2" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Center" />
+          <TextBlock x:Name="WinRight" Grid.Column="2" Text="12:00" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Right" />
+        </Grid>
+        <Canvas x:Name="HudProgress" Height="5" ClipToBounds="True" />
+      </StackPanel>
+      <Border x:Name="CdBox" Grid.Row="7" BorderBrush="#0DFFFFFF" BorderThickness="1" CornerRadius="2" Background="#05FFFFFF" Padding="6,4">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock x:Name="CountdownText" Text="NEXT IDLE IN:" FontSize="11" Foreground="#8A9BB4" FontFamily="Consolas, Cascadia Mono" />
+            <TextBlock x:Name="CountdownText" Text="NEXT IDLE IN:" FontSize="10" Foreground="#64748B" FontFamily="Cascadia Mono, Consolas" />
             <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#4B5563" Margin="8,0,0,0" Visibility="Collapsed" />
           </StackPanel>
-          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12" FontWeight="Bold" Foreground="#FFB020" FontFamily="Consolas, Cascadia Mono" VerticalAlignment="Center" />
+          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="10" FontWeight="Bold" Foreground="#F59E0B" FontFamily="Cascadia Mono, Consolas" VerticalAlignment="Center" />
         </Grid>
       </Border>
     </Grid>
@@ -606,16 +643,18 @@ $script:LayoutHud = @'
 '@
 
 # ---------- C4 圆表：外圈刻度 + 内环仪表 + 中心堆叠 ----------
+# 对齐 design-options-v3.html 方案 04：Ø300 圆卡，环带 R90–R112；
+# 中心从上到下：琥珀 chip、34px 时钟、22px 倍率、日期、倒计时。
 $script:LayoutGauge = @'
 <Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="150" Margin="10" BorderThickness="1">
-  <Border.Background><SolidColorBrush Color="#12161D" /></Border.Background>
-  <Border.BorderBrush><SolidColorBrush Color="#1E242E" /></Border.BorderBrush>
+  <Border.Background><SolidColorBrush Color="#14161C" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#2C313D" /></Border.BorderBrush>
   <Grid x:Name="CardRoot">
     <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
-      <Rectangle.Fill><SolidColorBrush Color="#FFB020" /></Rectangle.Fill>
+      <Rectangle.Fill><SolidColorBrush Color="#E8A33A" /></Rectangle.Fill>
     </Rectangle>
-    <Grid x:Name="Body" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-6,0,6">
+    <Grid x:Name="Body" VerticalAlignment="Center" HorizontalAlignment="Center">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
@@ -623,32 +662,36 @@ $script:LayoutGauge = @'
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
-      <Border x:Name="StatusPill" Grid.Row="0" Background="#FFB020" BorderThickness="0" CornerRadius="4" Padding="8,3" HorizontalAlignment="Center">
-        <StackPanel Orientation="Horizontal">
-          <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#1A1A1A" Visibility="Collapsed" />
-          <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#1A1A1A" Visibility="Collapsed" />
-          <TextBlock x:Name="StatusText" Text="• 高峰" FontSize="11" FontWeight="Bold" Foreground="#1A1A1A" />
+      <Border x:Name="StatusPill" Grid.Row="0" Background="#E8A33A" BorderThickness="0" CornerRadius="2" Padding="6,4" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Ellipse x:Name="ChipDot" Width="4" Height="4" Fill="#1A1206" Opacity="0.65" Margin="0,0,5,0" VerticalAlignment="Center" />
+          <TextBlock x:Name="StatusText" Text="高峰" FontSize="10" FontWeight="Bold" Foreground="#1A1206" />
         </StackPanel>
       </Border>
-      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="30" FontWeight="Bold" Foreground="#F1F5F9" FontFamily="Consolas, Cascadia Mono" HorizontalAlignment="Center" Margin="0,8,0,0" />
-      <Border x:Name="RateBadge" Grid.Row="2" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" HorizontalAlignment="Center" Margin="0,2,0,0">
-        <TextBlock x:Name="RateText" Text="1.0×" FontSize="15" FontWeight="Bold" Foreground="#FFB020" />
-      </Border>
-      <StackPanel x:Name="DateBox" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
-        <TextBlock x:Name="DateText" Text="10月28日" FontSize="10" Foreground="#8A94A6" />
-        <TextBlock x:Name="WeekText" Text="周三" FontSize="10" Foreground="#8A94A6" Margin="5,0,0,0" />
+      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="34" FontWeight="Medium" Foreground="#E9ECF2" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Center" Margin="0,14,0,0" />
+      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0" VerticalAlignment="Center">
+        <Border x:Name="RateBadge" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0">
+          <TextBlock x:Name="RateText" Text="1.0" FontSize="22" FontWeight="Bold" Foreground="#E8A33A" FontFamily="Cascadia Mono, Consolas" />
+        </Border>
+        <TextBlock x:Name="RateTail" Text="×" FontSize="13" Foreground="#E8A33A" Opacity="0.7" VerticalAlignment="Bottom" Margin="1,0,0,3" />
       </StackPanel>
-      <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
-        <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="9.5" Foreground="#6B7C93" />
-        <TextBlock x:Name="CountdownValue" Text="01:29:36" FontSize="9.5" Foreground="#C9D2DF" Margin="6,0,0,0" />
+      <StackPanel x:Name="DateBox" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,14,0,0">
+        <TextBlock x:Name="DateText" Text="10月28日" FontSize="11" Foreground="#8A93A4" />
+        <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#8A93A4" Margin="5,0,0,0" />
+      </StackPanel>
+      <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+        <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="10" Foreground="#5A6272" />
+        <TextBlock x:Name="CountdownValue" Text="01:29:36" FontSize="11.5" FontWeight="SemiBold" Foreground="#8A93A4" Margin="6,0,0,0" />
         <TextBlock x:Name="HintText" Text="" FontSize="9" Foreground="#4B5563" Visibility="Collapsed" />
       </StackPanel>
+      <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#E8A33A" Visibility="Collapsed" />
+      <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#E8A33A" Visibility="Collapsed" />
     </Grid>
     <Grid Visibility="Collapsed">
       <Canvas x:Name="TimelineCanvas" Height="8">
         <Rectangle x:Name="TimelineTrack" Height="6" Fill="#33FFFFFF" />
-        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#FFB020" />
-        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#FFB020" />
+        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#E8A33A" />
+        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#E8A33A" />
         <Rectangle x:Name="TimeMarker" Width="2" Height="8" Fill="#FFFFFF" />
       </Canvas>
     </Grid>
@@ -698,58 +741,110 @@ function Get-PeakShape {
 }
 
 # ============================ F1 峰谷示波器 ============================
-# 网页稿的波形区是一个带描边的框，框里是「两个圆峰 + 中间谷」的曲线，
-# 峰顶有菱形标记 + 引线 + PEAK 标签，当前时刻一条竖虚线。
+# 对齐 code03.html：波形框里有横竖虚线网格；峰值态是两个圆峰，
+# 谷时态是倒挂的两个谷，周末/节假日压成一条平线；
+# 标记点用十字准星 + 白心圆点 + 深色小标签（PEAK / VALLEY / 全天空闲）。
 function Add-DecorScope {
     param($Layer, [double]$W, [double]$H, $Colors, $Status)
-    $box = Get-ElementBox -Element $script:ScopeBox -FallbackW ($W - 24) -FallbackH 58
+    $box = Get-ElementBox -Element $script:ScopeBox -FallbackW ($W - 28) -FallbackH 52
     $bx = [double]$box[0]; $by = [double]$box[1]
     $bw = [double]$box[2]; $bh = [double]$box[3]
     if ($bw -lt 20) { return }
 
     $accent = [string]$Colors.Accent
-    $padX = 10.0
-    $innerW = $bw - $padX * 2
-    $baseY = $by + $bh - 8.0
-    $amp = $bh - 20.0
-    if ($amp -lt 6) { $amp = 6 }
+    $allDay = -not [bool]$Status.IsPeakDay
+    $isPeak = [bool]$Status.IsPeak
 
-    # 横向虚线网格
-    for ($i = 1; $i -le 2; $i++) {
-        $gy = $by + $bh * ($i / 3.0)
-        $grid = New-LineShape -X1 ($bx + 4) -Y1 $gy -X2 ($bx + $bw - 4) -Y2 $gy -Color '#18FFFFFF' -Thickness 1
+    # 波形框内底色：径向渐变从状态色微光过渡到深色（网页稿的 ellipse at 50% 30%）
+    $bg1 = '#161F30'
+    $bg2 = '#080C14'
+    if ($Colors.ContainsKey('ScopeBg1')) { $bg1 = [string]$Colors.ScopeBg1 }
+    if ($Colors.ContainsKey('ScopeBg2')) { $bg2 = [string]$Colors.ScopeBg2 }
+    $bg = New-Object System.Windows.Shapes.Rectangle
+    $bg.Width = $bw
+    $bg.Height = $bh
+    $bg.RadiusX = 8
+    $bg.RadiusY = 8
+    $bg.Stroke = New-BrushSafe '#00000000'
+    $radial = New-Object System.Windows.Media.RadialGradientBrush
+    $radial.Center = New-Object System.Windows.Point -ArgumentList 0.5, 0.3
+    $radial.GradientOrigin = New-Object System.Windows.Point -ArgumentList 0.5, 0.3
+    $radial.RadiusX = 0.85
+    $radial.RadiusY = 1.0
+    $c1 = [System.Windows.Media.ColorConverter]::ConvertFromString($bg1)
+    $c2 = [System.Windows.Media.ColorConverter]::ConvertFromString($bg2)
+    [void]$radial.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $c1, 0.0))
+    [void]$radial.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $c2, 1.0))
+    $bg.Fill = $radial
+    [System.Windows.Controls.Canvas]::SetLeft($bg, $bx)
+    [System.Windows.Controls.Canvas]::SetTop($bg, $by)
+    [void]$Layer.Children.Add($bg)
+
+    # 横竖虚线网格：中间那根压状态色，其余白色 5%
+    foreach ($ratio in @(0.25, 0.5, 0.75)) {
+        $isMid = ([Math]::Abs($ratio - 0.5) -lt 0.01)
+        $gy = $by + $bh * $ratio
+        $grid = New-LineShape -X1 ($bx + 2) -Y1 $gy -X2 ($bx + $bw - 2) -Y2 $gy -Color '#0DFFFFFF' -Thickness 0.8
+        if ($isMid) { $grid.Stroke = New-BrushSafe $accent 0.15 }
         $grid.StrokeDashArray = New-Object System.Windows.Media.DoubleCollection
-        [void]$grid.StrokeDashArray.Add(3.0)
-        [void]$grid.StrokeDashArray.Add(4.0)
+        [void]$grid.StrokeDashArray.Add(2.0)
+        [void]$grid.StrokeDashArray.Add(2.0)
         [void]$Layer.Children.Add($grid)
+
+        $gx = $bx + $bw * $ratio
+        $vgrid = New-LineShape -X1 $gx -Y1 ($by + 2) -X2 $gx -Y2 ($by + $bh - 2) -Color '#0DFFFFFF' -Thickness 0.8
+        if ($isMid) { $vgrid.Stroke = New-BrushSafe $accent 0.18 }
+        $vgrid.StrokeDashArray = New-Object System.Windows.Media.DoubleCollection
+        [void]$vgrid.StrokeDashArray.Add(2.0)
+        [void]$vgrid.StrokeDashArray.Add(2.0)
+        [void]$Layer.Children.Add($vgrid)
     }
 
-    $peaks = Get-PeakShape -Status $Status
-
-    # 曲线：两个高斯峰叠起来，峰位跟着真实窗口走，形状是圆的而不是方平台
-    $steps = 120
-    $figure = New-Object System.Windows.Media.PathFigure
+    # 波形采样：sin²(2πt) 在 25% / 75% 形成两个圆峰，中间是午间谷
+    $baseY = $by + $bh - 10.0
+    $topY = $by + 10.0
+    $amp = $baseY - $topY
+    if ($amp -lt 4) { $amp = 4 }
+    $steps = 96
+    $curve = @()
     for ($i = 0; $i -le $steps; $i++) {
         $f = $i / [double]$steps
-        $value = 0.0
-        foreach ($peak in $peaks) {
-            # sigma 给大一点，峰才圆；太小会变成尖刺（网页稿是两个宽圆峰）
-            $sigma = [Math]::Max(0.062, $peak.Half / 1.05)
-            $d = $f - $peak.Center
-            $value += [Math]::Exp(-($d * $d) / (2.0 * $sigma * $sigma))
-        }
-        if ($value -gt 1.0) { $value = 1.0 }
-        # 抬一点基线，曲线才不会在空闲段贴着框底走直线（网页稿是连绵起伏的）
-        $value = 0.16 + 0.84 * $value
-        $x = $bx + $padX + $f * $innerW
-        $y = $baseY - $value * $amp
-        $point = New-Object System.Windows.Point -ArgumentList $x, $y
-        if ($i -eq 0) {
-            $figure.StartPoint = $point
-            $figure.IsClosed = $false
+        $wave = [Math]::Sin(2.0 * [Math]::PI * $f)
+        $value = $wave * $wave
+        $x = $bx + $f * $bw
+        if ($allDay) {
+            $y = $by + $bh * 0.5
+        } elseif ($isPeak) {
+            $y = $baseY - $value * $amp
         } else {
-            [void]$figure.Segments.Add((New-Object System.Windows.Media.LineSegment -ArgumentList $point, $true))
+            # 谷时态：曲线倒挂，谷底在 25% / 75%
+            $y = $topY + $value * $amp
         }
+        $curve += , @($x, $y)
+    }
+
+    # 曲线下方填充（全天空闲时中线下方的浅色区）
+    $fillFigure = New-Object System.Windows.Media.PathFigure
+    $fillFigure.IsClosed = $true
+    $fillFigure.StartPoint = New-Object System.Windows.Point -ArgumentList $curve[0][0], $curve[0][1]
+    for ($i = 1; $i -lt $curve.Count; $i++) {
+        [void]$fillFigure.Segments.Add((New-Object System.Windows.Media.LineSegment -ArgumentList (New-Object System.Windows.Point -ArgumentList $curve[$i][0], $curve[$i][1]), $true))
+    }
+    [void]$fillFigure.Segments.Add((New-Object System.Windows.Media.LineSegment -ArgumentList (New-Object System.Windows.Point -ArgumentList ($bx + $bw), ($by + $bh)), $true))
+    [void]$fillFigure.Segments.Add((New-Object System.Windows.Media.LineSegment -ArgumentList (New-Object System.Windows.Point -ArgumentList $bx, ($by + $bh)), $true))
+    $fillGeometry = New-Object System.Windows.Media.PathGeometry
+    [void]$fillGeometry.Figures.Add($fillFigure)
+    $fill = New-Object System.Windows.Shapes.Path
+    $fill.Data = $fillGeometry
+    $fill.Fill = New-BrushSafe $accent 0.14
+    [void]$Layer.Children.Add($fill)
+
+    # 主波形 + 外发光
+    $figure = New-Object System.Windows.Media.PathFigure
+    $figure.StartPoint = New-Object System.Windows.Point -ArgumentList $curve[0][0], $curve[0][1]
+    $figure.IsClosed = $false
+    for ($i = 1; $i -lt $curve.Count; $i++) {
+        [void]$figure.Segments.Add((New-Object System.Windows.Media.LineSegment -ArgumentList (New-Object System.Windows.Point -ArgumentList $curve[$i][0], $curve[$i][1]), $true))
     }
     $geometry = New-Object System.Windows.Media.PathGeometry
     [void]$geometry.Figures.Add($figure)
@@ -764,240 +859,289 @@ function Add-DecorScope {
     $path = New-Object System.Windows.Shapes.Path
     $path.Data = $geometry
     $path.Stroke = New-BrushSafe $accent 0.95
-    $path.StrokeThickness = 2
+    $path.StrokeThickness = 1.8
     $path.StrokeLineJoin = [System.Windows.Media.PenLineJoin]::Round
     [void]$Layer.Children.Add($path)
 
-    # 当前时刻竖虚线
-    $nowX = $bx + $padX + [double]$Status.DayFraction * $innerW
-    $cursor = New-LineShape -X1 $nowX -Y1 ($by + 4) -X2 $nowX -Y2 ($by + $bh - 4) -Color '#40FFFFFF' -Thickness 1
-    $cursor.StrokeDashArray = New-Object System.Windows.Media.DoubleCollection
-    [void]$cursor.StrokeDashArray.Add(2.0)
-    [void]$cursor.StrokeDashArray.Add(3.0)
-    [void]$Layer.Children.Add($cursor)
-
-    # 第一个峰顶：菱形标记 + 短引线 + PEAK 标签
-    if ($peaks.Count -ge 1) {
-        $peak = $peaks[0]
-        $px = $bx + $padX + $peak.Center * $innerW
-        $py = $baseY - $amp
-        $diamond = New-Object System.Windows.Shapes.Polygon
-        $pts = New-Object System.Windows.Media.PointCollection
-        [void]$pts.Add((New-Object System.Windows.Point -ArgumentList $px, ($py - 5)))
-        [void]$pts.Add((New-Object System.Windows.Point -ArgumentList ($px + 4), $py))
-        [void]$pts.Add((New-Object System.Windows.Point -ArgumentList $px, ($py + 5)))
-        [void]$pts.Add((New-Object System.Windows.Point -ArgumentList ($px - 4), $py))
-        $diamond.Points = $pts
-        $diamond.Fill = New-BrushSafe '#FFFFFF'
-        [void]$Layer.Children.Add($diamond)
-
-        $tagW = 56.0
-        $tagH = 17.0
-        $tagX = $px + 6
-        if (($tagX + $tagW) -gt ($bx + $bw - 4)) { $tagX = $px - $tagW - 6 }
-        $tagY = $py + 9
-        if (($tagY + $tagH) -gt ($by + $bh - 3)) { $tagY = $py - $tagH - 9 }
-        $tag = New-Object System.Windows.Controls.Border
-        $tag.Width = $tagW
-        $tag.Height = $tagH
-        $tag.Background = New-BrushSafe '#E6101216'
-        $tag.BorderBrush = New-BrushSafe $accent 0.8
-        $tag.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1
-        $tag.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList 2
-        $tagText = New-Object System.Windows.Controls.TextBlock
-        $tagText.Text = 'PEAK 1.0×'
-        $tagText.FontSize = 8.0
-        $tagText.Foreground = New-BrushSafe $accent
-        $tagText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Center
-        $tagText.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-        $tag.Child = $tagText
-        [System.Windows.Controls.Canvas]::SetLeft($tag, $tagX)
-        [System.Windows.Controls.Canvas]::SetTop($tag, $tagY)
-        [void]$Layer.Children.Add($tag)
-
-        $leader = New-LineShape -X1 $px -Y1 ($py + 5) -X2 $px -Y2 $tagY -Color $accent -Thickness 1
-        $leader.Opacity = 0.6
-        [void]$Layer.Children.Add($leader)
+    # 标记点：峰顶标右峰（75%），谷底标左谷（25%），全天标平线 30%
+    if ($allDay) {
+        $mx = $bx + $bw * 0.30
+        $my = $by + $bh * 0.5
+        $tagLabel = '全天空闲'
+        $tagW = 54.0
+        $tagY = $my + 11.0
+        $tagX = $mx - $tagW / 2.0
+    } elseif ($isPeak) {
+        $mx = $bx + $bw * 0.75
+        $my = $topY
+        $tagLabel = 'PEAK 1.0×'
+        $tagW = 40.0
+        $tagY = $my + 11.0
+        $tagX = $mx - $tagW / 2.0
+    } else {
+        $mx = $bx + $bw * 0.25
+        $my = $by + $bh - 10.0
+        $tagLabel = 'VALLEY'
+        $tagW = 40.0
+        $tagY = $my - 24.0
+        $tagX = $mx - $tagW / 2.0
     }
+    if ($tagX -lt ($bx + 2)) { $tagX = $bx + 2 }
+    if (($tagX + $tagW) -gt ($bx + $bw - 2)) { $tagX = $bx + $bw - 2 - $tagW }
+    if ($tagY -lt ($by + 2)) { $tagY = $by + 2 }
+    if (($tagY + 12.0) -gt ($by + $bh - 2)) { $tagY = $my - 24.0 }
+
+    $crossV = New-LineShape -X1 $mx -Y1 ($my - 6.0) -X2 $mx -Y2 ($my + 8.0) -Color $accent -Thickness 1
+    $crossV.Opacity = 0.8
+    [void]$Layer.Children.Add($crossV)
+    $crossH = New-LineShape -X1 ($mx - 8.0) -Y1 $my -X2 ($mx + 8.0) -Y2 $my -Color $accent -Thickness 1
+    $crossH.Opacity = 0.8
+    [void]$Layer.Children.Add($crossH)
+
+    $dot = New-Object System.Windows.Shapes.Ellipse
+    $dot.Width = 6; $dot.Height = 6
+    $dot.Fill = New-BrushSafe '#FFFFFF'
+    $dot.Stroke = New-BrushSafe $accent
+    $dot.StrokeThickness = 2
+    [System.Windows.Controls.Canvas]::SetLeft($dot, ($mx - 3))
+    [System.Windows.Controls.Canvas]::SetTop($dot, ($my - 3))
+    [void]$Layer.Children.Add($dot)
+
+    $tag = New-Object System.Windows.Controls.Border
+    $tag.Width = $tagW
+    $tag.Height = 12
+    $tag.Background = New-BrushSafe '#B3000000'
+    $tag.BorderBrush = New-BrushSafe $accent 0.5
+    $tag.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0.8
+    $tag.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList 2
+    $tagText = New-Object System.Windows.Controls.TextBlock
+    $tagText.Text = $tagLabel
+    $tagText.FontSize = 7.5
+    $tagText.FontWeight = [System.Windows.FontWeights]::Bold
+    $tagText.Foreground = New-BrushSafe $accent
+    $tagText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Center
+    $tagText.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $tag.Child = $tagText
+    [System.Windows.Controls.Canvas]::SetLeft($tag, $tagX)
+    [System.Windows.Controls.Canvas]::SetTop($tag, $tagY)
+    [void]$Layer.Children.Add($tag)
 }
 
 # ============================ D3 K 线 ============================
-# 网页稿：24 根柱子，高峰是满高橙红粗柱，空闲是贴底的暗绿矮块，
-# 当前那一根描白边并略高一点。
+# 对齐 design-options-v4.html：24 根等宽蜡烛（间隙 2），高峰满高橙红、空闲半高青绿，
+# 底部一条 1px 基线；当前那一根描 1.5px 白边。
 function Add-DecorKline {
     param($Layer, [double]$W, [double]$H, $Colors, $Status)
-    $box = Get-ElementBox -Element $script:CandleBox -FallbackW ($W - 28) -FallbackH 56
+    $box = Get-ElementBox -Element $script:CandleBox -FallbackW ($W - 30) -FallbackH 44
     $bx = [double]$box[0]; $by = [double]$box[1]
     $bw = [double]$box[2]; $bh = [double]$box[3]
     if ($bw -lt 20) { return }
 
-    $padX = 2.0
-    $innerW = $bw - $padX * 2
-    $baseY = $by + $bh - 2.0
-    $slot = $innerW / 24.0
-    $barW = [Math]::Max(4.0, $slot - 3.0)
-    $peakColor = '#E4552E'
-    $idleColor = '#2E6B5E'
+    $baseY = $by + $bh
+    $baseline = New-LineShape -X1 $bx -Y1 ($baseY - 0.5) -X2 ($bx + $bw) -Y2 ($baseY - 0.5) -Color '#24FFFFFF' -Thickness 1
+    [void]$Layer.Children.Add($baseline)
+
+    $gap = 2.0
+    $barW = ($bw - $gap * 23.0) / 24.0
+    if ($barW -lt 2) { $barW = 2 }
+    $peakColor = '#E85D3D'
+    $idleColor = '#732FB89A'
     $currentHour = [int][Math]::Floor([double]$Status.DayFraction * 24.0)
     if ($currentHour -gt 23) { $currentHour = 23 }
+    if ($currentHour -lt 0) { $currentHour = 0 }
 
     for ($h = 0; $h -lt 24; $h++) {
         $rate = Get-DayRate -Fraction (($h + 0.5) / 24.0) -Windows $Status.PeakWindows -Soft 0.0001
         $isPeak = ($rate -gt 0.5)
-        $x = $bx + $padX + $h * $slot + ($slot - $barW) / 2.0
+        $x = $bx + $h * ($barW + $gap)
         if ($isPeak) {
-            $barH = $bh - 6.0
+            $barH = $bh
             $color = $peakColor
         } else {
-            $barH = 18.0
+            $barH = $bh * 0.5
             $color = $idleColor
         }
-        if ($h -eq $currentHour) { $barH = $barH + 3.0 }
-        $bar = New-RectShape -X $x -Y ($baseY - $barH) -W $barW -H $barH -Color $color -Radius 0
-        $bar.Opacity = 0.95
-        [void]$Layer.Children.Add($bar)
+        $bar = New-RectShape -X $x -Y ($baseY - $barH) -W $barW -H $barH -Color $color -Radius 1
         if ($h -eq $currentHour) {
             $bar.Stroke = New-BrushSafe '#FFFFFF'
             $bar.StrokeThickness = 1.5
+            try {
+                $glow = New-Object System.Windows.Media.Effects.DropShadowEffect
+                $glow.BlurRadius = 8
+                $glow.ShadowDepth = 0
+                $glow.Opacity = 0.5
+                $glow.Color = [System.Windows.Media.ColorConverter]::ConvertFromString('#FFFFFF')
+                $bar.Effect = $glow
+            } catch { }
         }
+        [void]$Layer.Children.Add($bar)
     }
 }
 
-# ============================ D6 半谷 ============================
-# 网页稿：橙底 + 右侧青绿斜切块 + 细网格线；斜切角度固定，不跟峰时长走。
-function Add-DecorHalfSplit {
-    param($Layer, [double]$W, [double]$H, $Colors, $Status)
-    $topX = $W * 0.62
-    $bottomX = $W * 0.55
-    $points = New-Object System.Windows.Media.PointCollection
-    [void]$points.Add((New-Object System.Windows.Point -ArgumentList $topX, 0))
-    [void]$points.Add((New-Object System.Windows.Point -ArgumentList $W, 0))
-    [void]$points.Add((New-Object System.Windows.Point -ArgumentList $W, $H))
-    [void]$points.Add((New-Object System.Windows.Point -ArgumentList $bottomX, $H))
-    $polygon = New-Object System.Windows.Shapes.Polygon
-    $polygon.Points = $points
-    $polygon.Fill = New-BrushSafe '#2AB5A0'
-    [void]$Layer.Children.Add($polygon)
-
-    # 细网格：40px 一格，白色 7%
-    $x = 0.0
-    while ($x -lt $W) {
-        $line = New-LineShape -X1 $x -Y1 0 -X2 $x -Y2 $H -Color '#12FFFFFF' -Thickness 1
-        [void]$Layer.Children.Add($line)
-        $x += 40
-    }
-    $y = 0.0
-    while ($y -lt $H) {
-        $line = New-LineShape -X1 0 -Y1 $y -X2 $W -Y2 $y -Color '#12FFFFFF' -Thickness 1
-        [void]$Layer.Children.Add($line)
-        $y += 40
-    }
+# ============================ E5 内凹屏槽 ============================
+# 网页稿的 box-shadow 是 inset 0 0 10px rgba(0,0,0,.8)：
+# 四边压暗、中间保持屏色，看起来像一块真的内凹玻璃。
+function Add-DecorLcdVignette {
+    param($Layer, [double]$W, [double]$H, $Colors)
+    $vig = New-Object System.Windows.Shapes.Rectangle
+    $vig.Width = $W
+    $vig.Height = $H
+    $vig.RadiusX = 4
+    $vig.RadiusY = 4
+    $brush = New-Object System.Windows.Media.RadialGradientBrush
+    $brush.Center = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+    $brush.GradientOrigin = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+    $brush.RadiusX = 0.72
+    $brush.RadiusY = 0.78
+    [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.ColorConverter]::ConvertFromString('#00000000')), 0.0))
+    [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.ColorConverter]::ConvertFromString('#00000000')), 0.62))
+    [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.ColorConverter]::ConvertFromString('#8C000000')), 1.0))
+    $vig.Fill = $brush
+    [void]$Layer.Children.Add($vig)
 }
 
 # ============================ C6 色块 ============================
-# 网页稿：日期下面一条刻度尺（1 小时一格），高峰段压深色块，
-# 当前时刻一个黑圆点 + 竖线指针。
+# 网页稿：日期下面一条 14px 刻度尺（1 小时一格），高峰段压深色带，
+# 当前时刻一根 2px 竖线 + 顶端小圆点。
 function Add-DecorScaleBar {
     param($Layer, [double]$W, [double]$H, $Colors, $Status)
-    $box = Get-ElementBox -Element $script:ScaleBox -FallbackW ($W - 32) -FallbackH 22
+    $box = Get-ElementBox -Element $script:ScaleBox -FallbackW ($W - 30) -FallbackH 14
     $bx = [double]$box[0]; $by = [double]$box[1]
     $bw = [double]$box[2]; $bh = [double]$box[3]
     if ($bw -lt 20) { return }
 
-    $padX = 0.0
-    $innerW = $bw - $padX * 2
-    $baseY = $by + $bh - 4.0
-    $ink = '#C1111111'
+    $ruleColor = '#3D1A1206'
+    $tickColor = '#521A1206'
+    $bandColor = '#8C1A1206'
+    $nowColor = '#1A1206'
+    $freeColor = '#2E04140F'
+    if ($Colors.ContainsKey('Rule')) { $ruleColor = [string]$Colors.Rule }
+    if ($Colors.ContainsKey('Tick')) { $tickColor = [string]$Colors.Tick }
+    if ($Colors.ContainsKey('Band')) { $bandColor = [string]$Colors.Band }
+    if ($Colors.ContainsKey('Now')) { $nowColor = [string]$Colors.Now }
+    if ($Colors.ContainsKey('FreeBand')) { $freeColor = [string]$Colors.FreeBand }
 
-    $rule = New-LineShape -X1 ($bx + $padX) -Y1 $baseY -X2 ($bx + $padX + $innerW) -Y2 $baseY -Color '#55111111' -Thickness 1
-    [void]$Layer.Children.Add($rule)
+    $topY = $by
+    $bottomY = $by + $bh - 1.0
+    $topRule = New-LineShape -X1 $bx -Y1 $topY -X2 ($bx + $bw) -Y2 $topY -Color $ruleColor -Thickness 1
+    [void]$Layer.Children.Add($topRule)
+    $bottomRule = New-LineShape -X1 $bx -Y1 $bottomY -X2 ($bx + $bw) -Y2 $bottomY -Color $ruleColor -Thickness 1
+    [void]$Layer.Children.Add($bottomRule)
 
+    if (-not [bool]$Status.IsPeakDay) {
+        $band = New-RectShape -X $bx -Y $topY -W $bw -H ($bottomY - $topY) -Color $freeColor
+        [void]$Layer.Children.Add($band)
+    } else {
+        foreach ($window in $Status.PeakWindows) {
+            $sx = $bx + [double]$window.Start * $bw
+            $ex = $bx + [double]$window.End * $bw
+            $band = New-RectShape -X $sx -Y $topY -W ($ex - $sx) -H ($bottomY - $topY) -Color $bandColor
+            [void]$Layer.Children.Add($band)
+        }
+    }
+
+    # 每小时一根 5px 短刻线，从尺子顶部往下挂
     for ($h = 0; $h -le 24; $h++) {
-        $tx = $bx + $padX + $h / 24.0 * $innerW
-        $len = 4.0
-        if (($h % 6) -eq 0) { $len = 7.0 }
-        $tick = New-LineShape -X1 $tx -Y1 ($baseY - $len) -X2 $tx -Y2 $baseY -Color '#77111111' -Thickness 1
+        $tx = $bx + $h / 24.0 * $bw
+        $tick = New-LineShape -X1 $tx -Y1 $topY -X2 $tx -Y2 ($topY + 5) -Color $tickColor -Thickness 1
         [void]$Layer.Children.Add($tick)
     }
 
-    foreach ($window in $Status.PeakWindows) {
-        $sx = $bx + $padX + [double]$window.Start * $innerW
-        $ex = $bx + $padX + [double]$window.End * $innerW
-        $band = New-RectShape -X $sx -Y ($baseY - 13) -W ($ex - $sx) -H 11 -Color '#55111111'
-        [void]$Layer.Children.Add($band)
-    }
-
-    $nowX = $bx + $padX + [double]$Status.DayFraction * $innerW
-    $stem = New-LineShape -X1 $nowX -Y1 ($baseY - 17) -X2 $nowX -Y2 ($baseY + 1) -Color '#111111' -Thickness 2
+    $nowX = $bx + [double]$Status.DayFraction * $bw
+    $stem = New-LineShape -X1 $nowX -Y1 ($topY - 4) -X2 $nowX -Y2 ($bottomY + 4) -Color $nowColor -Thickness 2
     [void]$Layer.Children.Add($stem)
     $knob = New-Object System.Windows.Shapes.Ellipse
-    $knob.Width = 7; $knob.Height = 7
-    $knob.Fill = New-BrushSafe '#111111'
-    [System.Windows.Controls.Canvas]::SetLeft($knob, ($nowX - 3.5))
-    [System.Windows.Controls.Canvas]::SetTop($knob, ($baseY - 20.5))
+    $knob.Width = 5; $knob.Height = 5
+    $knob.Fill = New-BrushSafe $nowColor
+    [System.Windows.Controls.Canvas]::SetLeft($knob, ($nowX - 2.5))
+    [System.Windows.Controls.Canvas]::SetTop($knob, ($topY - 6))
     [void]$Layer.Children.Add($knob)
 }
 
 # ============================ C4 圆表 ============================
-# 网页稿：最外圈是细刻度（每半小时一格），里面一圈粗环当轨道，
-# 高峰窗口在轨道上画成琥珀弧，当前时刻一根白色斜指针。
+# 对齐 design-options-v3.html：环带内径 90 / 外径 112（按 300 卡缩放）；
+# 24 根小时刻度（每 6 小时加长）、琥珀高峰弧、白色游标线。
 function Add-DecorGauge {
     param($Layer, [double]$W, [double]$H, $Colors, $Status)
+    $size = [Math]::Min($W, $H)
+    if ($size -lt 1) { $size = 300.0 }
+    $scale = $size / 300.0
     $cx = $W / 2.0
     $cy = $H / 2.0
-    $outer = [Math]::Min($W, $H) / 2.0 - 6.0
-    $trackR = $outer * 0.645
-    $trackW = [Math]::Max(12.0, $outer * 0.115)
+    $rIn = 90.0 * $scale
+    $rOut = 112.0 * $scale
+    $trackR = ($rIn + $rOut) / 2.0
+    $trackW = $rOut - $rIn
     $accent = [string]$Colors.Accent
+    if ($Colors.ContainsKey('Arc')) { $accent = [string]$Colors.Arc }
+    $free = '#422FAE93'
+    if ($Colors.ContainsKey('Free')) { $free = [string]$Colors.Free }
+    $tickColor = '#29FFFFFF'
+    if ($Colors.ContainsKey('Tick')) { $tickColor = [string]$Colors.Tick }
 
-    # 外圈刻度：48 格，每 3 小时加长
-    for ($i = 0; $i -lt 48; $i++) {
-        $angle = $i / 48.0 * 360.0
-        $rad = ($angle - 90.0) * [Math]::PI / 180.0
-        $length = 6.0
-        $opacity = '#4AFFFFFF'
-        if (($i % 6) -eq 0) { $length = 11.0; $opacity = '#8AFFFFFF' }
-        $r1 = $outer - $length
-        $line = New-LineShape -X1 ($cx + $r1 * [Math]::Cos($rad)) -Y1 ($cy + $r1 * [Math]::Sin($rad)) `
-            -X2 ($cx + $outer * [Math]::Cos($rad)) -Y2 ($cy + $outer * [Math]::Sin($rad)) -Color $opacity -Thickness 1
-        [void]$Layer.Children.Add($line)
-    }
-
-    # 粗环轨道
+    # 环带轨道
     $track = New-Object System.Windows.Shapes.Ellipse
     $track.Width = $trackR * 2
     $track.Height = $trackR * 2
-    $track.Stroke = New-BrushSafe '#3A3F47'
+    $track.Stroke = New-BrushSafe '#1AFFFFFF'
     $track.StrokeThickness = $trackW
     $track.Fill = New-BrushSafe '#00000000'
     [System.Windows.Controls.Canvas]::SetLeft($track, ($cx - $trackR))
     [System.Windows.Controls.Canvas]::SetTop($track, ($cy - $trackR))
     [void]$Layer.Children.Add($track)
 
-    # 高峰弧
-    foreach ($window in $Status.PeakWindows) {
-        $startAngle = [double]$window.Start * 360.0
-        $endAngle = [double]$window.End * 360.0
-        $arc = New-Object System.Windows.Shapes.Path
-        $arc.Data = New-ArcGeometry -Cx $cx -Cy $cy -Radius $trackR -StartAngle $startAngle -EndAngle $endAngle
-        $arc.Stroke = New-BrushSafe $accent
-        $arc.StrokeThickness = $trackW
-        [void]$Layer.Children.Add($arc)
+    if (-not [bool]$Status.IsPeakDay) {
+        # 周末 / 节假日：整圈一条青绿细环
+        $ring = New-Object System.Windows.Shapes.Ellipse
+        $ring.Width = $trackR * 2
+        $ring.Height = $trackR * 2
+        $ring.Stroke = New-BrushSafe $free
+        $ring.StrokeThickness = $trackW
+        $ring.Fill = New-BrushSafe '#00000000'
+        [System.Windows.Controls.Canvas]::SetLeft($ring, ($cx - $trackR))
+        [System.Windows.Controls.Canvas]::SetTop($ring, ($cy - $trackR))
+        [void]$Layer.Children.Add($ring)
+    } else {
+        foreach ($window in $Status.PeakWindows) {
+            $startAngle = [double]$window.Start * 360.0
+            $endAngle = [double]$window.End * 360.0
+            $arc = New-Object System.Windows.Shapes.Path
+            $arc.Data = New-ArcGeometry -Cx $cx -Cy $cy -Radius $trackR -StartAngle $startAngle -EndAngle $endAngle
+            $arc.Stroke = New-BrushSafe $accent
+            $arc.StrokeThickness = $trackW
+            [void]$Layer.Children.Add($arc)
+        }
     }
 
-    # 当前时刻：白色斜指针（从环外侧指向环内）
-    $needle = New-LineShape -X1 $cx -Y1 ($cy - $trackR - 18) -X2 $cx -Y2 ($cy - $trackR - 2) -Color '#FFFFFF' -Thickness 2.5
+    # 24 根刻度：每 15° 一根，6 小时处加长
+    for ($i = 0; $i -lt 24; $i++) {
+        $angle = $i * 15.0
+        $rad = ($angle - 90.0) * [Math]::PI / 180.0
+        $isLong = (($i % 6) -eq 0)
+        $r1 = (128.0 * $scale)
+        $r2 = (144.0 * $scale)
+        if (-not $isLong) { $r1 = 134.0 * $scale }
+        $thickness = 1.0
+        if ($isLong) { $thickness = 1.8 * $scale; if ($thickness -lt 1.0) { $thickness = 1.0 } }
+        $line = New-LineShape -X1 ($cx + $r1 * [Math]::Cos($rad)) -Y1 ($cy + $r1 * [Math]::Sin($rad)) `
+            -X2 ($cx + $r2 * [Math]::Cos($rad)) -Y2 ($cy + $r2 * [Math]::Sin($rad)) -Color $tickColor -Thickness $thickness
+        [void]$Layer.Children.Add($line)
+    }
+
+    # 当前时刻游标：从环内侧穿到环外侧
+    $needle = New-LineShape -X1 $cx -Y1 ($cy - 120.0 * $scale) -X2 $cx -Y2 ($cy - 147.0 * $scale) -Color '#FFFFFF' -Thickness (2.5 * $scale)
     [void]$Layer.Children.Add($needle)
 
     $script:DecorRefs['GaugeNeedle'] = $needle
     $script:DecorRefs['GaugeCx'] = $cx
     $script:DecorRefs['GaugeCy'] = $cy
-    $script:DecorRefs['GaugeR'] = $trackR
+    $script:DecorRefs['GaugeRInner'] = 120.0 * $scale
+    $script:DecorRefs['GaugeROuter'] = 147.0 * $scale
 }
 
 # ============================ E2 HUD 分段进度 ============================
-# 网页稿是 8 段发光块。这里按「当前所处那一段的进度」点亮，
-# 每秒重算，所以进度条是活的。
+# 网页稿是 8 段发光块。这里做成「完全点亮的段 + 正在填充的那一段」，
+# 每秒重算，进度会连续往前爬，而不是十分钟才跳一格。
 function Add-DecorHudProgress {
     param($Layer, [double]$W, [double]$H, $Colors, $Status)
     $canvas = $script:HudProgress
@@ -1005,38 +1149,70 @@ function Add-DecorHudProgress {
 
     $width = [double]$canvas.ActualWidth
     if ($width -lt 20) { $width = $W - 28 }
+    if ($width -lt 20) { return }
     $count = 8
-    $gap = 3.0
+    $gap = 2.0
     $segW = ($width - $gap * ($count - 1)) / $count
     if ($segW -lt 3) { return }
-    $lit = Get-HudSegmentCount -Status $Status
+    $height = 5.0
     $accent = [string]$Colors.Accent
 
-    # 段数 / 段宽 / 颜色都没变就什么都不用做，避免每秒重建一批 Rectangle 造成闪
-    $cacheKey = ('{0}|{1}|{2:0.0}|{3}' -f $lit, $count, $segW, $accent)
-    if ([string]$script:HudCacheKey -eq $cacheKey) { return }
-
-    $canvas.Children.Clear()
-    for ($i = 0; $i -lt $count; $i++) {
-        $seg = New-RectShape -X ($i * ($segW + $gap)) -Y 0 -W $segW -H 8 -Color '#1C2333' -Radius 1
-        if ($i -lt $lit) {
-            $seg.Fill = New-BrushSafe $accent
-            try { $seg.Effect = New-CardShadow -Blur 6 -Depth 0 -Opacity 0.55 } catch { }
-        }
-        [void]$canvas.Children.Add($seg)
+    if (-not [bool]$Status.IsPeakDay) {
+        $lit = 8.0
+    } else {
+        $progress = Get-PhaseProgress -Fraction ([double]$Status.DayFraction) -Status $Status
+        if ($progress -lt 0) { $progress = 0 }
+        if ($progress -gt 1) { $progress = 1 }
+        $lit = $progress * $count
     }
-    $script:HudCacheKey = $cacheKey
-}
 
-# 点亮几段：floor(进度 * 8) + 1，最少 1 段
-function Get-HudSegmentCount {
-    param($Status)
-    $f = [double]$Status.DayFraction
-    $progress = Get-PhaseProgress -Fraction $f -Status $Status
-    $count = [int][Math]::Floor($progress * 8.0) + 1
-    if ($count -lt 1) { $count = 1 }
-    if ($count -gt 8) { $count = 8 }
-    return $count
+    # 只在宽度变化时重建 16 个矩形；之后每秒只改「点亮部分」的宽度和颜色
+    $needBuild = $true
+    if ([int]$script:DecorRefs['HudSegmentCount'] -eq $count) {
+        if ([Math]::Abs([double]$script:DecorRefs['HudWidth'] - $width) -lt 0.5) { $needBuild = $false }
+    }
+    if ($needBuild) {
+        $canvas.Children.Clear()
+        $script:DecorRefs['HudBase'] = @()
+        $script:DecorRefs['HudLit'] = @()
+        for ($i = 0; $i -lt $count; $i++) {
+            $x = $i * ($segW + $gap)
+            $base = New-RectShape -X $x -Y 0 -W $segW -H $height -Color '#1E293B' -Radius 1
+            $litRect = New-RectShape -X $x -Y 0 -W 0 -H $height -Color $accent -Radius 1
+            $litRect.Fill = New-BrushSafe $accent
+            try { $litRect.Effect = New-CardShadow -Blur 4 -Depth 0 -Opacity 0.4 } catch { }
+            [void]$canvas.Children.Add($base)
+            [void]$canvas.Children.Add($litRect)
+            $script:DecorRefs['HudBase'] += , $base
+            $script:DecorRefs['HudLit'] += , $litRect
+        }
+        $script:DecorRefs['HudSegmentCount'] = $count
+        $script:DecorRefs['HudWidth'] = $width
+        $script:DecorRefs['HudSegW'] = $segW
+        $script:DecorRefs['HudGap'] = $gap
+        $script:DecorRefs['HudHeight'] = $height
+    }
+
+    $segW = [double]$script:DecorRefs['HudSegW']
+    $gap = [double]$script:DecorRefs['HudGap']
+    $litRects = @($script:DecorRefs['HudLit'])
+    for ($i = 0; $i -lt $litRects.Count; $i++) {
+        $remain = $lit - $i
+        if ($remain -lt 0) { $remain = 0 }
+        if ($remain -gt 1) { $remain = 1 }
+        $rect = $litRects[$i]
+        $rect.Width = $segW * $remain
+        if ($remain -gt 0) {
+            $rect.Visibility = [System.Windows.Visibility]::Visible
+            if (-not [string]::Equals([string]$script:DecorRefs['HudAccent'], $accent)) {
+                $rect.Fill = New-BrushSafe $accent
+                try { $rect.Effect = New-CardShadow -Blur 4 -Depth 0 -Opacity 0.4 } catch { }
+            }
+        } else {
+            $rect.Visibility = [System.Windows.Visibility]::Collapsed
+        }
+    }
+    $script:DecorRefs['HudAccent'] = $accent
 }
 
 # 当前这一段（高峰窗口 或 空闲间隔）已经走了多少
@@ -1099,12 +1275,20 @@ function Update-SchemeCustomText {
     switch ($key) {
         'f1' {
             if ($null -ne $script:StatusText) {
-                $script:StatusText.Text = '梁文峰时段'
-                if (-not $isPeak) { $script:StatusText.Text = '梁文谷时段' }
+                $script:StatusText.Text = '梁文谷时段'
+                if ($isPeak) { $script:StatusText.Text = '梁文峰时段' }
+                if ($Status.IsWeekend) { $script:StatusText.Text = '梁文谷 · 周末' }
+                if ($Status.IsHoliday) { $script:StatusText.Text = '梁文谷 · ' + [string]$Status.HolidayName }
             }
             if ($null -ne $script:RateTail) {
-                $script:RateTail.Text = '标准'
-                if (-not $isPeak) { $script:RateTail.Text = '五折' }
+                $script:RateTail.Text = '优惠'
+                if ($isPeak) { $script:RateTail.Text = '标准' }
+                if ($Status.IsWeekend) { $script:RateTail.Text = '全天' }
+                if ($Status.IsHoliday) { $script:RateTail.Text = '假日' }
+            }
+            if ($null -ne $script:CountdownText) {
+                if ($Status.IsWeekend) { $script:CountdownText.Text = '距周一高峰' }
+                if ($Status.IsHoliday) { $script:CountdownText.Text = '距收假高峰' }
             }
             if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
             if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
@@ -1113,23 +1297,47 @@ function Update-SchemeCustomText {
             if ($null -ne $script:StatusText) {
                 $script:StatusText.Text = '[ IDLE MODE ]'
                 if ($isPeak) { $script:StatusText.Text = '[ PEAK MODE ]' }
+                if ($Status.IsWeekend) { $script:StatusText.Text = '[ WEEKEND ]' }
+                if ($Status.IsHoliday) {
+                    $name = [string]$Status.HolidayName
+                    if ([string]::IsNullOrWhiteSpace($name)) { $name = '节假日' }
+                    $script:StatusText.Text = '[ HOLIDAY:' + $name + ' ]'
+                }
             }
             if ($null -ne $script:RateText) {
                 $rate = '0.5X'
                 if ($isPeak) { $rate = '1.0X' }
                 $script:RateText.Text = 'RATE: ' + $rate
             }
-            if ($null -ne $script:DateText) { $script:DateText.Text = $dayText + '  ' + $weekEn }
-            if ($null -ne $script:TzText) { $script:TzText.Text = 'BJT UTC+8' }
+            if ($null -ne $script:DateText) { $script:DateText.Text = $dayText + ' ' + $weekEn }
+            if ($null -ne $script:TzText) {
+                $script:TzText.Text = 'BJT UTC+8'
+                if ($Status.IsWeekend) { $script:TzText.Text = 'ALL-DAY IDLE' }
+                if ($Status.IsHoliday) { $script:TzText.Text = 'UPDATE PENDING' }
+            }
+            if ($null -ne $script:CountdownValue) {
+                $cdText = [string]$script:CountdownValue.Text
+                if ($cdText -match '^(\d+)天\s+(.+)$') {
+                    $script:CountdownValue.Text = $matches[1] + 'D ' + $matches[2]
+                }
+            }
         }
         'e4' {
             if ($null -ne $script:PlateStatus) {
                 $script:PlateStatus.Text = '空闲'
                 if ($isPeak) { $script:PlateStatus.Text = '高峰' }
+                if ($Status.IsWeekend) { $script:PlateStatus.Text = '周末' }
+                if ($Status.IsHoliday) {
+                    $name = [string]$Status.HolidayName
+                    if ([string]::IsNullOrWhiteSpace($name)) { $name = '节假日' }
+                    $script:PlateStatus.Text = $name
+                }
             }
             if ($null -ne $script:PlateStatusEn) {
                 $script:PlateStatusEn.Text = 'IDLE'
                 if ($isPeak) { $script:PlateStatusEn.Text = 'PEAK' }
+                if ($Status.IsWeekend) { $script:PlateStatusEn.Text = 'WEEKEND' }
+                if ($Status.IsHoliday) { $script:PlateStatusEn.Text = 'HOLIDAY' }
             }
             if ($null -ne $script:PlateRate) {
                 $script:PlateRate.Text = '0.5×'
@@ -1137,27 +1345,44 @@ function Update-SchemeCustomText {
             }
             if ($null -ne $script:PlateDay) {
                 $script:PlateDay.Text = '工作日'
-                if ($Status.IsWeekend) { $script:PlateDay.Text = '周末' }
-                if ($Status.IsHoliday) { $script:PlateDay.Text = '节假日' }
+                if ($Status.IsWeekend) { $script:PlateDay.Text = '全天可用' }
+                if ($Status.IsHoliday) { $script:PlateDay.Text = '放假全天' }
             }
             if ($null -ne $script:DateText) {
-                $script:DateText.Text = [string]$Status.DateText + ' ' + [string]$Status.WeekText + ' · 北京时间'
+                $line = [string]$Status.DateText + ' ' + [string]$Status.WeekText
+                if ($Status.IsWeekend) { $line = $line + ' · 全天空闲' }
+                elseif ($Status.IsHoliday) { $line = $line + ' · 节假日' }
+                else { $line = $line + ' · 北京时间' }
+                $script:DateText.Text = $line
             }
         }
         'e3' {
             if ($null -ne $script:StatusText) {
                 $script:StatusText.Text = '空闲时段 IDLE'
                 if ($isPeak) { $script:StatusText.Text = '高峰时段 PEAK' }
+                if ($Status.IsWeekend) { $script:StatusText.Text = '周末 · 全天空闲' }
+                if ($Status.IsHoliday) { $script:StatusText.Text = '节假日 · 放假中' }
+                if ($Status.IsHoliday -and -not [string]::IsNullOrWhiteSpace([string]$Status.HolidayName)) {
+                    $script:StatusText.Text = [string]$Status.HolidayName + ' · 放假中'
+                }
             }
             if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
             if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
-            if ($null -ne $script:TzText) { $script:TzText.Text = '北京时间' }
+            if ($null -ne $script:TzText) {
+                $script:TzText.Text = '北京时间'
+                if ($Status.IsWeekend) { $script:TzText.Text = '全天 0.5×' }
+                if ($Status.IsHoliday) {
+                    if ([bool]$Status.YearCovered) { $script:TzText.Text = '全天 0.5×' }
+                    else { $script:TzText.Text = '数据待更新' }
+                }
+            }
         }
         'd6' {
             if ($null -ne $script:StatusText) {
                 $script:StatusText.Text = '梁文谷时段'
                 if ($isPeak) { $script:StatusText.Text = '梁文峰时段' }
             }
+            if ($null -ne $script:RateText) { $script:RateText.Text = '0.5'; if ($isPeak) { $script:RateText.Text = '1.0' } }
             if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
             if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
             if ($null -ne $script:HalfFootText) {
@@ -1169,6 +1394,7 @@ function Update-SchemeCustomText {
                 $script:StatusText.Text = '梁文谷时段'
                 if ($isPeak) { $script:StatusText.Text = '梁文峰时段' }
             }
+            if ($null -ne $script:RateText) { $script:RateText.Text = '0.5'; if ($isPeak) { $script:RateText.Text = '1.0' } }
             if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
             if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
         }
@@ -1179,26 +1405,46 @@ function Update-SchemeCustomText {
         }
         'e2' {
             if ($null -ne $script:StatusText) {
-                $script:StatusText.Text = 'IDLE ACTIVE'
+                $script:StatusText.Text = 'IDLE SAVING'
                 if ($isPeak) { $script:StatusText.Text = 'PEAK ACTIVE' }
+                if ($Status.IsWeekend) { $script:StatusText.Text = 'WEEKEND ALL-DAY' }
+                if ($Status.IsHoliday) {
+                    $name = [string]$Status.HolidayName
+                    if ([string]::IsNullOrWhiteSpace($name)) { $name = '节假日' }
+                    $script:StatusText.Text = 'HOLIDAY · ' + $name
+                }
             }
             if ($null -ne $script:RateText) {
-                $rate = '0.5X'
-                if ($isPeak) { $rate = '1.0X' }
-                $script:RateText.Text = 'RATE ' + $rate
+                $rate = 'RATE 0.5X'
+                if ($isPeak) { $rate = 'RATE 1.0X' }
+                if ($Status.IsWeekend -or $Status.IsHoliday) { $rate = '0.5X' }
+                $script:RateText.Text = $rate
             }
-            if ($null -ne $script:DateText) { $script:DateText.Text = $monthEn + '. ' + $now.Day + ' ' + $weekEn }
-            if ($null -ne $script:TzText) { $script:TzText.Text = 'UTC+8 BJT' }
+            if ($null -ne $script:DateText) { $script:DateText.Text = $monthEn + '.' + $now.Day + ' ' + $weekEn }
+            if ($null -ne $script:TzText) {
+                $script:TzText.Text = 'UTC+8 BJT'
+                if ($Status.IsWeekend) { $script:TzText.Text = 'FULL IDLE' }
+                if ($Status.IsHoliday) { $script:TzText.Text = 'HOLIDAY LOCK' }
+            }
+            if (($Status.IsWeekend -or $Status.IsHoliday) -and ($null -ne $script:CountdownText)) {
+                $script:CountdownText.Text = 'RESUME PEAK:'
+            }
+            if ($null -ne $script:CountdownValue) {
+                $cdText = [string]$script:CountdownValue.Text
+                if ($cdText -match '^(\d+)天\s+(.+)$') {
+                    $script:CountdownValue.Text = $matches[1] + 'D ' + $matches[2]
+                }
+            }
             Update-HudWindowLabels -Status $Status
         }
         'c4' {
             if ($null -ne $script:StatusText) {
-                $script:StatusText.Text = '• 空闲'
-                if ($isPeak) { $script:StatusText.Text = '• 高峰' }
+                $script:StatusText.Text = '空闲'
+                if ($isPeak) { $script:StatusText.Text = '高峰' }
             }
             if ($null -ne $script:RateText) {
-                $script:RateText.Text = '0.5×'
-                if ($isPeak) { $script:RateText.Text = '1.0×' }
+                $script:RateText.Text = '0.5'
+                if ($isPeak) { $script:RateText.Text = '1.0' }
             }
             if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
             if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
@@ -1216,6 +1462,23 @@ function Update-HudWindowLabels {
     $right = '24:00'
     $mid = 'IDLE WINDOW'
     $index = 0
+
+    if (-not [bool]$Status.IsPeakDay) {
+        # 周末 / 节假日：整块矩阵常亮，标签改成全天口径
+        if ([bool]$Status.IsHoliday) {
+            $left = 'NATIONAL DAY'
+            $mid = 'IDLE LOCKED'
+            $right = '24H'
+        } else {
+            $left = 'WEEKEND'
+            $mid = 'ALL MATRIX ON'
+            $right = '24H IDLE'
+        }
+        if ($null -ne $script:WinLeft) { $script:WinLeft.Text = $left }
+        if ($null -ne $script:WinMid) { $script:WinMid.Text = $mid }
+        if ($null -ne $script:WinRight) { $script:WinRight.Text = $right }
+        return
+    }
 
     if ($windows.Count -gt 0) {
         foreach ($window in $windows) {
@@ -1238,8 +1501,13 @@ function Update-HudWindowLabels {
                 if ($b -lt $f) { $prevEnd = $b }
                 if (($a -gt $f) -and ($a -lt $nextStart)) { $nextStart = $a }
             }
-            $left = Format-HourLabel -Fraction $prevEnd
-            $right = Format-HourLabel -Fraction $nextStart
+            if ($prevEnd -le 0.001) {
+                $left = 'NIGHT'
+            } else {
+                $left = Format-HourLabel -Fraction $prevEnd
+            }
+            $mid = 'OFF-PEAK'
+            $right = 'NEXT:' + (Format-HourLabel -Fraction $nextStart)
         }
     }
     if ($null -ne $script:WinLeft) { $script:WinLeft.Text = $left }
@@ -1257,12 +1525,13 @@ function Update-SchemeCustomTick {
     if ($null -ne $needle) {
         $cx = [double]$script:DecorRefs['GaugeCx']
         $cy = [double]$script:DecorRefs['GaugeCy']
-        $r = [double]$script:DecorRefs['GaugeR']
+        $rIn = [double]$script:DecorRefs['GaugeRInner']
+        $rOut = [double]$script:DecorRefs['GaugeROuter']
         $rad = ([double]$Status.DayFraction * 360.0 - 90.0) * [Math]::PI / 180.0
-        $needle.X1 = $cx + ($r + 18) * [Math]::Cos($rad)
-        $needle.Y1 = $cy + ($r + 18) * [Math]::Sin($rad)
-        $needle.X2 = $cx + ($r + 2) * [Math]::Cos($rad)
-        $needle.Y2 = $cy + ($r + 2) * [Math]::Sin($rad)
+        $needle.X1 = $cx + $rIn * [Math]::Cos($rad)
+        $needle.Y1 = $cy + $rIn * [Math]::Sin($rad)
+        $needle.X2 = $cx + $rOut * [Math]::Cos($rad)
+        $needle.Y2 = $cy + $rOut * [Math]::Sin($rad)
     }
 
     # E2 HUD 进度条：每秒重画一次，段数跟着时间涨

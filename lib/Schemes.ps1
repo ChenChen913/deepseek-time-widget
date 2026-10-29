@@ -55,8 +55,9 @@ $script:SchemePalettes = @{
         Badge = 'onAccent'
     }
     'brutal' = @{
-        Peak = @{ Accent = '#111111'; AccentSoft = '#3F3F46'; BadgeBg = '#111111'; Track = '#22000000'; Segment = '#111111'; Glow = $false }
-        Idle = @{ Accent = '#111111'; AccentSoft = '#3F3F46'; BadgeBg = '#111111'; Track = '#22000000'; Segment = '#111111'; Glow = $false }
+        # 网页稿：高峰徽章琥珀底黑字，空闲徽章翠绿底白字；倒计时数字跟着状态变色
+        Peak = @{ Accent = '#F59E0B'; AccentSoft = '#B45309'; BadgeBg = '#F59E0B'; Track = '#22000000'; Segment = '#111111'; Glow = $false; Status = '#000000'; Rate = '#111111'; CdLabel = '#111111'; CdValue = '#B45309'; Fg = '#111111'; Clock = '#000000'; Date = '#000000'; Week = '#000000' }
+        Idle = @{ Accent = '#10B981'; AccentSoft = '#047857'; BadgeBg = '#10B981'; Track = '#22000000'; Segment = '#111111'; Glow = $false; Status = '#FFFFFF'; Rate = '#111111'; CdLabel = '#111111'; CdValue = '#047857'; Fg = '#111111'; Clock = '#000000'; Date = '#000000'; Week = '#000000' }
         Badge = 'solid'
     }
     'lcd' = @{
@@ -64,39 +65,87 @@ $script:SchemePalettes = @{
         Idle = @{ Accent = '#7DF7A8'; AccentSoft = '#B9FFD0'; BadgeBg = '#1A7DF7A8'; Track = '#1A7DF7A8'; Segment = '#FFB020'; Glow = $true }
         Badge = 'tint'
     }
+    # E2 工业级 HUD：网页稿的琥珀 / 翠绿双状态 + 碳黑底
+    'hud' = @{
+        Peak = @{ Accent = '#F59E0B'; AccentSoft = '#F59E0B'; BadgeBg = '#00000000'; Track = '#1E293B'; Segment = '#F59E0B'; Glow = $true;
+            Surface = '#0A0E14'; Border = '#1E293B'; Clock = '#E2E8F0'; Date = '#64748B'; Week = '#64748B'; CdLabel = '#64748B'; CdValue = '#F59E0B' }
+        Idle = @{ Accent = '#10B981'; AccentSoft = '#10B981'; BadgeBg = '#00000000'; Track = '#1E293B'; Segment = '#10B981'; Glow = $true;
+            Surface = '#0A0E14'; Border = '#1E293B'; Clock = '#E2E8F0'; Date = '#64748B'; Week = '#64748B'; CdLabel = '#64748B'; CdValue = '#10B981' }
+        Badge = 'plain'
+    }
+    # E5 点阵液晶：网页稿的暖棕（峰）/ 墨绿（谷）两套屏色
+    'amber-crt' = @{
+        Peak = @{ Accent = '#EAB366'; AccentSoft = '#EAB366'; BadgeBg = '#00000000'; Track = '#1AEAB366'; Segment = '#EAB366'; Glow = $true;
+            Clock = '#FDE68A'; Week = '#EAB366'; Date = '#EAB366'; Status = '#EAB366'; Rate = '#EAB366';
+            CdLabel = '#EAB366'; CdValue = '#FDE68A'; Surface = '#262016'; Border = '#453721' }
+        Idle = @{ Accent = '#92B09A'; AccentSoft = '#92B09A'; BadgeBg = '#00000000'; Track = '#1A92B09A'; Segment = '#92B09A'; Glow = $false;
+            Clock = '#BBF7D0'; Week = '#92B09A'; Date = '#92B09A'; Status = '#92B09A'; Rate = '#92B09A';
+            CdLabel = '#92B09A'; CdValue = '#BBF7D0'; Surface = '#1C241E'; Border = '#2D3B32' }
+        Badge = 'tint'
+    }
+    # E4 双色瑞士分屏：左栏实色就是状态色（网页稿 #B45309 / #047857）
+    'swiss' = @{
+        Peak = @{ Accent = '#B45309'; AccentSoft = '#FBBF24'; BadgeBg = '#00000000'; Track = '#1AFFFFFF'; Segment = '#FBBF24'; Glow = $false;
+            CdLabel = '#71717A'; CdValue = '#FBBF24'; Clock = '#FAFAFA'; Date = '#A1A1AA' }
+        Idle = @{ Accent = '#047857'; AccentSoft = '#34D399'; BadgeBg = '#00000000'; Track = '#1AFFFFFF'; Segment = '#34D399'; Glow = $false;
+            CdLabel = '#71717A'; CdValue = '#34D399'; Clock = '#FAFAFA'; Date = '#A1A1AA' }
+        Badge = 'tint'
+    }
+    # C6 色块：满版实色，文字用深墨色（网页稿 #E8A33A / #2FAE93）
+    'block' = @{
+        Peak = @{ Accent = '#E8A33A'; AccentSoft = '#1A1206'; BadgeBg = '#00000000'; Track = '#3D1A1206'; Segment = '#1A1206'; Glow = $false;
+            Clock = '#1A1206'; Week = '#9E1A1206'; Date = '#9E1A1206'; Status = '#1A1206'; Rate = '#1A1206';
+            CdLabel = '#701A1206'; CdValue = '#1A1206'; Rule = '#3D1A1206'; Tick = '#521A1206'; Band = '#8C1A1206'; Now = '#1A1206'; CardBorder = '#D08F28'; FreeBand = '#2E04140F' }
+        Idle = @{ Accent = '#2FAE93'; AccentSoft = '#04140F'; BadgeBg = '#00000000'; Track = '#3D04140F'; Segment = '#04140F'; Glow = $false;
+            Clock = '#04140F'; Week = '#A804140F'; Date = '#A804140F'; Status = '#04140F'; Rate = '#04140F';
+            CdLabel = '#7504140F'; CdValue = '#04140F'; Rule = '#3D04140F'; Tick = '#4D04140F'; Band = '#6B04140F'; Now = '#04140F'; CardBorder = '#1E947C'; FreeBand = '#2E04140F' }
+        Badge = 'onAccent'
+    }
+    # C4 圆表：高峰弧始终琥珀，只有 chip / 倍率跟状态换色（网页稿 #2FAE93）
+    'gauge' = @{
+        Peak = @{ Accent = '#E8A33A'; AccentSoft = '#E8A33A'; BadgeBg = '#E8A33A'; Track = '#1AFFFFFF'; Segment = '#E8A33A'; Glow = $false;
+            Chip = '#E8A33A'; ChipInk = '#1A1206'; Rate = '#E8A33A'; Clock = '#E9ECF2'; Date = '#8A93A4'; Week = '#8A93A4';
+            CdLabel = '#5A6272'; CdValue = '#8A93A4'; Free = '#422FAE93'; Tick = '#29FFFFFF'; Cursor = '#FFFFFF' }
+        Idle = @{ Accent = '#E8A33A'; AccentSoft = '#E8A33A'; BadgeBg = '#2FAE93'; Track = '#1AFFFFFF'; Segment = '#E8A33A'; Glow = $false;
+            Chip = '#2FAE93'; ChipInk = '#04140F'; Rate = '#2FAE93'; Clock = '#E9ECF2'; Date = '#8A93A4'; Week = '#8A93A4';
+            CdLabel = '#5A6272'; CdValue = '#8A93A4'; Free = '#422FAE93'; Tick = '#29FFFFFF'; Cursor = '#FFFFFF' }
+        Badge = 'onAccent'
+    }
     'scope' = @{
         Peak = @{ Accent = '#F87171'; AccentSoft = '#FCA5A5'; BadgeBg = '#26F87171'; Track = '#1AFFFFFF'; Segment = '#F87171'; Glow = $true }
         Idle = @{ Accent = '#4ADE80'; AccentSoft = '#86EFAC'; BadgeBg = '#264ADE80'; Track = '#1AFFFFFF'; Segment = '#F87171'; Glow = $true }
         Badge = 'tint'
     }
-    # F1 峰谷示波器：网页稿整卡是琥珀色，峰谷用同一套色，只换文案
+    # F1 峰谷示波器：网页稿整卡是琥珀色，峰/谷换色，周末与节假日换成青蓝平线
     'amber-scope' = @{
-        Peak = @{ Accent = '#F59E0B'; AccentSoft = '#FCD34D'; BadgeBg = '#26F59E0B'; Track = '#1AF59E0B'; Segment = '#F59E0B'; Glow = $true }
-        Idle = @{ Accent = '#34D399'; AccentSoft = '#6EE7B7'; BadgeBg = '#2634D399'; Track = '#1A34D399'; Segment = '#34D399'; Glow = $true }
-        Badge = 'tint'
-    }
-    # E5 点阵液晶：整屏琥珀，空闲时压暗一档，不换色相
-    'amber-crt' = @{
-        Peak = @{ Accent = '#FFB020'; AccentSoft = '#FFD166'; BadgeBg = '#26FFB020'; Track = '#1AFFB020'; Segment = '#FFB020'; Glow = $true }
-        Idle = @{ Accent = '#D99A2B'; AccentSoft = '#E8B961'; BadgeBg = '#26D99A2B'; Track = '#1AD99A2B'; Segment = '#D99A2B'; Glow = $false }
-        Badge = 'tint'
-    }
-    # E4 双色瑞士分屏：左栏实色就是状态色
-    'swiss' = @{
-        Peak = @{ Accent = '#C2600A'; AccentSoft = '#F5A623'; BadgeBg = '#26C2600A'; Track = '#1AFFFFFF'; Segment = '#F5A623'; Glow = $false }
-        Idle = @{ Accent = '#1F7A6B'; AccentSoft = '#2AB5A0'; BadgeBg = '#261F7A6B'; Track = '#1AFFFFFF'; Segment = '#2AB5A0'; Glow = $false }
+        Peak = @{ Accent = '#F59E0B'; AccentSoft = '#F59E0B'; BadgeBg = '#26F59E0B'; Track = '#1AF59E0B'; Segment = '#F59E0B'; Glow = $true;
+            Status = '#FBBF24'; Rate = '#F59E0B'; CdLabel = '#64748B'; CdValue = '#F59E0B'; Date = '#94A3B8'; Week = '#94A3B8';
+            BadgeBorder = '#4DF59E0B'; ScopeBorder = '#40F59E0B'; ScopeGlow = '#1AF59E0B'; ScopeBg1 = '#161F30'; ScopeBg2 = '#080C14'; StatusIcon = '#F59E0B'; Marker = '#FFFFFF' }
+        Idle = @{ Accent = '#10B981'; AccentSoft = '#10B981'; BadgeBg = '#2610B981'; Track = '#1A10B981'; Segment = '#10B981'; Glow = $true;
+            Status = '#34D399'; Rate = '#10B981'; CdLabel = '#64748B'; CdValue = '#10B981'; Date = '#94A3B8'; Week = '#94A3B8';
+            BadgeBorder = '#4D10B981'; ScopeBorder = '#4010B981'; ScopeGlow = '#1A10B981'; ScopeBg1 = '#0F2420'; ScopeBg2 = '#080C14'; StatusIcon = '#10B981'; Marker = '#FFFFFF' }
+        Weekend = @{ Accent = '#06B6D4'; AccentSoft = '#06B6D4'; BadgeBg = '#2606B6D4'; Track = '#1A06B6D4'; Segment = '#06B6D4'; Glow = $true;
+            Status = '#22D3EE'; Rate = '#06B6D4'; CdLabel = '#64748B'; CdValue = '#06B6D4'; Date = '#94A3B8'; Week = '#94A3B8';
+            BadgeBorder = '#4D06B6D4'; ScopeBorder = '#4006B6D4'; ScopeGlow = '#1A06B6D4'; ScopeBg1 = '#0A1B24'; ScopeBg2 = '#080C14'; StatusIcon = '#06B6D4'; Marker = '#FFFFFF' }
+        Holiday = @{ Accent = '#06B6D4'; AccentSoft = '#06B6D4'; BadgeBg = '#2606B6D4'; Track = '#1A06B6D4'; Segment = '#06B6D4'; Glow = $true;
+            Status = '#22D3EE'; Rate = '#06B6D4'; CdLabel = '#64748B'; CdValue = '#06B6D4'; Date = '#94A3B8'; Week = '#94A3B8';
+            BadgeBorder = '#4D06B6D4'; ScopeBorder = '#4006B6D4'; ScopeGlow = '#1A06B6D4'; ScopeBg1 = '#0A1B24'; ScopeBg2 = '#080C14'; StatusIcon = '#06B6D4'; Marker = '#FFFFFF' }
         Badge = 'tint'
     }
     # D3 K 线：标题跟着状态换（峰橙红 / 谷青绿），蜡烛本身固定双色
     'kline' = @{
-        Peak = @{ Accent = '#E4552E'; AccentSoft = '#F08A6E'; BadgeBg = '#26E4552E'; Track = '#1AFFFFFF'; Segment = '#E4552E'; Glow = $false }
-        Idle = @{ Accent = '#2E9E85'; AccentSoft = '#5FC4AE'; BadgeBg = '#262E9E85'; Track = '#1AFFFFFF'; Segment = '#2E9E85'; Glow = $false }
+        Peak = @{ Accent = '#E85D3D'; AccentSoft = '#E85D3D'; BadgeBg = '#26E85D3D'; Track = '#1AFFFFFF'; Segment = '#E85D3D'; Glow = $false;
+            Status = '#E85D3D'; Rate = '#E85D3D'; Clock = '#E9EDF3'; Date = '#8B94A5'; Week = '#8B94A5'; CdLabel = '#5A6272'; CdValue = '#8B94A5'; StatusIcon = '#E85D3D' }
+        Idle = @{ Accent = '#2FB89A'; AccentSoft = '#2FB89A'; BadgeBg = '#262FB89A'; Track = '#1AFFFFFF'; Segment = '#2FB89A'; Glow = $false;
+            Status = '#2FB89A'; Rate = '#2FB89A'; Clock = '#E9EDF3'; Date = '#8B94A5'; Week = '#8B94A5'; CdLabel = '#5A6272'; CdValue = '#8B94A5'; StatusIcon = '#2FB89A' }
         Badge = 'tint'
     }
     # D6 半谷：整卡都是白字，压在橙 / 青双色块上
     'half' = @{
-        Peak = @{ Accent = '#FFFFFF'; AccentSoft = '#FFE8E0'; BadgeBg = '#26FFFFFF'; Track = '#1AFFFFFF'; Segment = '#FFFFFF'; Glow = $false }
-        Idle = @{ Accent = '#FFFFFF'; AccentSoft = '#E8FFF9'; BadgeBg = '#26FFFFFF'; Track = '#1AFFFFFF'; Segment = '#FFFFFF'; Glow = $false }
+        Peak = @{ Accent = '#FFFFFF'; AccentSoft = '#FFFFFF'; BadgeBg = '#00000000'; Track = '#1AFFFFFF'; Segment = '#FFFFFF'; Glow = $false;
+            Status = '#FFFFFF'; Rate = '#FFFFFF'; Clock = '#FFFFFF'; CdLabel = '#8AFFFFFF'; CdValue = '#B8FFFFFF'; Date = '#B8FFFFFF'; Week = '#B8FFFFFF'; StatusIcon = '#FFD9C9' }
+        Idle = @{ Accent = '#FFFFFF'; AccentSoft = '#FFFFFF'; BadgeBg = '#00000000'; Track = '#1AFFFFFF'; Segment = '#FFFFFF'; Glow = $false;
+            Status = '#FFFFFF'; Rate = '#FFFFFF'; Clock = '#FFFFFF'; CdLabel = '#8AFFFFFF'; CdValue = '#B8FFFFFF'; Date = '#B8FFFFFF'; Week = '#B8FFFFFF'; StatusIcon = '#CFF3E9' }
         Badge = 'tint'
     }
 }
@@ -312,31 +361,31 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'c4'; Num = 'C4'; Name = 'C4 · 圆表'
     Hint = '真仪表盘 Ø300：外圈刻度 + 内环高峰弧 + 白色游标'
-    Layout = 'gauge'; Width = 300; Height = 300
-    Tone = 'mono'; Palette = 'panel'
-    ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 26
-    Surface = @{ Type = 'solid'; From = '#12161D'; To = '#12161D' }
-    Border = '#1E242E'; BorderWidth = 1
-    Radius = 150; Margin = 10; BodyPad = '0,-10,0,10'
+    Layout = 'gauge'; Width = 320; Height = 320
+    Tone = 'mono'; Palette = 'gauge'
+    ClockFont = 'Cascadia Mono, Consolas, Microsoft YaHei UI'
+    ClockSize = 34
+    Surface = @{ Type = 'solid'; From = '#14161C'; To = '#14161C' }
+    Border = '#2C313D'; BorderWidth = 1
+    Radius = 150; Margin = 10; BodyPad = '0'
     Timeline = $false; StatusDot = $false
     Shadow = @{ Blur = 22; Depth = 5; Opacity = 0.5; Color = '#000000' }
-    Text = @{ Status = '#1A1A1A'; Week = '#8A94A6'; Date = '#8A94A6' }
     Decor = @('gauge')
 }
 
 Add-Scheme @{
     Key = 'c6'; Num = 'C6'; Name = 'C6 · 色块'
     Hint = '整块底色就是状态：高峰满版琥珀、空闲满版青绿'
-    Layout = 'solid'; Width = 280; Height = 182
-    Tone = 'light'; Palette = 'solid'
-    Surface = @{ Type = 'solid'; From = '#E8A33D'; To = '#E8A33D' }
-    Border = '#00000000'; BorderWidth = 0; Radius = 10; Margin = 12
+    Layout = 'solid'; Width = 304; Height = 184
+    Tone = 'light'; Palette = 'block'
+    ClockFont = 'Cascadia Mono, Consolas, Microsoft YaHei UI'
+    ClockSize = 38
+    Surface = @{ Type = 'solid'; From = '#E8A33A'; To = '#E8A33A' }
+    Border = '#D08F28'; BorderWidth = 1; Radius = 8; Margin = 12
     StatusDot = $false; Timeline = $false
-    BodyPad = '16,12,16,10'
+    BodyPad = '15,13,15,12'
     SurfaceByState = $true
     Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
-    Text = @{ Rate = '#111111' }
     Decor = @('scalebar')
 }
 
@@ -358,13 +407,13 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'd3'; Num = 'D3'; Name = 'D3 · K 线'
     Hint = '24 根蜡烛，越高越贵；高峰橙红粗柱、空闲暗绿矮块'
-    Layout = 'candle'; Width = 316; Height = 230
+    Layout = 'candle'; Width = 340; Height = 204
     Tone = 'dark'; Palette = 'kline'
     ClockFont = 'Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI'
-    ClockSize = 33
-    Surface = @{ Type = 'solid'; From = '#131313'; To = '#131313' }
-    Border = '#262626'; BorderWidth = 1; Radius = 12; Margin = 12
-    BodyPad = '14,12,14,10'
+    ClockSize = 34
+    Surface = @{ Type = 'solid'; From = '#14161C'; To = '#14161C' }
+    Border = '#00000000'; BorderWidth = 0; Radius = 10; Margin = 12
+    BodyPad = '15,13,15,11'
     Timeline = $false; StatusDot = $false
     Decor = @('kline')
 }
@@ -372,29 +421,27 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'd6'; Num = 'D6'; Name = 'D6 · 半谷'
     Hint = '整块斜切成两半，红是峰、绿是谷，面积比就是时长比'
-    Layout = 'half'; Width = 300; Height = 206
+    Layout = 'half'; Width = 324; Height = 194
     Tone = 'dark'; Palette = 'half'
     ClockSize = 38
     Surface = @{ Type = 'solid'; From = '#E4552E'; To = '#E4552E' }
-    Border = '#00000000'; BorderWidth = 0; Radius = 14; Margin = 12
-    BodyPad = '16,14,16,12'
+    Border = '#00000000'; BorderWidth = 0; Radius = 16; Margin = 12
+    BodyPad = '17,15,17,13'
     Timeline = $false; StatusDot = $false
-    Text = @{ Status = '#FFFFFF'; Clock = '#FFFFFF'; Week = '#FFE8E0'; Date = '#FFE8E0'; Hint = '#F3C4B4' }
     Shadow = @{ Blur = 20; Depth = 5; Opacity = 0.4; Color = '#000000' }
-    Decor = @('halfsplit')
 }
 
 # ---------- E · 全新风格 ----------
 Add-Scheme @{
     Key = 'e2'; Num = 'E2'; Name = 'E2 · 工业级仪表 HUD'
     Hint = '顶部琥珀条 + 描边框 + 8 段发光进度，随当前窗口实时推进'
-    Layout = 'hud'; Width = 290; Height = 198
-    Tone = 'mono'; Palette = 'lcd'
-    ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 30
-    Surface = @{ Type = 'solid'; From = '#111318'; To = '#111318' }
-    Border = '#242833'; BorderWidth = 1; Radius = 4; Margin = 12
-    BodyPad = '14,13,14,12'
+    Layout = 'hud'; Width = 314; Height = 189
+    Tone = 'mono'; Palette = 'hud'
+    ClockFont = 'Cascadia Code, Consolas, Microsoft YaHei UI'
+    ClockSize = 28
+    Surface = @{ Type = 'solid'; From = '#0A0E14'; To = '#0A0E14' }
+    Border = '#1E293B'; BorderWidth = 1; Radius = 4; Margin = 12
+    BodyPad = '14,12,14,11'
     Timeline = $false; StatusDot = $false
     Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
     Decor = @('hudprogress')
@@ -403,66 +450,66 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'e3'; Num = 'E3'; Name = 'E3 · 新野兽派'
     Hint = '白底 + 2px 黑边 + 零模糊硬投影，高对比年轻化'
-    Layout = 'brutal'; Width = 290; Height = 226
+    Layout = 'brutal'; Width = 314; Height = 189
     Tone = 'light'; Palette = 'brutal'
+    ClockFont = 'Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI'
     Surface = @{ Type = 'solid'; From = '#FFFFFF'; To = '#FFFFFF' }
     Border = '#111111'; BorderWidth = 2; Radius = 0; Margin = 12
-    BodyPad = '14,12,14,12'
-    ClockSize = 38
+    BodyPad = '12'
+    ClockSize = 34
     StatusDot = $false; Timeline = $false
-    Text = @{ Status = '#111111'; Clock = '#111111'; Week = '#111111'; Date = '#111111'; Hint = '#52525B' }
-    Shadow = @{ Blur = 0; Depth = 5; Opacity = 1; Color = '#111111' }
+    Shadow = @{ Blur = 0; Depth = 4; Opacity = 1; Color = '#000000'; Direction = 315 }
 }
 
 Add-Scheme @{
     Key = 'e4'; Num = 'E4'; Name = 'E4 · 双色瑞士分屏'
     Hint = '左侧实色状态铭牌（高峰/PEAK/1.0×/工作日）+ 右侧黑曜石大字'
-    Layout = 'split'; Width = 330; Height = 172
+    Layout = 'split'; Width = 330; Height = 175
     Tone = 'dark'; Palette = 'swiss'
-    Surface = @{ Type = 'solid'; From = '#141414'; To = '#141414' }
-    Border = '#00000000'; BorderWidth = 0; Radius = 0; Margin = 10
+    ClockFont = 'Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI'
+    Surface = @{ Type = 'solid'; From = '#18181B'; To = '#18181B' }
+    Border = '#27272A'; BorderWidth = 1; Radius = 10; Margin = 10
     ClockSize = 32
     StatusDot = $false; HideStatus = $true; Timeline = $false
-    BodyPad = '16,14,16,12'
+    BodyPad = '16,14,16,14'
     Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
 }
 
 Add-Scheme @{
     Key = 'e5'; Num = 'E5'; Name = 'E5 · 点阵液晶'
     Hint = '暖棕黑底 + 琥珀液晶数字，屏槽框 + 双虚线分隔'
-    Layout = 'lcd'; Width = 310; Height = 178
+    Layout = 'lcd'; Width = 315; Height = 180
     Tone = 'amber'; Palette = 'amber-crt'
-    ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 40
-    Surface = @{ Type = 'solid'; From = '#241A10'; To = '#241A10' }
-    Border = '#4A3820'; BorderWidth = 1; Radius = 8; Margin = 10
+    ClockFont = 'Courier New, Consolas, Microsoft YaHei UI'
+    ClockSize = 34
+    Surface = @{ Type = 'solid'; From = '#262016'; To = '#262016' }
+    Border = '#453721'; BorderWidth = 2; Radius = 6; Margin = 10
     BodyPad = '14,12,14,12'
     Timeline = $false; StatusDot = $false
     Shadow = @{ Blur = 20; Depth = 5; Opacity = 0.5; Color = '#000000' }
-    Text = @{ Rate = '#C08A2E'; Status = '#E8B961' }
+    Decor = @('lcdvig')
 }
 
 # ---------- F · 梗图向 ----------
 Add-Scheme @{
     Key = 'f1'; Num = 'F1'; Name = 'F1 · 峰谷示波器'
     Hint = '琥珀描边波形框：两个圆峰 + 峰顶 PEAK 标记 + 当前时刻竖虚线'
-    Layout = 'scope'; Width = 300; Height = 220
+    Layout = 'scope'; Width = 304; Height = 226
     Tone = 'dark'; Palette = 'amber-scope'
-    ClockFont = 'Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI'
-    ClockSize = 29
-    Surface = @{ Type = 'solid'; From = '#0E1116'; To = '#0E1116' }
-    Border = '#1E2836'; BorderWidth = 1; Radius = 14; Margin = 12
-    BodyPad = '12,10,12,10'
+    ClockFont = 'Cascadia Code, Consolas, Microsoft YaHei UI'
+    ClockSize = 26
+    Surface = @{ Type = 'solid'; From = '#111827'; To = '#111827' }
+    Border = '#1F2937'; BorderWidth = 1; Radius = 14; Margin = 12
+    BodyPad = '14'
     Timeline = $false; StatusDot = $false
     Shadow = @{ Blur = 20; Depth = 5; Opacity = 0.5; Color = '#000000' }
-    Text = @{ Hint = '#475569'; Week = '#94A3B8'; Date = '#94A3B8' }
     Decor = @('scope')
 }
 
 # ============================ 网页稿对齐补丁 ============================
 # 逐个方案把「网页稿里到底怎么排的」补进来，全是排版开关，不动配色。
 # 判断依据是 design/ 下 7 份原稿 + live-v1-states.html 的实际截图，
-# 对照脚本：tools/capture-web-refs.mjs（把每张卡片单独截出来）。
+# 网页原稿卡片对照图留在本地 design/_states/web（不入库）。
 $script:SchemeTweaks = @{
     # 默认界面：价格是药丸，倒计时整句「距空闲时段还有」
     'default' = @{ ClockSecSize = 16; RateSize = 11; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
@@ -475,18 +522,18 @@ $script:SchemeTweaks = @{
     # C 组：仪表类，时钟全同号（等宽），价格裸文字
     'c1'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 17; StatusPillStyle = $true; StatusPillSolid = $true; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰' }
     'c2'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰' }
-    'c6'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; StatusSquare = $true; ClockSecSize = 30; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    'c6'      = @{ StatusSize = 12; DateInline = $true; PlainRate = $true; RateSize = 16; StatusSquare = $true; ClockSecSize = 38; CdIdle = '距空闲'; CdPeak = '距高峰' }
     # D 组：梗图向，倒计时写成「距梁文谷 / 距梁文峰」
     'd1'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
-    'd3'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
-    'd6'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
+    'd3'      = @{ StatusSize = 12.5; DateInline = $true; PlainRate = $true; RateSize = 16; ClockSecSize = 34; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
+    'd6'      = @{ StatusSize = 12.5; DateInline = $true; PlainRate = $true; RateSize = 16; ClockSecSize = 38; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
     # E 组：工业 HUD / 液晶，全英文等宽标签
-    'e2'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 13; StatusPillStyle = $true; ClockSecSize = 30; CdIdle = 'NEXT IDLE IN:'; CdPeak = 'NEXT PEAK IN:' }
-    'e3'      = @{ StatusSize = 12; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 34; CdIdle = '距空闲倒计时'; CdPeak = '距高峰倒计时'; Timeline = $false }
-    'e4'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰'; Timeline = $false }
-    'e5'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 13; StatusPillStyle = $true; ClockSecSize = 36; CdIdle = 'NEXT IDLE:'; CdPeak = 'NEXT PEAK:' }
+    'e2'      = @{ StatusSize = 11; DateInline = $true; PlainRate = $true; RateSize = 10; StatusPillStyle = $true; ClockSecSize = 28; CdIdle = 'NEXT IDLE IN:'; CdPeak = 'NEXT PEAK IN:' }
+    'e3'      = @{ StatusSize = 11; DateInline = $true; PlainRate = $true; RateSize = 11; ClockSecSize = 34; CdIdle = '距空闲倒计时'; CdPeak = '距高峰倒计时'; Timeline = $false }
+    'e4'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 20; ClockSecSize = 32; CdIdle = '距空闲'; CdPeak = '距高峰'; Timeline = $false }
+    'e5'      = @{ StatusSize = 11; DateInline = $true; PlainRate = $true; RateSize = 11; StatusPillStyle = $true; ClockSecSize = 34; CdIdle = 'NEXT IDLE:'; CdPeak = 'NEXT PEAK:' }
     # F1：倒计时带价格后缀
-    'f1'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 14; ClockSecSize = 16; CdIdle = '距入谷 (0.5×)'; CdPeak = '距入峰 (1.0×)' }
+    'f1'      = @{ StatusSize = 12; DateInline = $true; PlainRate = $true; RateSize = 11; ClockSecSize = 26; CdIdle = '距入谷 (0.5×)'; CdPeak = '距登峰 (1.0×)' }
 }
 
 foreach ($key in $script:SchemeTweaks.Keys) {
@@ -537,6 +584,9 @@ function Get-SchemeColors {
     if ($null -eq $palette) { $palette = $script:SchemePalettes['glass-dark'] }
     $state = $palette.Idle
     if ($Status.IsPeak) { $state = $palette.Peak }
+    # 个别方案（F1 示波器）周末/法定节假日有独立的青蓝配色
+    if ($Status.IsWeekend -and $palette.ContainsKey('Weekend')) { $state = $palette.Weekend }
+    if ($Status.IsHoliday -and $palette.ContainsKey('Holiday')) { $state = $palette.Holiday }
     $tone = $script:SchemeTones[[string]$Spec.Tone]
     if ($null -eq $tone) { $tone = $script:SchemeTones['dark'] }
 
@@ -555,6 +605,13 @@ function Get-SchemeColors {
         Badge      = [string]$palette.Badge
         OnAccent   = [bool]$state.OnAccent
         Status     = [string]$state.Accent
+    }
+    # 配色状态里额外定义的色键（Chip / CdLabel / CdValue / Surface / Rule …）
+    # 原样带出去，模板和装饰器按需取用；基础键保持上面的默认值。
+    $baseKeys = @('Accent', 'AccentSoft', 'BadgeBg', 'Track', 'Segment', 'Glow', 'OnAccent')
+    foreach ($name in $state.Keys) {
+        if ($baseKeys -contains [string]$name) { continue }
+        $colors[[string]$name] = $state[$name]
     }
     # 方案级覆写（个别方案需要特殊文字色时用）
     foreach ($name in $Spec.Text.Keys) {
@@ -795,11 +852,11 @@ function New-GradientBrush {
 }
 
 function New-CardShadow {
-    param([double]$Blur, [double]$Depth, [double]$Opacity)
+    param([double]$Blur, [double]$Depth, [double]$Opacity, [double]$Direction = 270)
     $effect = New-Object System.Windows.Media.Effects.DropShadowEffect
     $effect.BlurRadius = $Blur
     $effect.ShadowDepth = $Depth
-    $effect.Direction = 270
+    $effect.Direction = $Direction
     $effect.Opacity = $Opacity
     $effect.Color = [System.Windows.Media.ColorConverter]::ConvertFromString('#000000')
     return $effect
@@ -877,6 +934,42 @@ function New-PieGeometry {
     $geometry = New-Object System.Windows.Media.PathGeometry
     [void]$geometry.Figures.Add($figure)
     return $geometry
+}
+
+# D6 半谷的 104° 斜切双色：用线性渐变做硬分界，比例跟着当天峰谷时长走
+function New-SplitBrush {
+    param([double]$W, [double]$H, [double]$Ratio)
+    if ($W -le 1) { $W = 300.0 }
+    if ($H -le 1) { $H = 170.0 }
+    if ($Ratio -lt 0.02) { $Ratio = 0.02 }
+    if ($Ratio -gt 0.98) { $Ratio = 0.98 }
+
+    $angle = 104.0 * [Math]::PI / 180.0
+    $dx = [Math]::Sin($angle)
+    $dy = -[Math]::Cos($angle)
+    $length = [Math]::Abs($W * $dx) + [Math]::Abs($H * $dy)
+    if ($length -le 1) { $length = 1.0 }
+    $offsetX = ($dx * $length / 2.0) / $W
+    $offsetY = ($dy * $length / 2.0) / $H
+
+    $brush = New-Object System.Windows.Media.LinearGradientBrush
+    $brush.StartPoint = New-Object System.Windows.Point -ArgumentList (0.5 - $offsetX), (0.5 - $offsetY)
+    $brush.EndPoint = New-Object System.Windows.Point -ArgumentList (0.5 + $offsetX), (0.5 + $offsetY)
+    $red = [System.Windows.Media.ColorConverter]::ConvertFromString('#E85D3D')
+    $green = [System.Windows.Media.ColorConverter]::ConvertFromString('#2FB89A')
+    [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $red, 0.0))
+    [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $red, $Ratio))
+    [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $green, $Ratio))
+    [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $green, 1.0))
+    return $brush
+}
+
+# 状态图标：高峰是两座峰，谷时是两个谷（D3 / D6 网页稿用的小折线）
+function Get-StateIconGeometry {
+    param([bool]$IsPeak)
+    $data = 'M1,10 L4.2,3 L7,10 M6,10 L8.6,5 L11,10'
+    if (-not $IsPeak) { $data = 'M1,3 L4.2,9 L7,3 M6,3 L8.6,7.5 L11,3' }
+    return [System.Windows.Media.Geometry]::Parse($data)
 }
 
 function New-LineShape {
@@ -1434,7 +1527,7 @@ function Build-SchemeDecor {
             # ---- SchemesPro.ps1 里的专属装饰 ----
             'scope'      { Add-DecorScope -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'kline'      { Add-DecorKline -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
-            'halfsplit'  { Add-DecorHalfSplit -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
+            'lcdvig'     { Add-DecorLcdVignette -Layer $canvas -W $w -H $h -Colors $Colors }
             'scalebar'   { Add-DecorScaleBar -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'gauge'      { Add-DecorGauge -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'hudprogress' { Add-DecorHudProgress -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
@@ -1533,7 +1626,9 @@ function Apply-SchemeSurface {
     $script:Card.Background = New-SurfaceBrush -Surface $Spec.Surface
 
     $shadow = $Spec.Shadow
-    $effect = New-CardShadow -Blur ([double]$shadow.Blur) -Depth ([double]$shadow.Depth) -Opacity ([double]$shadow.Opacity)
+    $direction = 270.0
+    if ($shadow.ContainsKey('Direction')) { $direction = [double]$shadow.Direction }
+    $effect = New-CardShadow -Blur ([double]$shadow.Blur) -Depth ([double]$shadow.Depth) -Opacity ([double]$shadow.Opacity) -Direction $direction
     try { $effect.Color = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$shadow.Color) } catch { }
     $script:Card.Effect = $effect
 
@@ -1627,8 +1722,10 @@ function Apply-SchemeSurface {
         if (($null -ne $script:StatusSquare) -and [bool]$Spec.StatusSquare) {
             # C6 / E3 那种实心方块
             $script:StatusSquare.Visibility = [System.Windows.Visibility]::Visible
-            $script:StatusSquare.Width = 9
-            $script:StatusSquare.Height = 9
+            $size = 9.0
+            if ([string]$Spec.Layout -eq 'solid') { $size = 7.0 }
+            $script:StatusSquare.Width = $size
+            $script:StatusSquare.Height = $size
             $script:StatusDot.Visibility = [System.Windows.Visibility]::Collapsed
         } elseif ([bool]$Spec.StatusDot) {
             $script:StatusDot.Visibility = [System.Windows.Visibility]::Visible
@@ -1674,7 +1771,14 @@ function Apply-SchemeState {
     $script:ClockText.Foreground = ConvertTo-Brush ([string]$colors.Clock)
     $script:WeekText.Foreground = ConvertTo-Brush ([string]$colors.Week)
     $script:DateText.Foreground = ConvertTo-Brush ([string]$colors.Date)
-    $script:CountdownText.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
+    if ($null -ne $script:TzText) { $script:TzText.Foreground = ConvertTo-Brush ([string]$colors.Date) }
+    # 网页稿里倒计时的标签和数值经常是两种灰（K 线 / 半谷 / 色块），
+    # 配色状态里给了 CdLabel / CdValue 就优先用它们。
+    $cdLabelColor = [string]$colors.AccentSoft
+    if ($colors.ContainsKey('CdLabel')) { $cdLabelColor = [string]$colors.CdLabel }
+    $cdValueColor = [string]$colors.AccentSoft
+    if ($colors.ContainsKey('CdValue')) { $cdValueColor = [string]$colors.CdValue }
+    $script:CountdownText.Foreground = ConvertTo-Brush $cdLabelColor
     $script:HintText.Foreground = ConvertTo-Brush ([string]$colors.Hint)
 
     # 可选元素（只有卡片布局有）
@@ -1685,7 +1789,7 @@ function Apply-SchemeState {
         $script:ClockSec.Foreground = ConvertTo-Brush $secColor
     }
     if ($null -ne $script:CountdownValue) {
-        $script:CountdownValue.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
+        $script:CountdownValue.Foreground = ConvertTo-Brush $cdValueColor
     }
     if ($null -ne $script:StatusSquare) {
         # 满版色块方案（C6）里方块必须用对比色，跟状态文字同色，否则和底色糊在一起
@@ -1723,6 +1827,9 @@ function Apply-SchemeState {
 
     if ([bool]$Spec.SurfaceByState) {
         $script:Card.Background = ConvertTo-Brush ([string]$colors.Accent)
+        if ($colors.ContainsKey('CardBorder')) {
+            $script:Card.BorderBrush = ConvertTo-Brush ([string]$colors.CardBorder)
+        }
     }
 
     $script:AccentBar.Fill = ConvertTo-Brush ([string]$colors.Accent)
@@ -1732,10 +1839,14 @@ function Apply-SchemeState {
     $script:TimeMarker.Fill = ConvertTo-Brush ([string]$colors.Marker)
 
     if ($isCustom) {
-        # 专属模板：只换价格文字的颜色，底色 / 描边 / 内边距保持模板原样
+        # 专属模板：价格 / 徽章形状由模板自己定，这里只换文字和描边色
         $rateColor = [string]$colors.Accent
         if ($colors.ContainsKey('Rate')) { $rateColor = [string]$colors.Rate }
         $script:RateText.Foreground = ConvertTo-Brush $rateColor
+        if (($null -ne $script:RateBadge) -and ([string]$Spec.Layout -eq 'hud')) {
+            # 网页稿的 RATE 标签是一圈状态色描边
+            $script:RateBadge.BorderBrush = ConvertTo-Brush $rateColor
+        }
     } elseif ([bool]$Spec.PlainRate) {
         # 裸文字价格（B1 / B5 / C1 / C6 那类），直接跟状态同色
         $script:RateBadge.Background = ConvertTo-Brush '#00000000'
@@ -1759,29 +1870,85 @@ function Apply-SchemeState {
     }
 
     # ---- 专属模板里需要跟状态走的部件 ----
+    if ([string]$Spec.Layout -eq 'lcd') {
+        # E5：整屏底色和屏框都跟状态走（暖棕 / 墨绿）
+        if ($colors.ContainsKey('Surface')) { $script:Card.Background = ConvertTo-Brush ([string]$colors.Surface) }
+        if ($colors.ContainsKey('Border')) { $script:Card.BorderBrush = ConvertTo-Brush ([string]$colors.Border) }
+        if ($null -ne $script:StatusPill) {
+            $script:StatusPill.BorderBrush = ConvertTo-Brush ([string]$colors.Accent)
+        }
+    }
+    if ([string]$Spec.Layout -eq 'half') {
+        # D6：104° 斜切双色，峰 64% / 空闲 36% / 周末全天只留 12% 的红
+        $ratio = 0.64
+        if (-not $Status.IsPeakDay) { $ratio = 0.12 }
+        elseif (-not $Status.IsPeak) { $ratio = 0.36 }
+        $script:Card.Background = New-SplitBrush -W ([double]$script:Card.ActualWidth) -H ([double]$script:Card.ActualHeight) -Ratio $ratio
+    }
+    if ($null -ne $script:StatusPill) {
+        # C4 的实底 chip / E2 的描边框 / E3 的实色徽章都跟着状态色
+        if ([string]$Spec.Layout -eq 'gauge') {
+            $chip = [string]$colors.Accent
+            if ($colors.ContainsKey('Chip')) { $chip = [string]$colors.Chip }
+            $script:StatusPill.Background = ConvertTo-Brush $chip
+            $ink = [string]$colors.Status
+            if ($colors.ContainsKey('ChipInk')) { $ink = [string]$colors.ChipInk }
+            $script:StatusText.Foreground = ConvertTo-Brush $ink
+            if ($null -ne $script:ChipDot) { $script:ChipDot.Fill = ConvertTo-Brush $ink }
+        } elseif ([string]$Spec.Layout -eq 'hud') {
+            $script:StatusPill.Background = ConvertTo-Brush '#00000000'
+        } elseif ([string]$Spec.Layout -eq 'brutal') {
+            $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.Accent)
+        } elseif ([string]$Spec.Layout -eq 'scope') {
+            $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.BadgeBg)
+            $border = [string]$colors.Accent
+            if ($colors.ContainsKey('BadgeBorder')) { $border = [string]$colors.BadgeBorder }
+            $script:StatusPill.BorderBrush = ConvertTo-Brush $border
+        }
+    }
     if ($null -ne $script:PlateBox) {
         # E4 左栏铭牌整块换成当前状态色
         $script:PlateBox.Background = ConvertTo-Brush ([string]$colors.Accent)
         if ($null -ne $script:PlateStatus) { $script:PlateStatus.Foreground = ConvertTo-Brush '#FFFFFF' }
-        if ($null -ne $script:PlateStatusEn) { $script:PlateStatusEn.Foreground = ConvertTo-Brush '#FFE0BF' }
+        if ($null -ne $script:PlateStatusEn) { $script:PlateStatusEn.Foreground = ConvertTo-Brush '#D9FFFFFF' }
         if ($null -ne $script:PlateRate) { $script:PlateRate.Foreground = ConvertTo-Brush '#FFFFFF' }
-        if ($null -ne $script:PlateDay) { $script:PlateDay.Foreground = ConvertTo-Brush '#FFE0BF' }
+        if ($null -ne $script:PlateDay) { $script:PlateDay.Foreground = ConvertTo-Brush '#BFFFFFFF' }
     }
     if ($null -ne $script:HudTopBar) {
         $script:HudTopBar.Fill = ConvertTo-Brush ([string]$colors.Accent)
     }
-    if ($null -ne $script:StatusPill) {
-        # C4 的琥珀药丸 / E2 的描边框都跟着状态色
-        if ([string]$Spec.Layout -eq 'gauge') {
-            $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.Accent)
-        } elseif ([string]$Spec.Layout -eq 'hud') {
-            $script:StatusPill.Background = ConvertTo-Brush '#00000000'
+    if ($null -ne $script:StatusIconPath) {
+        $iconColor = [string]$colors.Accent
+        if ($colors.ContainsKey('StatusIcon')) { $iconColor = [string]$colors.StatusIcon }
+        $script:StatusIconPath.Stroke = ConvertTo-Brush $iconColor
+        # K 线 / 半谷的小图标会跟着峰谷翻面；示波器峰时用趋势线、谷时用月牙
+        if (@('candle', 'half') -contains [string]$Spec.Layout) {
+            $script:StatusIconPath.Data = Get-StateIconGeometry -IsPeak ([bool]$Status.IsPeak)
+        } elseif ([string]$Spec.Layout -eq 'scope') {
+            if ([bool]$Status.IsPeak) {
+                $script:StatusIconPath.Data = [System.Windows.Media.Geometry]::Parse('M1,11 L5.5,3.5 L9,8 L13,1.5 M9,1.5 L13,1.5 L13,5.5')
+                $script:StatusIconPath.StrokeThickness = 2.0
+            } else {
+                $script:StatusIconPath.Data = [System.Windows.Media.Geometry]::Parse('M12.25,7.46 A5.25,5.25 0 1 1 6.54,1.75 A4.08,4.08 0 0 0 12.25,7.46 Z')
+                $script:StatusIconPath.StrokeThickness = 1.6
+            }
         }
     }
-    if ($null -ne $script:WinLeft) {
-        $script:WinLeft.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
-        if ($null -ne $script:WinMid) { $script:WinMid.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft) }
-        if ($null -ne $script:WinRight) { $script:WinRight.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft) }
+    if ($null -ne $script:StatusIcon) {
+        # HUD / 示波器的文字图标跟着状态色（▲ 峰 / ■ 谷）
+        $script:StatusIcon.Foreground = ConvertTo-Brush ([string]$colors.Accent)
+        if (([string]$Spec.Layout -eq 'hud') -and (-not [bool]$Status.IsPeak)) {
+            $script:StatusIcon.Text = '■'
+        } elseif ([string]$Spec.Layout -eq 'hud') {
+            $script:StatusIcon.Text = '▲'
+        }
+    }
+    if ($null -ne $script:ScopeBox) {
+        # F1 波形框：描边跟着状态（琥珀 / 翠绿 / 青蓝）；
+        # 框内底色由装饰器先画，边框本身保持透明，别把波形盖住。
+        $scopeBorder = [string]$colors.Accent
+        if ($colors.ContainsKey('ScopeBorder')) { $scopeBorder = [string]$colors.ScopeBorder }
+        $script:ScopeBox.BorderBrush = ConvertTo-Brush $scopeBorder
     }
     if ($null -ne $script:RateTail) {
         # C6 的「×」压在琥珀底上，必须跟价格同色，不能用强调色
@@ -1863,8 +2030,9 @@ function Install-Layout {
     $script:CountdownValue = Find-LayoutElement 'CountdownValue'
     $script:StatusPill = Find-LayoutElement 'StatusPill'
     $script:StatusSquare = Find-LayoutElement 'StatusSquare'
+    $script:ChipDot = Find-LayoutElement 'ChipDot'
+    $script:StatusIconPath = Find-LayoutElement 'StatusIconPath'
     $script:DateBox = Find-LayoutElement 'DateBox'
-    # 专属模板（SchemesPro.ps1）才有的元素，通用模板里全为 $null
     $script:ScopeBox = Find-LayoutElement 'ScopeBox'
     $script:CandleBox = Find-LayoutElement 'CandleBox'
     $script:ScaleBox = Find-LayoutElement 'ScaleBox'
@@ -1882,14 +2050,10 @@ function Install-Layout {
     $script:PlateDay = Find-LayoutElement 'PlateDay'
     $script:HalfRule = Find-LayoutElement 'HalfRule'
     $script:HalfFootText = Find-LayoutElement 'HalfFootText'
-    $script:BrutalRule = Find-LayoutElement 'BrutalRule'
     $script:WinLeft = Find-LayoutElement 'WinLeft'
     $script:WinMid = Find-LayoutElement 'WinMid'
     $script:WinRight = Find-LayoutElement 'WinRight'
     $script:CdBox = Find-LayoutElement 'CdBox'
-    # 换布局后 HUD 进度条是一块新的 Canvas，缓存必须作废，否则不会重画
-    $script:HudCacheKey = ''
-
     Apply-SchemeWindowSize -Spec $Spec -OldRight $oldRight
 
     if ($null -ne $script:ContextMenuRef) { $script:Card.ContextMenu = $script:ContextMenuRef }
