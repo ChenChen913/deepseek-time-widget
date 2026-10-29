@@ -25,6 +25,7 @@ param(
     [string]$PreviewTime = '',
     [string]$CapturePath = '',
     [string]$CycleCapture = '',
+    [string]$UiScheme = '',
     [switch]$PrintStatus,
     [switch]$InstallDesktopShortcut,
     [switch]$EnableAutoStart,
@@ -362,6 +363,8 @@ function Load-Settings {
 }
 
 function Save-Settings {
+    # 截图 / 循环截图是临时进程，绝不能回写用户的 settings.json
+    if ((-not [string]::IsNullOrWhiteSpace($script:RequestedCapturePath)) -or (-not [string]::IsNullOrWhiteSpace($script:CycleCaptureDir))) { return }
     try {
         $left = [double]$script:Window.Left
         $top = [double]$script:Window.Top
@@ -541,6 +544,11 @@ $script:Data = Load-HolidayData
 $script:Settings = Load-Settings
 # 启动次数用于控制一次性操作提示的显示时长（前 3 次启动才提示）
 $script:Settings.LaunchCount = [int]$script:Settings.LaunchCount + 1
+# 截图模式可以直接指定方案，不必去改用户目录里的 settings.json
+# （以前靠改 settings 来切方案，万一被正在运行的挂件回写，会把用户的位置一起弄乱）
+if ((-not [string]::IsNullOrWhiteSpace($UiScheme)) -and ((-not [string]::IsNullOrWhiteSpace($script:RequestedCapturePath)) -or (-not [string]::IsNullOrWhiteSpace($script:CycleCaptureDir)))) {
+    $script:Settings.UiScheme = $UiScheme
+}
 
 $xamlText = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
