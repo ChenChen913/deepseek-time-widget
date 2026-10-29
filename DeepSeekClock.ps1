@@ -726,6 +726,9 @@ function Update-Widget {
 
     # 圆表指针 / 波形亮点这类「每秒要动一下」的装饰，在这里单独推进
     Update-SchemeDecorTick -Status $status
+    # 9 个专属模板的文案（梁文峰时段 / [ PEAK MODE ] / PEAK ACTIVE …）与动态部件
+    Update-SchemeCustomText -Spec $spec -Status $status
+    Update-SchemeCustomTick -Spec $spec -Status $status
 }
 
 function Get-WindowSizeEstimate {

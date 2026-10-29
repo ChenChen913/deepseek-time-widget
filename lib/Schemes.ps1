@@ -23,6 +23,8 @@ $script:SchemeTones = @{
     paper = @{ Clock = '#1C1917'; Week = '#44403C'; Date = '#78716C'; Hint = '#A8A29E'; Marker = '#1C1917' }
     lcd   = @{ Clock = '#7DF7A8'; Week = '#3FD97C'; Date = '#22A85C'; Hint = '#166534'; Marker = '#7DF7A8' }
     mono  = @{ Clock = '#E5E7EB'; Week = '#9CA3AF'; Date = '#6B7280'; Hint = '#4B5563'; Marker = '#E5E7EB' }
+    # 暖棕黑底 + 琥珀字（点阵液晶 E5）
+    amber = @{ Clock = '#FFD166'; Week = '#C08A2E'; Date = '#C08A2E'; Hint = '#8A6A2E'; Marker = '#FFD166' }
 }
 
 # Text 里的 onAccent=true 表示文字要压在满版状态色上，用深色
@@ -65,6 +67,36 @@ $script:SchemePalettes = @{
     'scope' = @{
         Peak = @{ Accent = '#F87171'; AccentSoft = '#FCA5A5'; BadgeBg = '#26F87171'; Track = '#1AFFFFFF'; Segment = '#F87171'; Glow = $true }
         Idle = @{ Accent = '#4ADE80'; AccentSoft = '#86EFAC'; BadgeBg = '#264ADE80'; Track = '#1AFFFFFF'; Segment = '#F87171'; Glow = $true }
+        Badge = 'tint'
+    }
+    # F1 峰谷示波器：网页稿整卡是琥珀色，峰谷用同一套色，只换文案
+    'amber-scope' = @{
+        Peak = @{ Accent = '#F59E0B'; AccentSoft = '#FCD34D'; BadgeBg = '#26F59E0B'; Track = '#1AF59E0B'; Segment = '#F59E0B'; Glow = $true }
+        Idle = @{ Accent = '#34D399'; AccentSoft = '#6EE7B7'; BadgeBg = '#2634D399'; Track = '#1A34D399'; Segment = '#34D399'; Glow = $true }
+        Badge = 'tint'
+    }
+    # E5 点阵液晶：整屏琥珀，空闲时压暗一档，不换色相
+    'amber-crt' = @{
+        Peak = @{ Accent = '#FFB020'; AccentSoft = '#FFD166'; BadgeBg = '#26FFB020'; Track = '#1AFFB020'; Segment = '#FFB020'; Glow = $true }
+        Idle = @{ Accent = '#D99A2B'; AccentSoft = '#E8B961'; BadgeBg = '#26D99A2B'; Track = '#1AD99A2B'; Segment = '#D99A2B'; Glow = $false }
+        Badge = 'tint'
+    }
+    # E4 双色瑞士分屏：左栏实色就是状态色
+    'swiss' = @{
+        Peak = @{ Accent = '#C2600A'; AccentSoft = '#F5A623'; BadgeBg = '#26C2600A'; Track = '#1AFFFFFF'; Segment = '#F5A623'; Glow = $false }
+        Idle = @{ Accent = '#1F7A6B'; AccentSoft = '#2AB5A0'; BadgeBg = '#261F7A6B'; Track = '#1AFFFFFF'; Segment = '#2AB5A0'; Glow = $false }
+        Badge = 'tint'
+    }
+    # D3 K 线：标题跟着状态换（峰橙红 / 谷青绿），蜡烛本身固定双色
+    'kline' = @{
+        Peak = @{ Accent = '#E4552E'; AccentSoft = '#F08A6E'; BadgeBg = '#26E4552E'; Track = '#1AFFFFFF'; Segment = '#E4552E'; Glow = $false }
+        Idle = @{ Accent = '#2E9E85'; AccentSoft = '#5FC4AE'; BadgeBg = '#262E9E85'; Track = '#1AFFFFFF'; Segment = '#2E9E85'; Glow = $false }
+        Badge = 'tint'
+    }
+    # D6 半谷：整卡都是白字，压在橙 / 青双色块上
+    'half' = @{
+        Peak = @{ Accent = '#FFFFFF'; AccentSoft = '#FFE8E0'; BadgeBg = '#26FFFFFF'; Track = '#1AFFFFFF'; Segment = '#FFFFFF'; Glow = $false }
+        Idle = @{ Accent = '#FFFFFF'; AccentSoft = '#E8FFF9'; BadgeBg = '#26FFFFFF'; Track = '#1AFFFFFF'; Segment = '#FFFFFF'; Glow = $false }
         Badge = 'tint'
     }
 }
@@ -279,27 +311,33 @@ Add-Scheme @{
 
 Add-Scheme @{
     Key = 'c4'; Num = 'C4'; Name = 'C4 · 圆表'
-    Hint = '真仪表盘 Ø300：外圈刻度 + 高峰扇区 + 游标'
-    Layout = 'dial'; Width = 300; Height = 300
+    Hint = '真仪表盘 Ø300：外圈刻度 + 内环高峰弧 + 白色游标'
+    Layout = 'gauge'; Width = 300; Height = 300
     Tone = 'mono'; Palette = 'panel'
     ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 36
-    Surface = @{ Type = 'gradient'; From = '#191F27'; To = '#0A0D12' }
-    Radius = 150; Margin = 10; BodyPad = '0,56,0,42'
-    Timeline = $false
-    Decor = @('ring', 'sectors')
+    ClockSize = 26
+    Surface = @{ Type = 'solid'; From = '#12161D'; To = '#12161D' }
+    Border = '#1E242E'; BorderWidth = 1
+    Radius = 150; Margin = 10; BodyPad = '0,-10,0,10'
+    Timeline = $false; StatusDot = $false
+    Shadow = @{ Blur = 22; Depth = 5; Opacity = 0.5; Color = '#000000' }
+    Text = @{ Status = '#1A1A1A'; Week = '#8A94A6'; Date = '#8A94A6' }
+    Decor = @('gauge')
 }
 
 Add-Scheme @{
     Key = 'c6'; Num = 'C6'; Name = 'C6 · 色块'
     Hint = '整块底色就是状态：高峰满版琥珀、空闲满版青绿'
-    Layout = 'card'; Width = 280; Height = 176
+    Layout = 'solid'; Width = 280; Height = 182
     Tone = 'light'; Palette = 'solid'
     Surface = @{ Type = 'solid'; From = '#E8A33D'; To = '#E8A33D' }
-    Border = '#00000000'; BorderWidth = 0; Radius = 12
+    Border = '#00000000'; BorderWidth = 0; Radius = 10; Margin = 12
     StatusDot = $false; Timeline = $false
+    BodyPad = '16,12,16,10'
     SurfaceByState = $true
     Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
+    Text = @{ Rate = '#111111' }
+    Decor = @('scalebar')
 }
 
 # ---------- D · v4 波峰波谷 ----------
@@ -319,95 +357,106 @@ Add-Scheme @{
 
 Add-Scheme @{
     Key = 'd3'; Num = 'D3'; Name = 'D3 · K 线'
-    Hint = '24 根蜡烛，越高越贵；高峰红烛、空闲绿烛'
-    Layout = 'card'; Width = 316
-    Tone = 'dark'; Palette = 'scope'
-    ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 30
-    Surface = @{ Type = 'solid'; From = '#0C1116'; To = '#0C1116' }
-    Border = '#1E2836'; Radius = 12
-    BodyPad = '16,13,16,42'
-    Timeline = $false
-    Decor = @('candles')
+    Hint = '24 根蜡烛，越高越贵；高峰橙红粗柱、空闲暗绿矮块'
+    Layout = 'candle'; Width = 316; Height = 230
+    Tone = 'dark'; Palette = 'kline'
+    ClockFont = 'Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI'
+    ClockSize = 33
+    Surface = @{ Type = 'solid'; From = '#131313'; To = '#131313' }
+    Border = '#262626'; BorderWidth = 1; Radius = 12; Margin = 12
+    BodyPad = '14,12,14,10'
+    Timeline = $false; StatusDot = $false
+    Decor = @('kline')
 }
 
 Add-Scheme @{
     Key = 'd6'; Num = 'D6'; Name = 'D6 · 半谷'
     Hint = '整块斜切成两半，红是峰、绿是谷，面积比就是时长比'
-    Layout = 'card'; Width = 300
-    Tone = 'dark'; Palette = 'scope'
-    ClockSize = 34
-    Surface = @{ Type = 'solid'; From = '#101418'; To = '#101418' }
-    Border = '#00000000'; BorderWidth = 0; Radius = 14
+    Layout = 'half'; Width = 300; Height = 206
+    Tone = 'dark'; Palette = 'half'
+    ClockSize = 38
+    Surface = @{ Type = 'solid'; From = '#E4552E'; To = '#E4552E' }
+    Border = '#00000000'; BorderWidth = 0; Radius = 14; Margin = 12
+    BodyPad = '16,14,16,12'
     Timeline = $false; StatusDot = $false
-    Text = @{ Status = '#FFFFFF'; Clock = '#FFFFFF'; Week = '#E2E8F0'; Date = '#CBD5E1' }
-    Decor = @('split')
+    Text = @{ Status = '#FFFFFF'; Clock = '#FFFFFF'; Week = '#FFE8E0'; Date = '#FFE8E0'; Hint = '#F3C4B4' }
+    Shadow = @{ Blur = 20; Depth = 5; Opacity = 0.4; Color = '#000000' }
+    Decor = @('halfsplit')
 }
 
 # ---------- E · 全新风格 ----------
 Add-Scheme @{
     Key = 'e2'; Num = 'E2'; Name = 'E2 · 工业级仪表 HUD'
-    Hint = '12 格分段发光块替代进度条，状态靠亮灯数量读'
-    Layout = 'card'; Width = 290
+    Hint = '顶部琥珀条 + 描边框 + 8 段发光进度，随当前窗口实时推进'
+    Layout = 'hud'; Width = 290; Height = 198
     Tone = 'mono'; Palette = 'lcd'
     ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
     ClockSize = 30
-    Surface = @{ Type = 'solid'; From = '#0A0F0D'; To = '#0A0F0D' }
-    Border = '#1D3B2E'; Radius = 6
-    BodyPad = '16,13,16,26'
-    Timeline = $false
-    Decor = @('lamps')
+    Surface = @{ Type = 'solid'; From = '#111318'; To = '#111318' }
+    Border = '#242833'; BorderWidth = 1; Radius = 4; Margin = 12
+    BodyPad = '14,13,14,12'
+    Timeline = $false; StatusDot = $false
+    Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
+    Decor = @('hudprogress')
 }
 
 Add-Scheme @{
     Key = 'e3'; Num = 'E3'; Name = 'E3 · 新野兽派'
     Hint = '白底 + 2px 黑边 + 零模糊硬投影，高对比年轻化'
-    Layout = 'card'; Width = 290
+    Layout = 'brutal'; Width = 290; Height = 226
     Tone = 'light'; Palette = 'brutal'
     Surface = @{ Type = 'solid'; From = '#FFFFFF'; To = '#FFFFFF' }
-    Border = '#111111'; BorderWidth = 2; Radius = 8
+    Border = '#111111'; BorderWidth = 2; Radius = 0; Margin = 12
+    BodyPad = '14,12,14,12'
+    ClockSize = 38
+    StatusDot = $false; Timeline = $false
+    Text = @{ Status = '#111111'; Clock = '#111111'; Week = '#111111'; Date = '#111111'; Hint = '#52525B' }
     Shadow = @{ Blur = 0; Depth = 5; Opacity = 1; Color = '#111111' }
 }
 
 Add-Scheme @{
     Key = 'e4'; Num = 'E4'; Name = 'E4 · 双色瑞士分屏'
-    Hint = '左侧实色状态铭牌 + 右侧黑曜石大字，模块化秩序'
-    Layout = 'card'; Width = 330
-    Tone = 'dark'; Palette = 'glass-dark'
-    Surface = @{ Type = 'gradient'; From = '#0D1117'; To = '#05070A' }
-    Border = '#00000000'; BorderWidth = 0; Radius = 0
-    ClockSize = 30
-    StatusDot = $false; HideStatus = $true; AccentBar = $false
-    BodyPad = '106,13,16,13'
-    Decor = @('plate')
+    Hint = '左侧实色状态铭牌（高峰/PEAK/1.0×/工作日）+ 右侧黑曜石大字'
+    Layout = 'split'; Width = 330; Height = 172
+    Tone = 'dark'; Palette = 'swiss'
+    Surface = @{ Type = 'solid'; From = '#141414'; To = '#141414' }
+    Border = '#00000000'; BorderWidth = 0; Radius = 0; Margin = 10
+    ClockSize = 32
+    StatusDot = $false; HideStatus = $true; Timeline = $false
+    BodyPad = '16,14,16,12'
+    Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
 }
 
 Add-Scheme @{
     Key = 'e5'; Num = 'E5'; Name = 'E5 · 点阵液晶'
-    Hint = '荧光屏底色 + 内凹屏槽 + 超大 LCD 数字，长期盯屏护眼'
-    Layout = 'card'; Width = 295
-    Tone = 'lcd'; Palette = 'lcd'
+    Hint = '暖棕黑底 + 琥珀液晶数字，屏槽框 + 双虚线分隔'
+    Layout = 'lcd'; Width = 310; Height = 178
+    Tone = 'amber'; Palette = 'amber-crt'
     ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 36
-    Surface = @{ Type = 'solid'; From = '#0D1A12'; To = '#0D1A12' }
-    Border = '#1E3A2A'; Radius = 8
-    Timeline = $false
-    Decor = @('lcd', 'scanlines')
+    ClockSize = 40
+    Surface = @{ Type = 'solid'; From = '#241A10'; To = '#241A10' }
+    Border = '#4A3820'; BorderWidth = 1; Radius = 8; Margin = 10
+    BodyPad = '14,12,14,12'
+    Timeline = $false; StatusDot = $false
+    Shadow = @{ Blur = 20; Depth = 5; Opacity = 0.5; Color = '#000000' }
+    Text = @{ Rate = '#C08A2E'; Status = '#E8B961' }
 }
 
 # ---------- F · 梗图向 ----------
 Add-Scheme @{
     Key = 'f1'; Num = 'F1'; Name = 'F1 · 峰谷示波器'
-    Hint = '24 小时正弦波轨迹，峰顶标「梁文峰」、谷底标「梁文谷」'
-    Layout = 'card'; Width = 280
-    Tone = 'dark'; Palette = 'scope'
-    ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 28
-    Surface = @{ Type = 'solid'; From = '#0A0E12'; To = '#0A0E12' }
-    Border = '#1E2836'; Radius = 10
-    BodyPad = '16,13,16,70'
-    Timeline = $false
-    Decor = @('sine')
+    Hint = '琥珀描边波形框：两个圆峰 + 峰顶 PEAK 标记 + 当前时刻竖虚线'
+    Layout = 'scope'; Width = 300; Height = 220
+    Tone = 'dark'; Palette = 'amber-scope'
+    ClockFont = 'Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI'
+    ClockSize = 29
+    Surface = @{ Type = 'solid'; From = '#0E1116'; To = '#0E1116' }
+    Border = '#1E2836'; BorderWidth = 1; Radius = 14; Margin = 12
+    BodyPad = '12,10,12,10'
+    Timeline = $false; StatusDot = $false
+    Shadow = @{ Blur = 20; Depth = 5; Opacity = 0.5; Color = '#000000' }
+    Text = @{ Hint = '#475569'; Week = '#94A3B8'; Date = '#94A3B8' }
+    Decor = @('scope')
 }
 
 # ============================ 网页稿对齐补丁 ============================
@@ -433,7 +482,7 @@ $script:SchemeTweaks = @{
     'd6'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
     # E 组：工业 HUD / 液晶，全英文等宽标签
     'e2'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 13; StatusPillStyle = $true; ClockSecSize = 30; CdIdle = 'NEXT IDLE IN:'; CdPeak = 'NEXT PEAK IN:' }
-    'e3'      = @{ StatusSize = 16; DateInline = $true; PlainRate = $true; RateSize = 17; StatusSquare = $true; ClockSecSize = 34; CdIdle = '距空闲倒计时'; CdPeak = '距高峰倒计时'; Timeline = $false }
+    'e3'      = @{ StatusSize = 12; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 34; CdIdle = '距空闲倒计时'; CdPeak = '距高峰倒计时'; Timeline = $false }
     'e4'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰'; Timeline = $false }
     'e5'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 13; StatusPillStyle = $true; ClockSecSize = 36; CdIdle = 'NEXT IDLE:'; CdPeak = 'NEXT PEAK:' }
     # F1：倒计时带价格后缀
@@ -715,6 +764,10 @@ $script:LayoutXaml = @{
     capsule = $script:LayoutCapsule
     dial    = $script:LayoutDial
 }
+
+# 9 个「结构本身就不一样」的方案走专属模板（峰谷示波器 / 点阵液晶 / 瑞士分屏 /
+# 新野兽派 / 半谷 / K 线 / 色块 / HUD / 圆表），模板与装饰器都在 SchemesPro.ps1。
+. (Join-Path $PSScriptRoot 'SchemesPro.ps1')
 
 # ============================ 渲染工具 ============================
 
@@ -1378,6 +1431,13 @@ function Build-SchemeDecor {
             'lcd'        { Add-DecorLcd -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'scanlines'  { Add-DecorScanlines -Layer $canvas -W $w -H $h }
             'orb'        { Add-DecorOrb -Layer $canvas -W $w -H $h -Colors $Colors }
+            # ---- SchemesPro.ps1 里的专属装饰 ----
+            'scope'      { Add-DecorScope -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
+            'kline'      { Add-DecorKline -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
+            'halfsplit'  { Add-DecorHalfSplit -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
+            'scalebar'   { Add-DecorScaleBar -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
+            'gauge'      { Add-DecorGauge -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
+            'hudprogress' { Add-DecorHudProgress -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             default      { }
         }
     }
@@ -1462,6 +1522,10 @@ function New-SurfaceBrush {
 function Apply-SchemeSurface {
     param([object]$Spec)
 
+    # 专属模板（SchemesPro.ps1）的骨架写死在各自 XAML 里，
+    # 通用排版开关（药丸/裸价/日期换位）不能套上去，否则会把结构改坏。
+    $isCustom = -not (@('card', 'capsule', 'dial') -contains [string]$Spec.Layout)
+
     $script:Card.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList ([double]$Spec.Radius)
     $script:Card.Margin = ConvertTo-Thickness ([string]$Spec.Margin)
     $script:Card.BorderThickness = New-Object System.Windows.Thickness -ArgumentList ([double]$Spec.BorderWidth)
@@ -1476,8 +1540,12 @@ function Apply-SchemeSurface {
     $script:Body.Margin = ConvertTo-Thickness ([string]$Spec.BodyPad)
     $script:ClockText.FontFamily = Resolve-FontFamily ([string]$Spec.ClockFont)
     $script:ClockText.FontSize = [double]$Spec.ClockSize
-    $script:StatusText.FontSize = [double]$Spec.StatusSize
-    $script:CountdownText.FontSize = [double]$Spec.CountdownSize
+    if (-not $isCustom) {
+        # 专属模板的字号写在自己的 XAML 里（每个方案的信息密度差很多），
+        # 通用补丁表里的 StatusSize / CountdownSize 不往它们身上套。
+        $script:StatusText.FontSize = [double]$Spec.StatusSize
+        $script:CountdownText.FontSize = [double]$Spec.CountdownSize
+    }
 
     # ---- 网页稿的通用排版开关 ----
     # 时钟后面的「:24」：网页稿里是小号灰字，只有仪表类方案才全同号
@@ -1487,7 +1555,9 @@ function Apply-SchemeSurface {
     }
     # 价格：裸文字（1.0×）还是药丸（价格 1.0×）
     $script:RateText.FontSize = [double]$Spec.RateSize
-    if ([bool]$Spec.PlainRate) {
+    if ($isCustom) {
+        # 专属模板自己决定价格长什么样（E3 的方框、E5 的 RATE: 1.0X、C6 的 1.0 + ×）
+    } elseif ([bool]$Spec.PlainRate) {
         $script:RateBadge.Background = ConvertTo-Brush '#00000000'
         $script:RateBadge.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
         $script:RateBadge.Padding = New-Object System.Windows.Thickness -ArgumentList 0
@@ -1495,7 +1565,7 @@ function Apply-SchemeSurface {
         $script:RateBadge.Padding = New-Object System.Windows.Thickness -ArgumentList 8, 3, 8, 3
     }
     # 状态：药丸底（A1 / A5 那种）还是裸排
-    if ($null -ne $script:StatusPill) {
+    if (($null -ne $script:StatusPill) -and (-not $isCustom)) {
         if ([bool]$Spec.StatusPillStyle) {
             $script:StatusPill.Padding = New-Object System.Windows.Thickness -ArgumentList 10, 5, 12, 5
             $script:StatusPill.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList 14
@@ -1505,13 +1575,15 @@ function Apply-SchemeSurface {
             $script:StatusPill.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
         }
     }
-    if ($null -ne $script:CountdownValue) {
+    if (($null -ne $script:CountdownValue) -and (-not $isCustom)) {
         $script:CountdownValue.FontSize = [double]$Spec.CountdownSize
     }
 
     # 日期行：网页稿有两种排法——A1/A5 是右对齐竖排（日期在上、周几在下），
     # B/C/D/E/F 组是「10月28日 周三」横排塞在时钟下面。同一个 StackPanel 换位置和方向。
-    if ($null -ne $script:DateBox) {
+    # 只有通用卡片模板的 DateBox 是放在两行 Grid 里的，专属模板的 DateBox 位置写死在
+    # 自己的 XAML 里，不能在这里被 SetRow/SetColumn 挪走。
+    if (($null -ne $script:DateBox) -and ([string]$Spec.Layout -eq 'card')) {
         if ([bool]$Spec.DateInline) {
             [System.Windows.Controls.Grid]::SetRow($script:DateBox, 1)
             [System.Windows.Controls.Grid]::SetColumn($script:DateBox, 0)
@@ -1595,6 +1667,8 @@ function Apply-SchemeState {
     param([object]$Spec, [object]$Status)
 
     $colors = Get-SchemeColors -Spec $Spec -Status $Status
+    # 专属模板的价格 / 状态块长什么样由各自 XAML 定，这里只换文字色
+    $isCustom = -not (@('card', 'capsule', 'dial') -contains [string]$Spec.Layout)
 
     $script:StatusText.Foreground = ConvertTo-Brush ([string]$colors.Status)
     $script:ClockText.Foreground = ConvertTo-Brush ([string]$colors.Clock)
@@ -1617,7 +1691,7 @@ function Apply-SchemeState {
         # 满版色块方案（C6）里方块必须用对比色，跟状态文字同色，否则和底色糊在一起
         $script:StatusSquare.Fill = ConvertTo-Brush ([string]$colors.Status)
     }
-    if (($null -ne $script:StatusPill) -and [bool]$Spec.StatusPillStyle) {
+    if (($null -ne $script:StatusPill) -and [bool]$Spec.StatusPillStyle -and (-not $isCustom)) {
         if ([bool]$Spec.StatusPillSolid) {
             # C1 那种实底 chip：琥珀底 + 深色字
             $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.Accent)
@@ -1657,7 +1731,12 @@ function Apply-SchemeState {
     $script:TimelineTrack.Fill = ConvertTo-Brush ([string]$colors.Track)
     $script:TimeMarker.Fill = ConvertTo-Brush ([string]$colors.Marker)
 
-    if ([bool]$Spec.PlainRate) {
+    if ($isCustom) {
+        # 专属模板：只换价格文字的颜色，底色 / 描边 / 内边距保持模板原样
+        $rateColor = [string]$colors.Accent
+        if ($colors.ContainsKey('Rate')) { $rateColor = [string]$colors.Rate }
+        $script:RateText.Foreground = ConvertTo-Brush $rateColor
+    } elseif ([bool]$Spec.PlainRate) {
         # 裸文字价格（B1 / B5 / C1 / C6 那类），直接跟状态同色
         $script:RateBadge.Background = ConvertTo-Brush '#00000000'
         $script:RateBadge.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
@@ -1677,6 +1756,38 @@ function Apply-SchemeState {
                 $script:RateText.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
             }
         }
+    }
+
+    # ---- 专属模板里需要跟状态走的部件 ----
+    if ($null -ne $script:PlateBox) {
+        # E4 左栏铭牌整块换成当前状态色
+        $script:PlateBox.Background = ConvertTo-Brush ([string]$colors.Accent)
+        if ($null -ne $script:PlateStatus) { $script:PlateStatus.Foreground = ConvertTo-Brush '#FFFFFF' }
+        if ($null -ne $script:PlateStatusEn) { $script:PlateStatusEn.Foreground = ConvertTo-Brush '#FFE0BF' }
+        if ($null -ne $script:PlateRate) { $script:PlateRate.Foreground = ConvertTo-Brush '#FFFFFF' }
+        if ($null -ne $script:PlateDay) { $script:PlateDay.Foreground = ConvertTo-Brush '#FFE0BF' }
+    }
+    if ($null -ne $script:HudTopBar) {
+        $script:HudTopBar.Fill = ConvertTo-Brush ([string]$colors.Accent)
+    }
+    if ($null -ne $script:StatusPill) {
+        # C4 的琥珀药丸 / E2 的描边框都跟着状态色
+        if ([string]$Spec.Layout -eq 'gauge') {
+            $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.Accent)
+        } elseif ([string]$Spec.Layout -eq 'hud') {
+            $script:StatusPill.Background = ConvertTo-Brush '#00000000'
+        }
+    }
+    if ($null -ne $script:WinLeft) {
+        $script:WinLeft.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
+        if ($null -ne $script:WinMid) { $script:WinMid.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft) }
+        if ($null -ne $script:WinRight) { $script:WinRight.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft) }
+    }
+    if ($null -ne $script:RateTail) {
+        # C6 的「×」压在琥珀底上，必须跟价格同色，不能用强调色
+        $tailColor = [string]$colors.Accent
+        if ($colors.ContainsKey('Rate')) { $tailColor = [string]$colors.Rate }
+        $script:RateTail.Foreground = ConvertTo-Brush $tailColor
     }
 
     Build-SchemeDecor -Spec $Spec -Status $Status -Colors $colors
@@ -1753,6 +1864,31 @@ function Install-Layout {
     $script:StatusPill = Find-LayoutElement 'StatusPill'
     $script:StatusSquare = Find-LayoutElement 'StatusSquare'
     $script:DateBox = Find-LayoutElement 'DateBox'
+    # 专属模板（SchemesPro.ps1）才有的元素，通用模板里全为 $null
+    $script:ScopeBox = Find-LayoutElement 'ScopeBox'
+    $script:CandleBox = Find-LayoutElement 'CandleBox'
+    $script:ScaleBox = Find-LayoutElement 'ScaleBox'
+    $script:HudProgress = Find-LayoutElement 'HudProgress'
+    $script:HudTopBar = Find-LayoutElement 'HudTopBar'
+    $script:StatusIcon = Find-LayoutElement 'StatusIcon'
+    $script:RateTail = Find-LayoutElement 'RateTail'
+    $script:DateIcon = Find-LayoutElement 'DateIcon'
+    $script:CdIcon = Find-LayoutElement 'CdIcon'
+    $script:TzText = Find-LayoutElement 'TzText'
+    $script:PlateBox = Find-LayoutElement 'PlateBox'
+    $script:PlateStatus = Find-LayoutElement 'PlateStatus'
+    $script:PlateStatusEn = Find-LayoutElement 'PlateStatusEn'
+    $script:PlateRate = Find-LayoutElement 'PlateRate'
+    $script:PlateDay = Find-LayoutElement 'PlateDay'
+    $script:HalfRule = Find-LayoutElement 'HalfRule'
+    $script:HalfFootText = Find-LayoutElement 'HalfFootText'
+    $script:BrutalRule = Find-LayoutElement 'BrutalRule'
+    $script:WinLeft = Find-LayoutElement 'WinLeft'
+    $script:WinMid = Find-LayoutElement 'WinMid'
+    $script:WinRight = Find-LayoutElement 'WinRight'
+    $script:CdBox = Find-LayoutElement 'CdBox'
+    # 换布局后 HUD 进度条是一块新的 Canvas，缓存必须作废，否则不会重画
+    $script:HudCacheKey = ''
 
     Apply-SchemeWindowSize -Spec $Spec -OldRight $oldRight
 

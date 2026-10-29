@@ -33,10 +33,11 @@ function Assert-True {
     }
 }
 
-$knownLayouts = @('card', 'capsule', 'dial')
+$knownLayouts = @('card', 'capsule', 'dial', 'scope', 'lcd', 'split', 'brutal', 'half', 'candle', 'solid', 'hud', 'gauge')
 $knownDecor = @(
     'sheen', 'glowcorner', 'ring', 'quartz', 'sectors', 'wave', 'sine',
-    'candles', 'lamps', 'ticks', 'split', 'plate', 'lcd', 'scanlines', 'orb'
+    'candles', 'lamps', 'ticks', 'split', 'plate', 'lcd', 'scanlines', 'orb',
+    'scope', 'kline', 'halfsplit', 'scalebar', 'gauge', 'hudprogress'
 )
 
 # ---------- 清单基本形态 ----------
