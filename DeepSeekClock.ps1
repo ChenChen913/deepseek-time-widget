@@ -874,7 +874,8 @@ function Show-Rules {
         '操作：',
         '· 按住鼠标左键拖动可移动挂件位置',
         '· 右键打开菜单：置顶、开机自启、更新节假日数据、退出等',
-        '· 托盘图标左键单击可显示 / 隐藏挂件；重复启动也会把它叫回前台',
+        '· 托盘图标左键单击可显示 / 隐藏挂件；右键菜单可直接退出挂件',
+        '· 重复启动也会把它叫回前台',
         '',
         '节假日数据：',
         '· 右键“联网更新节假日数据”可获取当年及次年数据',
@@ -1224,7 +1225,10 @@ $script:Window.Add_SourceInitialized({
 
 # ---------- 托盘图标 ----------
 # 卡片被其他窗口遮挡、或被拖到屏幕边缘之外时，托盘是唯一的恢复入口。
+# 托盘右键菜单和卡片右键菜单是两条独立的退出路径：托盘图标被收起进溢出区时，
+# 仍然可以从右下角右键「退出挂件」。
 $script:TrayIcon = $null
+$script:TrayMenu = $null
 
 function Initialize-TrayIcon {
     try {
@@ -1237,7 +1241,7 @@ function Initialize-TrayIcon {
         if ($null -eq $icon) { $icon = [System.Drawing.SystemIcons]::Application }
         $script:TrayIcon = New-Object System.Windows.Forms.NotifyIcon
         $script:TrayIcon.Icon = $icon
-        $script:TrayIcon.Text = 'DeepSeek 时段挂件（左键显示 / 隐藏）'
+        $script:TrayIcon.Text = 'DeepSeek 时段挂件（左键显示 / 隐藏，右键菜单）'
         $script:TrayIcon.Add_MouseClick({
             param($sender, $eventArgs)
             try {
@@ -1250,9 +1254,36 @@ function Initialize-TrayIcon {
                 }
             } catch { }
         })
+
+        # 右键菜单：显示/隐藏 + 退出挂件
+        $menu = New-Object System.Windows.Forms.ContextMenuStrip
+        $menu.ShowImageMargin = $false
+        $menu.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9)
+        $itemToggle = New-Object System.Windows.Forms.ToolStripMenuItem '显示 / 隐藏挂件'
+        $itemToggle.Add_Click({
+            try {
+                if ($script:Window.IsVisible) {
+                    $script:Window.Hide()
+                } else {
+                    Bring-WidgetToFront
+                }
+            } catch { }
+        })
+        $itemExit = New-Object System.Windows.Forms.ToolStripMenuItem '退出挂件'
+        $itemExit.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9, [System.Drawing.FontStyle]::Bold)
+        $itemExit.Add_Click({
+            try { $script:Window.Close() } catch { }
+        })
+        [void]$menu.Items.Add($itemToggle)
+        [void]$menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator))
+        [void]$menu.Items.Add($itemExit)
+        $script:TrayMenu = $menu
+        $script:TrayIcon.ContextMenuStrip = $menu
+
         $script:TrayIcon.Visible = $true
     } catch {
         $script:TrayIcon = $null
+        $script:TrayMenu = $null
     }
 }
 
@@ -1261,6 +1292,10 @@ function Remove-TrayIcon {
         try { $script:TrayIcon.Visible = $false } catch { }
         try { $script:TrayIcon.Dispose() } catch { }
         $script:TrayIcon = $null
+    }
+    if ($null -ne $script:TrayMenu) {
+        try { $script:TrayMenu.Dispose() } catch { }
+        $script:TrayMenu = $null
     }
 }
 
