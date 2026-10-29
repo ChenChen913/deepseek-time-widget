@@ -24,6 +24,7 @@
 param(
     [string]$PreviewTime = '',
     [string]$CapturePath = '',
+    [string]$CycleCapture = '',
     [switch]$PrintStatus,
     [switch]$InstallDesktopShortcut,
     [switch]$EnableAutoStart,
@@ -44,12 +45,19 @@ $script:UserDataPath = Join-Path $script:SettingsDir 'holidays.json'
 $script:IconPath = Join-Path $script:AppDir 'assets\deepseek-clock.ico'
 $script:LauncherPath = Join-Path $script:AppDir '启动挂件.vbs'
 $script:RequestedCapturePath = $CapturePath
+$script:CycleCaptureDir = $CycleCapture
 
 $script:LibPath = Join-Path $script:AppDir 'lib\DeepSeekTime.ps1'
 if (-not (Test-Path -LiteralPath $script:LibPath)) {
     throw ('Core library not found: ' + $script:LibPath)
 }
 . $script:LibPath
+
+$script:SchemesPath = Join-Path $script:AppDir 'lib\Schemes.ps1'
+if (-not (Test-Path -LiteralPath $script:SchemesPath)) {
+    throw ('Scheme library not found: ' + $script:SchemesPath)
+}
+. $script:SchemesPath
 
 # ============================ 通用函数 ============================
 
@@ -332,7 +340,7 @@ function Update-HolidaysOnline {
 }
 
 function Load-Settings {
-    $settings = [pscustomobject]@{ Left = $null; Top = $null; Topmost = $true; LaunchCount = 0 }
+    $settings = [pscustomobject]@{ Left = $null; Top = $null; Topmost = $true; LaunchCount = 0; UiScheme = 'default' }
     try {
         if (Test-Path -LiteralPath $script:SettingsPath) {
             $raw = Get-Content -LiteralPath $script:SettingsPath -Raw -Encoding UTF8
@@ -342,9 +350,14 @@ function Load-Settings {
                 if ($null -ne $json.Top) { $settings.Top = [double]$json.Top }
                 if ($null -ne $json.Topmost) { $settings.Topmost = [bool]$json.Topmost }
                 if ($null -ne $json.LaunchCount) { $settings.LaunchCount = [int]$json.LaunchCount }
+                if (-not [string]::IsNullOrWhiteSpace([string]$json.UiScheme)) { $settings.UiScheme = [string]$json.UiScheme }
             }
         }
     } catch { }
+    if ([string]$settings.UiScheme -eq 'classic') { $settings.UiScheme = 'default' }
+    if ([string]$settings.UiScheme -eq 'ember') { $settings.UiScheme = 'b5' }
+    if ([string]$settings.UiScheme -eq 'block') { $settings.UiScheme = 'c6' }
+    if ([string]$settings.UiScheme -eq 'brutal') { $settings.UiScheme = 'e3' }
     return $settings
 }
 
@@ -362,6 +375,7 @@ function Save-Settings {
             Top         = $top
             Topmost     = [bool]$script:Window.Topmost
             LaunchCount = [int]$script:Settings.LaunchCount
+            UiScheme    = [string]$script:Settings.UiScheme
         }
         $jsonText = $payload | ConvertTo-Json
         [System.IO.File]::WriteAllText($script:SettingsPath, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
@@ -479,7 +493,12 @@ try {
     $script:ShowMessage = [int][DeepSeekClock.Win32Api]::RegisterWindowMessage('DeepSeekClockWidgetShow')
 } catch { }
 
-$script:InstanceMutex = New-Object -TypeName System.Threading.Mutex -ArgumentList @($false, 'Local\DeepSeekClockWidget')
+# 截图/调试模式用独立互斥体，避免和正在运行的挂件抢单实例锁
+$script:MutexName = 'Local\DeepSeekClockWidget'
+if ((-not [string]::IsNullOrWhiteSpace($script:RequestedCapturePath)) -or (-not [string]::IsNullOrWhiteSpace($script:CycleCaptureDir))) {
+    $script:MutexName = 'Local\DeepSeekClockWidgetCapture'
+}
+$script:InstanceMutex = New-Object -TypeName System.Threading.Mutex -ArgumentList @($false, $script:MutexName)
 $script:HasMutex = $false
 try {
     $script:HasMutex = $script:InstanceMutex.WaitOne(0, $false)
@@ -539,79 +558,7 @@ $xamlText = @'
         SnapsToDevicePixels="True"
         FontFamily="Microsoft YaHei UI"
         WindowStartupLocation="Manual">
-  <Grid>
-    <Border x:Name="Card" CornerRadius="18" Margin="14">
-      <Border.Background>
-        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-          <GradientStop Color="#FC182233" Offset="0" />
-          <GradientStop Color="#FC0B1018" Offset="1" />
-        </LinearGradientBrush>
-      </Border.Background>
-      <Border.BorderBrush>
-        <SolidColorBrush Color="#26FFFFFF" />
-      </Border.BorderBrush>
-      <Border.BorderThickness>1</Border.BorderThickness>
-      <Border.Effect>
-        <DropShadowEffect BlurRadius="20" ShadowDepth="5" Direction="270" Opacity="0.5" Color="#000000" />
-      </Border.Effect>
-      <Grid Margin="16,13,16,13">
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <Grid Grid.Row="0">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#34D399" VerticalAlignment="Center">
-              <Ellipse.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Opacity="0.95" Color="#34D399" />
-              </Ellipse.Effect>
-            </Ellipse>
-            <TextBlock x:Name="StatusText" Text="空闲时段" Margin="8,0,0,0" FontSize="18" FontWeight="SemiBold" Foreground="#34D399" VerticalAlignment="Center" />
-          </StackPanel>
-          <Border x:Name="RateBadge" Grid.Column="1" CornerRadius="9" Padding="8,3" Background="#2234D399" VerticalAlignment="Center">
-            <TextBlock x:Name="RateText" Text="价格 0.5×" FontSize="10.5" Foreground="#6EE7B7" />
-          </Border>
-        </Grid>
-
-        <Grid Grid.Row="1" Margin="0,10,0,0">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <TextBlock x:Name="ClockText" Text="08:54:21" FontFamily="Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI" FontSize="34" FontWeight="Bold" Foreground="#F8FAFC" VerticalAlignment="Center" />
-          <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
-            <TextBlock x:Name="WeekText" Text="周三" FontSize="13" Foreground="#CBD5E1" HorizontalAlignment="Right" />
-            <TextBlock x:Name="DateText" Text="10月28日" FontSize="11" Foreground="#7C8AA5" HorizontalAlignment="Right" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" MaxWidth="170" />
-          </StackPanel>
-        </Grid>
-
-        <Grid Grid.Row="2" Margin="0,10,0,0" Height="10">
-          <Canvas x:Name="TimelineCanvas" Height="10" ClipToBounds="True" HorizontalAlignment="Stretch">
-            <Rectangle x:Name="TimelineTrack" Canvas.Left="0" Canvas.Top="2" Height="6" RadiusX="3" RadiusY="3" Fill="#332A3A4D" />
-            <Rectangle x:Name="PeakSegment1" Canvas.Top="2" Height="6" RadiusX="3" RadiusY="3" Fill="#F59E0B" Visibility="Collapsed" />
-            <Rectangle x:Name="PeakSegment2" Canvas.Top="2" Height="6" RadiusX="3" RadiusY="3" Fill="#F59E0B" Visibility="Collapsed" />
-            <Rectangle x:Name="TimeMarker" Canvas.Top="0" Width="2" Height="10" RadiusX="1" RadiusY="1" Fill="#F8FAFC" />
-          </Canvas>
-        </Grid>
-
-        <Grid Grid.Row="3" Margin="0,8,0,0">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-          <TextBlock x:Name="CountdownText" Text="距高峰时段还有 00:12:00" FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-          <TextBlock x:Name="HintText" Grid.Column="1" Text="拖动 / 右键" FontSize="10" Foreground="#5B6B82" Margin="10,2,0,0" VerticalAlignment="Center" />
-        </Grid>
-      </Grid>
-    </Border>
-  </Grid>
+  <Grid x:Name="Shell" />
 </Window>
 '@
 
@@ -630,58 +577,43 @@ if (Test-Path -LiteralPath $script:IconPath) {
     } catch { }
 }
 
-function Get-UiElement {
-    param([string]$Name)
-    $element = $script:Window.FindName($Name)
-    if ($null -eq $element) { throw ('XAML 元素缺失：' + $Name) }
-    return $element
-}
-
-$script:Card = Get-UiElement 'Card'
-$script:StatusDot = Get-UiElement 'StatusDot'
-$script:StatusText = Get-UiElement 'StatusText'
-$script:RateBadge = Get-UiElement 'RateBadge'
-$script:RateText = Get-UiElement 'RateText'
-$script:ClockText = Get-UiElement 'ClockText'
-$script:WeekText = Get-UiElement 'WeekText'
-$script:DateText = Get-UiElement 'DateText'
-$script:TimelineCanvas = Get-UiElement 'TimelineCanvas'
-$script:TimelineTrack = Get-UiElement 'TimelineTrack'
-$script:PeakSegment1 = Get-UiElement 'PeakSegment1'
-$script:PeakSegment2 = Get-UiElement 'PeakSegment2'
-$script:TimeMarker = Get-UiElement 'TimeMarker'
-$script:CountdownText = Get-UiElement 'CountdownText'
-$script:HintText = Get-UiElement 'HintText'
-
 $script:ThemeKey = ''
 $script:LastNextIsPeak = $null
 $script:LastIsPeakDay = $null
 $script:LastTimelineWidth = $null
 $script:LastStatus = $null
 
+# ============================ 界面方案（右键可切） ============================
+# 方案的配方与渲染都在 lib/Schemes.ps1 里，这里只做「主题回调」的接线：
+# 高峰/空闲状态一变，就把当前方案 + 状态交给 Apply-SchemeState。
+
+$script:ActiveLayout = ''
+$script:SchemeMenuItems = @{}
+
 function Apply-Theme {
     param([object]$Status)
-    $accentColor = '#34D399'
-    $accentSoft = '#6EE7B7'
-    $badgeBackground = '#2234D399'
-    if ($Status.IsPeak) {
-        $accentColor = '#F59E0B'
-        $accentSoft = '#FCD34D'
-        $badgeBackground = '#22F59E0B'
-    }
-    $script:StatusDot.Fill = ConvertTo-Brush $accentColor
-    $script:StatusText.Foreground = ConvertTo-Brush $accentColor
-    $script:RateBadge.Background = ConvertTo-Brush $badgeBackground
-    $script:RateText.Foreground = ConvertTo-Brush $accentSoft
-    $glow = $script:StatusDot.Effect
-    if ($null -ne $glow) {
-        $glow.Color = [System.Windows.Media.ColorConverter]::ConvertFromString($accentColor)
-    }
-    # 倒计时跟随「当前状态」配色，避免琥珀色卡片里出现绿色倒计时造成的语义错乱
-    $script:CountdownText.Foreground = ConvertTo-Brush $accentSoft
-    $segmentColor = ConvertTo-Brush '#F59E0B'
-    $script:PeakSegment1.Fill = $segmentColor
-    $script:PeakSegment2.Fill = $segmentColor
+    $spec = Get-SchemeSpec -Key ([string]$script:Settings.UiScheme)
+    Apply-SchemeState -Spec $spec -Status $Status
+}
+
+# 右键菜单「上一个 / 下一个方案」用：按清单顺序循环切
+function Step-UiScheme {
+    param([int]$Step)
+    $next = Get-SchemeNeighbor -Key ([string]$script:Settings.UiScheme) -Step $Step
+    Set-UiScheme -Key $next
+    Save-Settings
+}
+
+# 卡片上的拖动交互：每次换布局都会换一颗 Card，所以封装成可重复调用的函数
+function Attach-CardInteractions {
+    if ($null -eq $script:Card) { return }
+    $script:Card.Add_MouseLeftButtonDown({
+        param($sender, $mouseArgs)
+        if ($mouseArgs.ButtonState -ne [System.Windows.Input.MouseButtonState]::Pressed) { return }
+        try { $script:Window.DragMove() } catch { }
+        Save-Settings
+        Update-Widget
+    })
 }
 
 function Update-Widget {
@@ -742,26 +674,28 @@ function Update-Widget {
         }
         if (($null -eq $script:LastIsPeakDay) -or ($script:LastIsPeakDay -ne $status.IsPeakDay)) {
             $script:LastIsPeakDay = $status.IsPeakDay
-            if ($status.IsPeakDay) {
-                $script:TimelineTrack.Fill = ConvertTo-Brush '#332A3A4D'
-            } else {
-                $script:TimelineTrack.Fill = ConvertTo-Brush '#3D34D399'
-            }
         }
         $markerLeft = [Math]::Round($timelineWidth * $status.DayFraction) - 1
         if ($markerLeft -lt 0) { $markerLeft = 0 }
         if ($markerLeft -gt ($timelineWidth - 2)) { $markerLeft = $timelineWidth - 2 }
         [System.Windows.Controls.Canvas]::SetLeft($script:TimeMarker, $markerLeft)
     }
+
+    # 圆表指针 / 波形亮点这类「每秒要动一下」的装饰，在这里单独推进
+    Update-SchemeDecorTick -Status $status
 }
 
 function Get-WindowSizeEstimate {
     # 窗口尺寸在 Loaded / ContentRendered 阶段可能还没算出来（ActualWidth 会是 0 或极小值），
-    # 直接用会把窗口算到屏幕外，这里给一个合理下限。
+    # 直接用会把窗口算到屏幕外，这里按当前方案给一个合理下限。
+    $spec = Get-SchemeSpec -Key ([string]$script:Settings.UiScheme)
+    $fallbackWidth = [double]$spec.Width
+    $fallbackHeight = 196.0
+    if ([double]$spec.Height -gt 0) { $fallbackHeight = [double]$spec.Height }
     $width = [double]$script:Window.ActualWidth
     $height = [double]$script:Window.ActualHeight
-    if ([double]::IsNaN($width) -or $width -lt 200) { $width = 316 }
-    if ([double]::IsNaN($height) -or $height -lt 100) { $height = 196 }
+    if ([double]::IsNaN($width) -or $width -lt 200) { $width = $fallbackWidth }
+    if ([double]::IsNaN($height) -or $height -lt 100) { $height = $fallbackHeight }
     return @($width, $height)
 }
 
@@ -821,6 +755,45 @@ function Save-WindowSnapshot {
     } finally {
         $fileStream.Close()
     }
+}
+
+function Start-CycleCapture {
+    # 在同一个进程里把所有方案切一遍并逐个截图：
+    # 这样能同时验证「card → capsule → dial」的布局重建和勾选状态同步。
+    if (-not (Test-Path -LiteralPath $script:CycleCaptureDir)) {
+        New-Item -ItemType Directory -Path $script:CycleCaptureDir -Force | Out-Null
+    }
+    $script:CycleIndex = 0
+    $script:CyclePending = $null
+    $script:CycleTimer = New-Object System.Windows.Threading.DispatcherTimer
+    $script:CycleTimer.Interval = [TimeSpan]::FromMilliseconds(420)
+    $script:CycleTimer.Add_Tick({
+        if ($null -ne $script:CyclePending) {
+            $path = Join-Path $script:CycleCaptureDir ('cycle-' + $script:CyclePending + '.png')
+            try {
+                Save-WindowSnapshot -Path $path
+                [Console]::Out.WriteLine('OK ' + $script:CyclePending)
+            } catch {
+                [Console]::Error.WriteLine('FAIL ' + $script:CyclePending + ' ' + $_.Exception.Message)
+            }
+            $script:CyclePending = $null
+            return
+        }
+        if ($script:CycleIndex -ge $script:UiSchemes.Count) {
+            $script:CycleTimer.Stop()
+            try { $script:Window.Close() } catch { }
+            return
+        }
+        $key = [string]$script:UiSchemes[$script:CycleIndex].Key
+        $script:CycleIndex = $script:CycleIndex + 1
+        try {
+            Set-UiScheme -Key $key
+            $script:CyclePending = $key
+        } catch {
+            [Console]::Error.WriteLine('SWITCH-FAIL ' + $key + ' ' + $_.Exception.Message)
+        }
+    })
+    $script:CycleTimer.Start()
 }
 
 function Start-CaptureSequence {
@@ -888,7 +861,9 @@ $script:MenuStyleXaml = @'
             <Border.Effect>
               <DropShadowEffect BlurRadius="22" ShadowDepth="4" Direction="270" Opacity="0.42" Color="#000000" />
             </Border.Effect>
-            <StackPanel IsItemsHost="True" Margin="0,6" KeyboardNavigation.DirectionalNavigation="Cycle" />
+            <ScrollViewer MaxHeight="540" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0">
+              <StackPanel IsItemsHost="True" Margin="0,6" KeyboardNavigation.DirectionalNavigation="Cycle" />
+            </ScrollViewer>
           </Border>
         </ControlTemplate>
       </Setter.Value>
@@ -1053,6 +1028,60 @@ function Build-ContextMenu {
     })
     [void]$menu.Items.Add($script:MenuAutoStart)
 
+    # ---------- 界面方案 ----------
+    [void]$menu.Items.Add((New-MenuSeparator))
+
+    $script:MenuSchemeHeader = New-ContextMenuItem -Header '界面方案' -StyleKey 'GlassMenuHeader'
+    $script:MenuSchemeHeader.Tag = '当前：' + [string](Get-SchemeSpec -Key ([string]$script:Settings.UiScheme)).Name
+    $script:MenuSchemeHeader.IsEnabled = $false
+    [void]$menu.Items.Add($script:MenuSchemeHeader)
+
+    $itemPrev = New-ContextMenuItem -Header '上一个方案'
+    $itemPrev.Add_Click({ Step-UiScheme -Step -1 })
+    [void]$menu.Items.Add($itemPrev)
+
+    $itemNext = New-ContextMenuItem -Header '下一个方案'
+    $itemNext.Add_Click({ Step-UiScheme -Step 1 })
+    [void]$menu.Items.Add($itemNext)
+
+    [void]$menu.Items.Add((New-MenuSeparator))
+
+    # 每个菜单项自己带 Key（Tag），点击时从 $sender 取——
+    # 不再靠遍历 IsChecked 反推点了哪一项，这样切走再切回来一定正确。
+    $schemeClick = {
+        param($sender, $e)
+        $key = ''
+        if ($null -ne $sender) { $key = [string]$sender.Tag }
+        if ([string]::IsNullOrEmpty($key)) { $key = [string]$this.Tag }
+        if ([string]::IsNullOrEmpty($key)) { return }
+        Set-UiScheme -Key $key
+        Save-Settings
+    }
+
+    foreach ($scheme in $script:UiSchemes) {
+        $schemeItem = New-ContextMenuItem -Header $scheme.Name -Checkable $true -Checked ($scheme.Key -eq [string]$script:Settings.UiScheme)
+        $schemeItem.Tag = [string]$scheme.Key
+        $schemeItem.ToolTip = $scheme.Hint
+        $schemeItem.Add_Click($schemeClick)
+        $script:SchemeMenuItems[$scheme.Key] = $schemeItem
+        [void]$menu.Items.Add($schemeItem)
+    }
+
+    [void]$menu.Items.Add((New-MenuSeparator))
+
+    $itemGallery = New-ContextMenuItem -Header '查看全部方案…'
+    $itemGallery.Add_Click({
+        $galleryPath = Join-Path $script:AppDir 'design\all-schemes.html'
+        if (Test-Path -LiteralPath $galleryPath) {
+            Start-Process -FilePath $galleryPath
+        } else {
+            Show-Dialog -Message ('没找到方案审查台：' + $galleryPath) -Kind 'Warning'
+        }
+    })
+    [void]$menu.Items.Add($itemGallery)
+
+    [void]$menu.Items.Add((New-MenuSeparator))
+
     $script:MenuSync = New-ContextMenuItem -Header '联网更新节假日数据'
     $script:MenuSync.Add_Click({
         $script:MenuSync.IsEnabled = $false
@@ -1107,7 +1136,10 @@ function Build-ContextMenu {
     return $menu
 }
 
-$script:Card.ContextMenu = Build-ContextMenu
+# 先建菜单，再装布局：Install-Layout 会把菜单挂到新卡片上
+$script:ContextMenuRef = Build-ContextMenu
+# 装布局 + 应用上次选中的界面方案（Install-Layout 会把菜单挂到新卡片上）
+Set-UiScheme -Key ([string]$script:Settings.UiScheme)
 
 # ---------- 单实例唤起 ----------
 # 第二个实例广播自定义窗口消息，已运行的挂件收到后把自己拉回前台，
@@ -1182,14 +1214,7 @@ function Remove-TrayIcon {
     }
 }
 
-$script:Card.Add_MouseLeftButtonDown({
-    param($sender, $mouseArgs)
-    if ($mouseArgs.ButtonState -eq [System.Windows.Input.MouseButtonState]::Pressed) {
-        try { $script:Window.DragMove() } catch { }
-        Save-Settings
-        Update-Widget
-    }
-})
+Attach-CardInteractions
 
 $script:Window.Add_Loaded({
     try {
@@ -1200,7 +1225,9 @@ $script:Window.Add_Loaded({
             Place-WindowBottomRight
         }
         Update-Widget
-        if ($script:RequestedCapturePath) {
+        if (-not [string]::IsNullOrWhiteSpace($script:CycleCaptureDir)) {
+            Start-CycleCapture
+        } elseif ($script:RequestedCapturePath) {
             Start-CaptureSequence
         } else {
             Initialize-TrayIcon

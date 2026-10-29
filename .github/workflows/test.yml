@@ -14,9 +14,13 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 运行单元测试
+      - name: 运行单元测试（时段逻辑）
         shell: cmd
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Core.ps1
+
+      - name: 运行单元测试（界面方案数据）
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Schemes.ps1
 
       - name: 命令行冒烟测试
         shell: cmd
