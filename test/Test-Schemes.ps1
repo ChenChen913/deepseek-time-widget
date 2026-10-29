@@ -63,6 +63,13 @@ foreach ($spec in $schemes) {
     $width = [double]$spec.Width
     Assert-True (($width -ge 200) -and ($width -le 700)) ('宽度在合理区间：' + $label) ([string]$width)
 
+    # 卡片布局的日期列被大号时钟挤在右边，宽度只够放下「10月28日」这一行，
+    # 所以节日名只能挪到周几那一行（Update-Widget 里的 CompactDate 分支）。
+    # 将来真加了更宽的卡片布局，这条规则要连同日期行一起重新评估。
+    if ([string]$spec.Layout -eq 'card') {
+        Assert-True ($width -le 340) ('卡片布局宽度 <= 340：' + $label) ([string]$width)
+    }
+
     $height = [double]$spec.Height
     Assert-True (($height -eq 0) -or (($height -ge 90) -and ($height -le 400))) ('高度合法（0=自适应）：' + $label) ([string]$height)
 
