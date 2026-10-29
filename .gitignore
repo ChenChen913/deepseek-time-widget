@@ -8,6 +8,9 @@ _research/
 _cap/
 .workbuddy-ai/
 
+# 状态截图的工作目录（22 方案 × 周末 / 节假日），只在本地留证，不进仓库
+design/_states/
+
 # 系统文件
 Thumbs.db
 desktop.ini

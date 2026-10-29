@@ -1417,6 +1417,10 @@ function Apply-SchemeSurface {
     $script:StatusText.FontSize = [double]$Spec.StatusSize
     $script:CountdownText.FontSize = [double]$Spec.CountdownSize
 
+    # 卡片布局里日期列被大号时钟挤在右边，宽度只够放下「10月28日」这一行；
+    # 胶囊 / 表盘布局横向有余量。节日名放哪儿由这个标记决定（见 Update-Widget）。
+    $script:CompactDate = ([string]$Spec.Layout -eq 'card')
+
     # 状态点：胶囊布局要放大成光球，由 orb 装饰接管
     $script:StatusDot.Width = 9
     $script:StatusDot.Height = 9
@@ -1516,6 +1520,8 @@ $script:LayoutRoot = $null
 $script:DecorHost = $null
 $script:ContextMenuRef = $null
 $script:InstallingLayout = $false
+# 日期行是否只有「10月28日」这么宽（卡片布局为真），决定节日名放哪一行
+$script:CompactDate = $false
 
 function Get-LayoutElement {
     param([string]$Name)

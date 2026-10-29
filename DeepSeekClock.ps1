@@ -632,14 +632,21 @@ function Update-Widget {
     $script:StatusText.Text = $status.StatusText
     $script:RateText.Text = $status.RateText
     $script:ClockText.Text = $status.TimeText
-    $script:WeekText.Text = $status.WeekText
 
+    # 周末不再额外挂「· 周末」：周几那一行已经写明周六 / 周日，
+    # 而且调休上班的周六本就不该被标成周末。
+    # 节日名放哪儿看布局：卡片布局的日期列被时钟挤窄了，只能挪到周几那一行，
+    # 否则会变成「10月31日 · 周…」这种被截断的样子；胶囊 / 表盘横向有余量，跟在日期后面。
+    $weekLine = $status.WeekText
     $dateLine = $status.DateText
     if ($status.HolidayName) {
-        $dateLine = $dateLine + ' · ' + $status.HolidayName
-    } elseif ($status.IsWeekend) {
-        $dateLine = $dateLine + ' · 周末'
+        if ([bool]$script:CompactDate) {
+            $weekLine = [string]$status.HolidayName
+        } else {
+            $dateLine = $dateLine + ' · ' + [string]$status.HolidayName
+        }
     }
+    $script:WeekText.Text = $weekLine
     if ($script:Data.Years.Count -eq 0) {
         $dateLine = $dateLine + ' · 数据缺失'
     } elseif (-not $status.YearCovered) {
