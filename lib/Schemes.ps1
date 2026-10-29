@@ -97,6 +97,15 @@ $script:SchemeDefaults = @{
     Timeline  = $true
     Decor     = @()
     CountdownSize = 12
+    # ---- 网页稿的通用排版开关 ----
+    PlainRate = $false       # 价格只写「1.0×」，不带药丸底和「价格」前缀
+    RateSize  = 10.5
+    StatusPillStyle = $false # 状态是药丸（带底色/描边）还是裸排
+    StatusSquare = $false    # 状态标记用方块（C6 / E3 那种）而不是圆点
+    ClockSecSize = 15        # 时钟后面「:24」的字号
+    DateInline = $false      # 日期排在时钟下方一行（「10月28日 周三」），否则右对齐竖排
+    CdIdle = ''              # 倒计时标签（下一次是空闲），留空用「距空闲」
+    CdPeak = ''              # 倒计时标签（下一次是高峰），留空用「距高峰」
     Text      = @{}
 }
 
@@ -284,10 +293,10 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'c6'; Num = 'C6'; Name = 'C6 · 色块'
     Hint = '整块底色就是状态：高峰满版琥珀、空闲满版青绿'
-    Layout = 'card'; Width = 280
+    Layout = 'card'; Width = 280; Height = 176
     Tone = 'light'; Palette = 'solid'
-    Surface = @{ Type = 'solid'; From = '#F59E0B'; To = '#F59E0B' }
-    Border = '#00000000'; BorderWidth = 0; Radius = 14
+    Surface = @{ Type = 'solid'; From = '#E8A33D'; To = '#E8A33D' }
+    Border = '#00000000'; BorderWidth = 0; Radius = 12
     StatusDot = $false; Timeline = $false
     SurfaceByState = $true
     Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
@@ -401,6 +410,46 @@ Add-Scheme @{
     Decor = @('sine')
 }
 
+# ============================ 网页稿对齐补丁 ============================
+# 逐个方案把「网页稿里到底怎么排的」补进来，全是排版开关，不动配色。
+# 判断依据是 design/ 下 7 份原稿 + live-v1-states.html 的实际截图，
+# 对照脚本：tools/capture-web-refs.mjs（把每张卡片单独截出来）。
+$script:SchemeTweaks = @{
+    # 默认界面：价格是药丸，倒计时整句「距空闲时段还有」
+    'default' = @{ ClockSecSize = 16; RateSize = 11; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
+    # A1 / A5：状态和价格都是药丸（带底色和细描边）
+    'a1'      = @{ StatusSize = 15; StatusPillStyle = $true; RateSize = 11; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
+    'a5'      = @{ StatusSize = 15; StatusPillStyle = $true; RateSize = 11; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
+    # B 组：价格是裸文字「1.0×」，字号明显大于小标签
+    'b1'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    'b5'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    # C 组：仪表类，时钟全同号（等宽），价格裸文字
+    'c1'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 17; StatusPillStyle = $true; StatusPillSolid = $true; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    'c2'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    'c6'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; StatusSquare = $true; ClockSecSize = 30; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    # D 组：梗图向，倒计时写成「距梁文谷 / 距梁文峰」
+    'd1'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
+    'd3'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
+    'd6'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
+    # E 组：工业 HUD / 液晶，全英文等宽标签
+    'e2'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 13; StatusPillStyle = $true; ClockSecSize = 30; CdIdle = 'NEXT IDLE IN:'; CdPeak = 'NEXT PEAK IN:' }
+    'e3'      = @{ StatusSize = 16; DateInline = $true; PlainRate = $true; RateSize = 17; StatusSquare = $true; ClockSecSize = 34; CdIdle = '距空闲倒计时'; CdPeak = '距高峰倒计时'; Timeline = $false }
+    'e4'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰'; Timeline = $false }
+    'e5'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 13; StatusPillStyle = $true; ClockSecSize = 36; CdIdle = 'NEXT IDLE:'; CdPeak = 'NEXT PEAK:' }
+    # F1：倒计时带价格后缀
+    'f1'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 14; ClockSecSize = 16; CdIdle = '距入谷 (0.5×)'; CdPeak = '距入峰 (1.0×)' }
+}
+
+foreach ($key in $script:SchemeTweaks.Keys) {
+    for ($i = 0; $i -lt $script:UiSchemes.Count; $i++) {
+        if ([string]$script:UiSchemes[$i].Key -ne $key) { continue }
+        $tweak = $script:SchemeTweaks[$key]
+        foreach ($name in $tweak.Keys) {
+            $script:UiSchemes[$i] | Add-Member -NotePropertyName $name -NotePropertyValue $tweak[$name] -Force
+        }
+    }
+}
+
 # ============================ 查询 ============================
 
 $script:SchemeIndex = @{}
@@ -498,27 +547,37 @@ $script:LayoutCard = @'
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#34D399" VerticalAlignment="Center">
-            <Ellipse.Effect>
-              <DropShadowEffect BlurRadius="10" ShadowDepth="0" Opacity="0.95" Color="#34D399" />
-            </Ellipse.Effect>
-          </Ellipse>
-          <TextBlock x:Name="StatusText" Text="空闲时段" Margin="8,0,0,0" FontSize="18" FontWeight="SemiBold" Foreground="#34D399" VerticalAlignment="Center" />
-        </StackPanel>
+        <Border x:Name="StatusPill" Background="#00000000" BorderThickness="0" CornerRadius="10" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#34D399" VerticalAlignment="Center">
+              <Ellipse.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Opacity="0.95" Color="#34D399" />
+              </Ellipse.Effect>
+            </Ellipse>
+            <Rectangle x:Name="StatusSquare" Width="9" Height="9" Fill="#34D399" VerticalAlignment="Center" Visibility="Collapsed" />
+            <TextBlock x:Name="StatusText" Text="空闲时段" Margin="8,0,0,0" FontSize="18" FontWeight="SemiBold" Foreground="#34D399" VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
         <Border x:Name="RateBadge" Grid.Column="1" CornerRadius="9" Padding="8,3" Background="#2234D399" VerticalAlignment="Center">
-          <TextBlock x:Name="RateText" Text="价格 0.5×" FontSize="10.5" Foreground="#6EE7B7" />
+          <TextBlock x:Name="RateText" Text="1.0×" FontSize="10.5" Foreground="#6EE7B7" />
         </Border>
       </Grid>
       <Grid Grid.Row="1" Margin="0,10,0,0">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="ClockText" Text="08:54:21" FontSize="34" FontWeight="Bold" Foreground="#F8FAFC" VerticalAlignment="Center" />
-        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
-          <TextBlock x:Name="WeekText" Text="周三" FontSize="13" Foreground="#CBD5E1" HorizontalAlignment="Right" />
-          <TextBlock x:Name="DateText" Text="10月28日" FontSize="11" Foreground="#7C8AA5" HorizontalAlignment="Right" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" MaxWidth="170" />
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Bottom">
+          <TextBlock x:Name="ClockText" Text="08:54" FontSize="34" FontWeight="Bold" Foreground="#F8FAFC" />
+          <TextBlock x:Name="ClockSec" Text=":21" FontSize="15" Foreground="#8FA0B8" Margin="1,0,0,6" VerticalAlignment="Bottom" />
+        </StackPanel>
+        <StackPanel x:Name="DateBox" Grid.Row="0" Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+          <TextBlock x:Name="DateText" Text="10月28日" FontSize="13" Foreground="#CBD5E1" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" MaxWidth="170" />
+          <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#7C8AA5" HorizontalAlignment="Right" Margin="0,3,0,0" />
         </StackPanel>
       </Grid>
       <Grid Grid.Row="2" Margin="0,10,0,0" Height="10">
@@ -534,8 +593,11 @@ $script:LayoutCard = @'
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="CountdownText" Text="距高峰时段还有 00:12:00" FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-        <TextBlock x:Name="HintText" Grid.Column="1" Text="拖动 / 右键" FontSize="10" Foreground="#5B6B82" Margin="10,2,0,0" VerticalAlignment="Center" />
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+          <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="10" Foreground="#5B6B82" Margin="10,2,0,0" VerticalAlignment="Center" />
+        </StackPanel>
+        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:40:00" FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center" Margin="10,0,0,0" />
       </Grid>
     </Grid>
   </Grid>
@@ -1417,6 +1479,66 @@ function Apply-SchemeSurface {
     $script:StatusText.FontSize = [double]$Spec.StatusSize
     $script:CountdownText.FontSize = [double]$Spec.CountdownSize
 
+    # ---- 网页稿的通用排版开关 ----
+    # 时钟后面的「:24」：网页稿里是小号灰字，只有仪表类方案才全同号
+    if ($null -ne $script:ClockSec) {
+        $script:ClockSec.FontFamily = $script:ClockText.FontFamily
+        $script:ClockSec.FontSize = [double]$Spec.ClockSecSize
+    }
+    # 价格：裸文字（1.0×）还是药丸（价格 1.0×）
+    $script:RateText.FontSize = [double]$Spec.RateSize
+    if ([bool]$Spec.PlainRate) {
+        $script:RateBadge.Background = ConvertTo-Brush '#00000000'
+        $script:RateBadge.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
+        $script:RateBadge.Padding = New-Object System.Windows.Thickness -ArgumentList 0
+    } else {
+        $script:RateBadge.Padding = New-Object System.Windows.Thickness -ArgumentList 8, 3, 8, 3
+    }
+    # 状态：药丸底（A1 / A5 那种）还是裸排
+    if ($null -ne $script:StatusPill) {
+        if ([bool]$Spec.StatusPillStyle) {
+            $script:StatusPill.Padding = New-Object System.Windows.Thickness -ArgumentList 10, 5, 12, 5
+            $script:StatusPill.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList 14
+        } else {
+            $script:StatusPill.Padding = New-Object System.Windows.Thickness -ArgumentList 0
+            $script:StatusPill.Background = ConvertTo-Brush '#00000000'
+            $script:StatusPill.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
+        }
+    }
+    if ($null -ne $script:CountdownValue) {
+        $script:CountdownValue.FontSize = [double]$Spec.CountdownSize
+    }
+
+    # 日期行：网页稿有两种排法——A1/A5 是右对齐竖排（日期在上、周几在下），
+    # B/C/D/E/F 组是「10月28日 周三」横排塞在时钟下面。同一个 StackPanel 换位置和方向。
+    if ($null -ne $script:DateBox) {
+        if ([bool]$Spec.DateInline) {
+            [System.Windows.Controls.Grid]::SetRow($script:DateBox, 1)
+            [System.Windows.Controls.Grid]::SetColumn($script:DateBox, 0)
+            [System.Windows.Controls.Grid]::SetColumnSpan($script:DateBox, 2)
+            $script:DateBox.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+            $script:DateBox.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Left
+            $script:DateBox.Margin = New-Object System.Windows.Thickness -ArgumentList 0, 3, 0, 0
+            $script:DateText.FontSize = 12
+            $script:WeekText.FontSize = 12
+            $script:WeekText.Margin = New-Object System.Windows.Thickness -ArgumentList 6, 0, 0, 0
+            $script:DateText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Left
+            $script:WeekText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Left
+        } else {
+            [System.Windows.Controls.Grid]::SetRow($script:DateBox, 0)
+            [System.Windows.Controls.Grid]::SetColumn($script:DateBox, 1)
+            [System.Windows.Controls.Grid]::SetColumnSpan($script:DateBox, 1)
+            $script:DateBox.Orientation = [System.Windows.Controls.Orientation]::Vertical
+            $script:DateBox.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
+            $script:DateBox.Margin = New-Object System.Windows.Thickness -ArgumentList 12, 0, 0, 0
+            $script:DateText.FontSize = 13
+            $script:WeekText.FontSize = 11
+            $script:WeekText.Margin = New-Object System.Windows.Thickness -ArgumentList 0, 3, 0, 0
+            $script:DateText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
+            $script:WeekText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
+        }
+    }
+
     # 卡片布局里日期列被大号时钟挤在右边，宽度只够放下「10月28日」这一行；
     # 胶囊 / 表盘布局横向有余量。节日名放哪儿由这个标记决定（见 Update-Widget）。
     $script:CompactDate = ([string]$Spec.Layout -eq 'card')
@@ -1426,13 +1548,22 @@ function Apply-SchemeSurface {
     $script:StatusDot.Height = 9
     if ([bool]$Spec.HideStatus) {
         $script:StatusDot.Visibility = [System.Windows.Visibility]::Collapsed
+        if ($null -ne $script:StatusSquare) { $script:StatusSquare.Visibility = [System.Windows.Visibility]::Collapsed }
         $script:StatusText.Visibility = [System.Windows.Visibility]::Collapsed
     } else {
         $script:StatusText.Visibility = [System.Windows.Visibility]::Visible
-        if ([bool]$Spec.StatusDot) {
+        if (($null -ne $script:StatusSquare) -and [bool]$Spec.StatusSquare) {
+            # C6 / E3 那种实心方块
+            $script:StatusSquare.Visibility = [System.Windows.Visibility]::Visible
+            $script:StatusSquare.Width = 9
+            $script:StatusSquare.Height = 9
+            $script:StatusDot.Visibility = [System.Windows.Visibility]::Collapsed
+        } elseif ([bool]$Spec.StatusDot) {
             $script:StatusDot.Visibility = [System.Windows.Visibility]::Visible
+            if ($null -ne $script:StatusSquare) { $script:StatusSquare.Visibility = [System.Windows.Visibility]::Collapsed }
         } else {
             $script:StatusDot.Visibility = [System.Windows.Visibility]::Collapsed
+            if ($null -ne $script:StatusSquare) { $script:StatusSquare.Visibility = [System.Windows.Visibility]::Collapsed }
         }
     }
 
@@ -1472,6 +1603,36 @@ function Apply-SchemeState {
     $script:CountdownText.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
     $script:HintText.Foreground = ConvertTo-Brush ([string]$colors.Hint)
 
+    # 可选元素（只有卡片布局有）
+    if ($null -ne $script:ClockSec) {
+        $secColor = ''
+        if ($colors.ContainsKey('ClockSec')) { $secColor = [string]$colors.ClockSec }
+        if ([string]::IsNullOrWhiteSpace($secColor)) { $secColor = [string]$colors.Week }
+        $script:ClockSec.Foreground = ConvertTo-Brush $secColor
+    }
+    if ($null -ne $script:CountdownValue) {
+        $script:CountdownValue.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
+    }
+    if ($null -ne $script:StatusSquare) {
+        # 满版色块方案（C6）里方块必须用对比色，跟状态文字同色，否则和底色糊在一起
+        $script:StatusSquare.Fill = ConvertTo-Brush ([string]$colors.Status)
+    }
+    if (($null -ne $script:StatusPill) -and [bool]$Spec.StatusPillStyle) {
+        if ([bool]$Spec.StatusPillSolid) {
+            # C1 那种实底 chip：琥珀底 + 深色字
+            $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.Accent)
+            $script:StatusPill.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
+            $script:StatusText.Foreground = ConvertTo-Brush '#0B0F14'
+            $script:StatusDot.Fill = ConvertTo-Brush '#0B0F14'
+        } else {
+            $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.BadgeBg)
+            $borderColor = [string]$Spec.Text['StatusPillBorder']
+            if ([string]::IsNullOrWhiteSpace($borderColor)) { $borderColor = [string]$colors.Accent }
+            $script:StatusPill.BorderBrush = ConvertTo-Brush $borderColor
+            $script:StatusPill.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1
+        }
+    }
+
     $script:StatusDot.Fill = ConvertTo-Brush ([string]$colors.Accent)
     $glow = $script:StatusDot.Effect
     if ($null -ne $glow) {
@@ -1496,18 +1657,25 @@ function Apply-SchemeState {
     $script:TimelineTrack.Fill = ConvertTo-Brush ([string]$colors.Track)
     $script:TimeMarker.Fill = ConvertTo-Brush ([string]$colors.Marker)
 
-    switch ([string]$colors.Badge) {
-        'onAccent' {
-            $script:RateBadge.Background = ConvertTo-Brush '#1F000000'
-            $script:RateText.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
-        }
-        'solid' {
-            $script:RateBadge.Background = ConvertTo-Brush ([string]$colors.BadgeBg)
-            $script:RateText.Foreground = ConvertTo-Brush '#FFFFFF'
-        }
-        default {
-            $script:RateBadge.Background = ConvertTo-Brush ([string]$colors.BadgeBg)
-            $script:RateText.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
+    if ([bool]$Spec.PlainRate) {
+        # 裸文字价格（B1 / B5 / C1 / C6 那类），直接跟状态同色
+        $script:RateBadge.Background = ConvertTo-Brush '#00000000'
+        $script:RateBadge.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
+        $script:RateText.Foreground = ConvertTo-Brush ([string]$colors.Accent)
+    } else {
+        switch ([string]$colors.Badge) {
+            'onAccent' {
+                $script:RateBadge.Background = ConvertTo-Brush '#1F000000'
+                $script:RateText.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
+            }
+            'solid' {
+                $script:RateBadge.Background = ConvertTo-Brush ([string]$colors.BadgeBg)
+                $script:RateText.Foreground = ConvertTo-Brush '#FFFFFF'
+            }
+            default {
+                $script:RateBadge.Background = ConvertTo-Brush ([string]$colors.BadgeBg)
+                $script:RateText.Foreground = ConvertTo-Brush ([string]$colors.AccentSoft)
+            }
         }
     }
 
@@ -1529,6 +1697,16 @@ function Get-LayoutElement {
     if ($null -ne $script:LayoutRoot) { $element = $script:LayoutRoot.FindName($Name) }
     if (($null -eq $element) -and ($null -ne $script:Window)) { $element = $script:Window.FindName($Name) }
     if ($null -eq $element) { throw ('XAML 元素缺失：' + $Name) }
+    return $element
+}
+
+# 可选元素：三套布局的元素不完全一致（胶囊/表盘没有秒数、没有分段倒计时），
+# 找不到就返回 $null，调用方自己判空，不要抛异常。
+function Find-LayoutElement {
+    param([string]$Name)
+    $element = $null
+    if ($null -ne $script:LayoutRoot) { $element = $script:LayoutRoot.FindName($Name) }
+    if (($null -eq $element) -and ($null -ne $script:Window)) { $element = $script:Window.FindName($Name) }
     return $element
 }
 
@@ -1569,6 +1747,12 @@ function Install-Layout {
     $script:TimeMarker = Get-LayoutElement 'TimeMarker'
     $script:CountdownText = Get-LayoutElement 'CountdownText'
     $script:HintText = Get-LayoutElement 'HintText'
+    # 以下为可选元素（目前只有卡片布局有）
+    $script:ClockSec = Find-LayoutElement 'ClockSec'
+    $script:CountdownValue = Find-LayoutElement 'CountdownValue'
+    $script:StatusPill = Find-LayoutElement 'StatusPill'
+    $script:StatusSquare = Find-LayoutElement 'StatusSquare'
+    $script:DateBox = Find-LayoutElement 'DateBox'
 
     Apply-SchemeWindowSize -Spec $Spec -OldRight $oldRight
 

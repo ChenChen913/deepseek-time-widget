@@ -629,9 +629,24 @@ function Update-Widget {
     }
     $script:LastNextIsPeak = $status.NextChangeIsPeak
 
+    $spec = Get-SchemeSpec -Key ([string]$script:Settings.UiScheme)
+
     $script:StatusText.Text = $status.StatusText
-    $script:RateText.Text = $status.RateText
-    $script:ClockText.Text = $status.TimeText
+    if ([bool]$spec.PlainRate) {
+        $script:RateText.Text = ([string]$status.RateText) -replace '^价格\s*', ''
+    } else {
+        $script:RateText.Text = $status.RateText
+    }
+
+    # 网页稿里时钟几乎都是「10:30」大 + 「:24」小灰，只有仪表类是全同号，
+    # 模板里有 ClockSec 就拆成两段，没有就整串显示。
+    $clockFull = [string]$status.TimeText
+    if (($null -ne $script:ClockSec) -and ($clockFull.Length -ge 8)) {
+        $script:ClockText.Text = $clockFull.Substring(0, 5)
+        $script:ClockSec.Text = $clockFull.Substring(5)
+    } else {
+        $script:ClockText.Text = $clockFull
+    }
 
     # 周末不再额外挂「· 周末」：周几那一行已经写明周六 / 周日，
     # 而且调休上班的周六本就不该被标成周末。
@@ -653,7 +668,20 @@ function Update-Widget {
         $dateLine = $dateLine + ' · 数据待更新'
     }
     $script:DateText.Text = $dateLine
-    $script:CountdownText.Text = $status.CountdownText
+
+    # 网页稿的倒计时基本都是「左边标签 + 右边数值」两列（距空闲 / 01:29:36），
+    # 模板里有 CountdownValue 就拆开，没有就整句显示。
+    if ($null -ne $script:CountdownValue) {
+        $cdLabel = [string]$spec.CdIdle
+        if ($status.NextChangeIsPeak) { $cdLabel = [string]$spec.CdPeak }
+        if ([string]::IsNullOrWhiteSpace($cdLabel)) {
+            if ($status.NextChangeIsPeak) { $cdLabel = '距高峰' } else { $cdLabel = '距空闲' }
+        }
+        $script:CountdownText.Text = $cdLabel
+        $script:CountdownValue.Text = [string]$status.NextChangeText
+    } else {
+        $script:CountdownText.Text = $status.CountdownText
+    }
     # 操作提示只在最初几次启动时显示，之后收起，把空间让给倒计时
     if ([int]$script:Settings.LaunchCount -le 3) {
         $script:HintText.Visibility = [System.Windows.Visibility]::Visible
