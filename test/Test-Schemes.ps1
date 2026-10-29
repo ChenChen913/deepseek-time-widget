@@ -33,11 +33,11 @@ function Assert-True {
     }
 }
 
-$knownLayouts = @('card', 'capsule', 'dial', 'scope', 'lcd', 'split', 'brutal', 'half', 'candle', 'solid', 'hud', 'gauge')
+$knownLayouts = @('card', 'capsule', 'dial', 'banner', 'orbitA6', 'orbitB4', 'tape', 'scope', 'lcd', 'split', 'brutal', 'half', 'candle', 'solid', 'hud', 'gauge')
 $knownDecor = @(
     'sheen', 'glowcorner', 'ring', 'quartz', 'sectors', 'wave', 'sine',
     'candles', 'lamps', 'ticks', 'split', 'plate', 'lcd', 'scanlines', 'orb',
-    'scope', 'kline', 'scalebar', 'gauge', 'hudprogress', 'lcdvig'
+    'scope', 'kline', 'scalebar', 'gauge', 'hudprogress', 'lcdvig', 'bannerpulse', 'orbitglow', 'quartzring', 'c2header'
 )
 
 # ---------- 清单基本形态 ----------
@@ -66,9 +66,11 @@ foreach ($spec in $schemes) {
 
     # 卡片布局的日期列被大号时钟挤在右边，宽度只够放下「10月28日」这一行，
     # 所以节日名只能挪到周几那一行（Update-Widget 里的 CompactDate 分支）。
-    # 将来真加了更宽的卡片布局，这条规则要连同日期行一起重新评估。
+    # 注意 Width 是窗口宽度（含外边距），真正要限的是卡片宽度 = Width - 2×Margin。
+    # A1 / A5 是网页稿里 388 / 372 宽的大玻璃卡，上限放到 400。
     if ([string]$spec.Layout -eq 'card') {
-        Assert-True ($width -le 340) ('卡片布局宽度 <= 340：' + $label) ([string]$width)
+        $cardWidth = $width - 2.0 * [double]$spec.Margin
+        Assert-True ($cardWidth -le 400) ('卡片布局卡片宽度 <= 400：' + $label) ([string]$cardWidth)
     }
 
     $height = [double]$spec.Height

@@ -5,12 +5,13 @@
   为什么单独一个文件
   ------------------
   Schemes.ps1 里的三套通用布局（card / capsule / dial）是「同一套骨架换皮」，
-  能覆盖大部分方案，但网页原稿里有 9 个方案的**结构本身**就不一样：
+  能覆盖大部分方案，但网页原稿里有 14 个方案的**结构本身**就不一样：
+  A3/B3 是左侧光球胶囊、A6/B4 是 24h 圆盘、C3 是横向刻度带、
   峰谷示波器有独立波形框、点阵液晶是屏槽 + 双虚线、瑞士分屏是左右两栏、
   新野兽派是黑框块、半谷是斜切双色、K 线是蜡烛区、色块是满版 + 刻度尺、
   HUD 是顶条 + 分段进度、圆表是内环仪表。
 
-  这些用「换皮」做不出来，只能各给一套专属 XAML。本文件就是这 9 套模板
+  这些用「换皮」做不出来，只能各给一套专属 XAML。本文件就是这 13 套模板
   + 它们各自的装饰器 + 专属文案填充。
 
   约定
@@ -23,6 +24,250 @@
 #>
 
 # ============================ 专属布局模板 ============================
+
+# ---------- C3 刻度带：460×112 横向窄条，芯片 + 大钟 + 右侧倒计时 + 底部刻度 ----------
+$script:LayoutTape = @'
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="8" Margin="10" BorderThickness="1">
+  <Border.Background><SolidColorBrush Color="#12141A" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#232C38" /></Border.BorderBrush>
+  <Grid x:Name="CardRoot">
+    <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
+    <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
+      <Rectangle.Fill><SolidColorBrush Color="#FFB020" /></Rectangle.Fill>
+    </Rectangle>
+    <Grid x:Name="Body" Margin="16,12,16,12">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <Grid Grid.Row="0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Border x:Name="StatusPill" Background="#FFB020" BorderThickness="0" CornerRadius="4" Padding="8,3,8,3" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Ellipse x:Name="StatusDot" Width="4" Height="4" Fill="#0B0F14" Margin="0,0,5,0" VerticalAlignment="Center" />
+              <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#0B0F14" Visibility="Collapsed" />
+              <TextBlock x:Name="StatusText" Text="高峰" FontSize="10.5" FontWeight="Bold" Foreground="#0B0F14" />
+            </StackPanel>
+          </Border>
+          <Border x:Name="RateBadge" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" Margin="10,0,0,0" VerticalAlignment="Center">
+            <TextBlock x:Name="RateText" Text="1.0×" FontSize="16" FontWeight="Bold" Foreground="#FFB020" FontFamily="Consolas, Cascadia Mono" />
+          </Border>
+        </StackPanel>
+        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+          <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="10" Foreground="#5A6272" HorizontalAlignment="Right" />
+          <TextBlock x:Name="CountdownValue" Text="01:29:36" FontSize="12.5" FontWeight="SemiBold" Foreground="#E9ECF2" Margin="0,3,0,0" HorizontalAlignment="Right" />
+          <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#4E5665" Visibility="Collapsed" />
+        </StackPanel>
+      </Grid>
+      <Grid Grid.Row="1" Margin="0,4,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+          <TextBlock x:Name="ClockText" Text="10:30" FontSize="38" FontWeight="Normal" Foreground="#E9ECF2" FontFamily="Consolas, Cascadia Mono" />
+          <TextBlock x:Name="ClockSec" Text=":24" FontSize="38" FontWeight="Normal" Foreground="#E9ECF2" FontFamily="Consolas, Cascadia Mono" Margin="0" VerticalAlignment="Bottom" />
+        </StackPanel>
+        <StackPanel x:Name="DateBox" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="16,0,0,6">
+          <TextBlock x:Name="DateText" Text="10月28日" FontSize="11" Foreground="#8A93A4" />
+          <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#8A93A4" Margin="6,0,0,0" />
+        </StackPanel>
+      </Grid>
+    </Grid>
+    <Grid Visibility="Collapsed">
+      <Canvas x:Name="TimelineCanvas" Height="8">
+        <Rectangle x:Name="TimelineTrack" Height="6" Fill="#33FFFFFF" />
+        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#FFB020" />
+        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#FFB020" />
+        <Rectangle x:Name="TimeMarker" Width="2" Height="8" Fill="#FFFFFF" />
+      </Canvas>
+    </Grid>
+  </Grid>
+</Border>
+'@
+
+# ---------- A6 24h 轨道玻璃：306 圆盘 + 轨道环 + 中心状态/时钟/倒计时/日期 ----------
+$script:LayoutOrbitA6 = @'
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="153" Margin="10" BorderThickness="1">
+  <Border.Background><SolidColorBrush Color="#0C1224" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#38FFFFFF" /></Border.BorderBrush>
+  <Grid x:Name="CardRoot">
+    <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
+    <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
+      <Rectangle.Fill><SolidColorBrush Color="#F59E0B" /></Rectangle.Fill>
+    </Rectangle>
+    <Grid x:Name="Body" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+        <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#F59E0B" VerticalAlignment="Center">
+          <Ellipse.Effect><DropShadowEffect BlurRadius="12" ShadowDepth="0" Opacity="0.95" Color="#F59E0B" /></Ellipse.Effect>
+        </Ellipse>
+        <TextBlock x:Name="StatusText" Text="高峰时段" FontSize="12" FontWeight="SemiBold" Foreground="#F2F8FF" Margin="7,0,0,0" VerticalAlignment="Center" />
+        <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#F59E0B" Visibility="Collapsed" />
+      </StackPanel>
+      <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0" VerticalAlignment="Bottom">
+        <TextBlock x:Name="ClockText" Text="10:30" FontSize="41" FontWeight="SemiBold" Foreground="#FFFFFF" />
+        <TextBlock x:Name="ClockSec" Text=":24" FontSize="15" Foreground="#8AFFFFFF" Margin="2,0,0,3" VerticalAlignment="Bottom" />
+      </StackPanel>
+      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
+        <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="10" Foreground="#A0FFFFFF" />
+        <TextBlock x:Name="CountdownValue" Text="01:29:36" FontSize="11.5" FontWeight="SemiBold" Foreground="#E8EDF6" Margin="6,0,0,0" />
+        <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#5B6B82" Visibility="Collapsed" />
+      </StackPanel>
+      <StackPanel x:Name="DateBox" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
+        <TextBlock x:Name="DateText" Text="10月28日" FontSize="10" Foreground="#8AFFFFFF" />
+        <TextBlock x:Name="WeekText" Text="周三" FontSize="10" Foreground="#8AFFFFFF" Margin="6,0,0,0" />
+      </StackPanel>
+      <Border x:Name="RateBadge" Background="#00000000" BorderThickness="0" Padding="0" Visibility="Collapsed">
+        <TextBlock x:Name="RateText" Text="1.0×" FontSize="11" Foreground="#F59E0B" />
+      </Border>
+    </Grid>
+    <Grid Visibility="Collapsed">
+      <Canvas x:Name="TimelineCanvas" Height="8">
+        <Rectangle x:Name="TimelineTrack" Height="6" Fill="#33FFFFFF" />
+        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#F59E0B" />
+        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#F59E0B" />
+        <Rectangle x:Name="TimeMarker" Width="2" Height="8" Fill="#FFFFFF" />
+      </Canvas>
+    </Grid>
+  </Grid>
+</Border>
+'@
+
+# ---------- B4 石英表盘：300 圆盘 + 细环 + 状态/大钟/倍率/日期/倒计时 ----------
+$script:LayoutOrbitB4 = @'
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="150" Margin="10" BorderThickness="1">
+  <Border.Background><SolidColorBrush Color="#101A2E" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#38FFFFFF" /></Border.BorderBrush>
+  <Grid x:Name="CardRoot">
+    <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
+    <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
+      <Rectangle.Fill><SolidColorBrush Color="#F59E0B" /></Rectangle.Fill>
+    </Rectangle>
+    <Grid x:Name="Body" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+        <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#F59E0B" VerticalAlignment="Center">
+          <Ellipse.Effect><DropShadowEffect BlurRadius="12" ShadowDepth="0" Opacity="0.95" Color="#F59E0B" /></Ellipse.Effect>
+        </Ellipse>
+        <TextBlock x:Name="StatusText" Text="高峰时段" FontSize="13" FontWeight="SemiBold" Foreground="#F59E0B" Margin="7,0,0,0" VerticalAlignment="Center" />
+        <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#F59E0B" Visibility="Collapsed" />
+      </StackPanel>
+      <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Bottom">
+        <TextBlock x:Name="ClockText" Text="10:30" FontSize="40" FontWeight="Light" Foreground="#F8FAFC" />
+        <TextBlock x:Name="ClockSec" Text=":24" FontSize="40" FontWeight="Light" Foreground="#F8FAFC" Margin="0" VerticalAlignment="Bottom" />
+      </StackPanel>
+      <Border x:Name="RateBadge" Grid.Row="2" Background="#00000000" BorderThickness="0" Padding="0" HorizontalAlignment="Center" Margin="0,4,0,0">
+        <StackPanel Orientation="Horizontal">
+          <TextBlock x:Name="RateText" Text="1.0" FontSize="28" FontWeight="Bold" Foreground="#F59E0B" />
+          <TextBlock x:Name="RateTail" Text="×" FontSize="14" Foreground="#F59E0B" Opacity="0.65" VerticalAlignment="Bottom" Margin="1,0,0,4" />
+        </StackPanel>
+      </Border>
+      <StackPanel x:Name="DateBox" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
+        <TextBlock x:Name="DateText" Text="10月28日" FontSize="11" Foreground="#8B94A5" />
+        <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#8B94A5" Margin="6,0,0,0" />
+      </StackPanel>
+      <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+        <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="10" Foreground="#7C8AA5" />
+        <TextBlock x:Name="CountdownValue" Text="01:29:36" FontSize="11.5" FontWeight="SemiBold" Foreground="#8B94A5" Margin="6,0,0,0" />
+        <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#5B6B82" Visibility="Collapsed" />
+      </StackPanel>
+    </Grid>
+    <Grid Visibility="Collapsed">
+      <Canvas x:Name="TimelineCanvas" Height="8">
+        <Rectangle x:Name="TimelineTrack" Height="6" Fill="#33FFFFFF" />
+        <Rectangle x:Name="PeakSegment1" Height="6" Fill="#F59E0B" />
+        <Rectangle x:Name="PeakSegment2" Height="6" Fill="#F59E0B" />
+        <Rectangle x:Name="TimeMarker" Width="2" Height="8" Fill="#FFFFFF" />
+      </Canvas>
+    </Grid>
+  </Grid>
+</Border>
+'@
+
+# ---------- A3 / B3 灵动胶囊：左侧光球 + 状态/价格 + 分隔线 + 大钟 + 右侧倒计时 ----------
+# 对齐 design-options.html 方案 03 与 v2 B3：胶囊高 120 / 110，圆角 42；
+# A3 用 10px 脉冲点，B3 用 54px 呼吸光球；B3 底部还有一条全天进度条。
+$script:LayoutBanner = @'
+<Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="42" Margin="10" BorderThickness="1">
+  <Border.Background><SolidColorBrush Color="#141A2E" /></Border.Background>
+  <Border.BorderBrush><SolidColorBrush Color="#38FFFFFF" /></Border.BorderBrush>
+  <Grid x:Name="CardRoot">
+    <Canvas x:Name="DecorHost" IsHitTestVisible="False" ClipToBounds="True" />
+    <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
+      <Rectangle.Fill><SolidColorBrush Color="#F59E0B" /></Rectangle.Fill>
+    </Rectangle>
+    <Grid x:Name="Body" Margin="28,0,28,0">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <Grid Grid.Row="0" VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <Grid x:Name="OrbHost" Width="54" Height="54" Margin="0,0,14,0" VerticalAlignment="Center">
+            <Ellipse x:Name="StatusDot" Width="54" Height="54" Fill="#F59E0B" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Ellipse.Effect><DropShadowEffect BlurRadius="18" ShadowDepth="0" Opacity="0.85" Color="#F59E0B" /></Ellipse.Effect>
+            </Ellipse>
+            <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#F59E0B" Visibility="Collapsed" />
+          </Grid>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock x:Name="StatusText" Text="高峰时段" FontSize="15.5" FontWeight="SemiBold" Foreground="#FFFFFF" />
+            <Border x:Name="RateBadge" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" Margin="0,3,0,0" HorizontalAlignment="Left">
+              <TextBlock x:Name="RateText" Text="1.0×" FontSize="11" FontWeight="SemiBold" Foreground="#FCD34D" />
+            </Border>
+          </StackPanel>
+        </StackPanel>
+        <Rectangle Grid.Column="1" Width="1" Height="46" Fill="#33FFFFFF" Margin="22,0,22,0" VerticalAlignment="Center" />
+        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+            <TextBlock x:Name="ClockText" Text="10:30" FontSize="34" FontWeight="SemiBold" Foreground="#FFFFFF" />
+            <TextBlock x:Name="ClockSec" Text=":24" FontSize="13" Foreground="#8AFFFFFF" Margin="1,0,0,4" VerticalAlignment="Bottom" />
+          </StackPanel>
+          <StackPanel x:Name="DateBox" Orientation="Horizontal" Margin="0,4,0,0">
+            <TextBlock x:Name="WeekText" Text="周三" FontSize="10.5" Foreground="#8AFFFFFF" />
+            <TextBlock x:Name="DateText" Text="10月28日" FontSize="10.5" Foreground="#8AFFFFFF" Margin="8,0,0,0" />
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center">
+          <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="10" Foreground="#7C8AA5" HorizontalAlignment="Right" />
+          <TextBlock x:Name="CountdownValue" Text="01:29:36" FontSize="15.5" FontWeight="SemiBold" Foreground="#FFFFFF" Margin="0,4,0,0" HorizontalAlignment="Right" />
+          <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#5B6B82" Visibility="Collapsed" />
+        </StackPanel>
+      </Grid>
+      <Grid x:Name="TrackHost" Grid.Row="1" Height="8" Margin="0,0,0,10" Visibility="Collapsed">
+        <Canvas x:Name="TimelineCanvas" Height="6" ClipToBounds="True" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+          <Rectangle x:Name="TimelineTrack" Canvas.Top="0" Height="6" RadiusX="3" RadiusY="3" Fill="#332A3A4D" />
+          <Rectangle x:Name="PeakSegment1" Canvas.Top="0" Height="6" RadiusX="3" RadiusY="3" Fill="#F59E0B" Visibility="Collapsed" />
+          <Rectangle x:Name="PeakSegment2" Canvas.Top="0" Height="6" RadiusX="3" RadiusY="3" Fill="#F59E0B" Visibility="Collapsed" />
+          <Rectangle x:Name="TimeMarker" Canvas.Top="0" Width="2" Height="6" RadiusX="1" RadiusY="1" Fill="#F8FAFC" />
+        </Canvas>
+      </Grid>
+    </Grid>
+  </Grid>
+</Border>
+'@
 
 # ---------- F1 峰谷示波器：药丸标题 + 独立波形框 + 大钟 + 倒计时条 ----------
 # 对齐 code03.html：卡 280×202，内边距 14；波形框高 52，圆角 8，带状态色描边；
@@ -699,6 +944,10 @@ $script:LayoutGauge = @'
 </Border>
 '@
 
+$script:LayoutXaml['banner'] = $script:LayoutBanner
+$script:LayoutXaml['orbitA6'] = $script:LayoutOrbitA6
+$script:LayoutXaml['orbitB4'] = $script:LayoutOrbitB4
+$script:LayoutXaml['tape'] = $script:LayoutTape
 $script:LayoutXaml['scope'] = $script:LayoutScope
 $script:LayoutXaml['lcd'] = $script:LayoutLcd
 $script:LayoutXaml['split'] = $script:LayoutSplit
@@ -975,6 +1224,176 @@ function Add-DecorKline {
             } catch { }
         }
         [void]$Layer.Children.Add($bar)
+    }
+}
+
+# ============================ C2 报表页眉 ============================
+# 网页稿的纸感卡片左上角有一行小字「STATUS」，下面压一条细黑线。
+function Add-DecorPaperHeader {
+    param($Layer, [double]$W, [double]$H, $Colors)
+    $label = New-Object System.Windows.Controls.TextBlock
+    $label.Text = 'S T A T U S'
+    $label.FontSize = 9
+    $label.Foreground = New-BrushSafe '#9A8B76'
+    [System.Windows.Controls.Canvas]::SetLeft($label, 15)
+    [System.Windows.Controls.Canvas]::SetTop($label, 11)
+    [void]$Layer.Children.Add($label)
+
+    $y = 52.0
+    if ($null -ne $script:StatusText) {
+        try {
+            $box = Get-ElementBox -Element $script:StatusText -FallbackW 100 -FallbackH 18
+            $y = [double]$box[1] + [double]$box[3] + 5
+        } catch { }
+    }
+    $rule = New-LineShape -X1 15 -Y1 $y -X2 ($W - 15) -Y2 $y -Color '#551C1917' -Thickness 1
+    [void]$Layer.Children.Add($rule)
+}
+
+# ============================ A6 / B4 轨道环 ============================
+# A6：厚环带 + 圆头琥珀弧 + 起点白点；B4：细石英环 + 当前时刻白点。
+function Add-DecorOrbitRing {
+    param($Layer, [double]$W, [double]$H, $Colors, $Status, [string]$Style)
+    $size = [Math]::Min($W, $H)
+    if ($size -lt 1) { return }
+    $cx = $W / 2.0
+    $cy = $H / 2.0
+    $accent = [string]$Colors.Accent
+    $thick = 18.0
+    $outer = $size / 2.0 - 26.0
+    $trackColor = '#12FFFFFF'
+    if ([string]$Style -eq 'quartz') {
+        $thick = 4.0
+        $outer = $size / 2.0 - 30.0
+        $trackColor = '#1AFFFFFF'
+    }
+
+    $track = New-Object System.Windows.Shapes.Ellipse
+    $track.Width = $outer * 2
+    $track.Height = $outer * 2
+    $track.Stroke = New-BrushSafe $trackColor
+    $track.StrokeThickness = $thick
+    $track.Fill = New-BrushSafe '#00000000'
+    [System.Windows.Controls.Canvas]::SetLeft($track, ($cx - $outer))
+    [System.Windows.Controls.Canvas]::SetTop($track, ($cy - $outer))
+    [void]$Layer.Children.Add($track)
+
+    $windows = @($Status.PeakWindows)
+    # A6 的网页稿把 00:00 放在圆盘底部（整体旋转 180°），B4 仍是 00:00 在顶部
+    $angleOffset = 0.0
+    if ([string]$Style -eq 'glow') { $angleOffset = 180.0 }
+    if ($windows.Count -gt 0) {
+        foreach ($window in $windows) {
+            $startAngle = [double]$window.Start * 360.0 + $angleOffset
+            $endAngle = [double]$window.End * 360.0 + $angleOffset
+            $arc = New-Object System.Windows.Shapes.Path
+            $arc.Data = New-ArcGeometry -Cx $cx -Cy $cy -Radius $outer -StartAngle $startAngle -EndAngle $endAngle
+            $arc.Stroke = New-BrushSafe $accent
+            $arc.StrokeThickness = $thick
+            $arc.StrokeStartLineCap = [System.Windows.Media.PenLineCap]::Round
+            $arc.StrokeEndLineCap = [System.Windows.Media.PenLineCap]::Round
+            [void]$Layer.Children.Add($arc)
+        }
+    } else {
+        # 周末 / 节假日：没有高峰窗口，整圈压成一条展示状态的细环
+        $full = New-Object System.Windows.Shapes.Ellipse
+        $full.Width = $outer * 2
+        $full.Height = $outer * 2
+        $full.Stroke = New-BrushSafe $accent 0.38
+        $full.StrokeThickness = $thick
+        $full.Fill = New-BrushSafe '#00000000'
+        [System.Windows.Controls.Canvas]::SetLeft($full, ($cx - $outer))
+        [System.Windows.Controls.Canvas]::SetTop($full, ($cy - $outer))
+        [void]$Layer.Children.Add($full)
+    }
+
+    # 白点：A6 放在第一段高峰弧的起点；B4 放在当前时刻
+    $angle = 0.0
+    if ([string]$Style -eq 'glow') {
+        if ($windows.Count -gt 0) { $angle = [double]$windows[0].Start * 360.0 + $angleOffset } else { $angle = 0.0 }
+    } else {
+        $angle = [double]$Status.DayFraction * 360.0
+    }
+    $rad = ($angle - 90.0) * [Math]::PI / 180.0
+    $dot = New-Object System.Windows.Shapes.Ellipse
+    $dot.Width = 8; $dot.Height = 8
+    $dot.Fill = New-BrushSafe '#FFFFFF'
+    [System.Windows.Controls.Canvas]::SetLeft($dot, ($cx + $outer * [Math]::Cos($rad) - 4))
+    [System.Windows.Controls.Canvas]::SetTop($dot, ($cy + $outer * [Math]::Sin($rad) - 4))
+    [void]$Layer.Children.Add($dot)
+}
+
+# ============================ A3 / B3 光球脉冲 ============================
+# 网页稿的光球外有一圈呼吸光环；位置跟着模板里的 StatusDot 走。
+function Add-DecorBannerPulse {
+    param($Layer, [double]$W, [double]$H, $Colors, $Spec, $Status)
+    if ($null -eq $script:StatusDot) { return }
+    $box = Get-ElementBox -Element $script:StatusDot -FallbackW 10 -FallbackH 10
+    $cx = [double]$box[0] + [double]$box[2] / 2.0
+    $cy = [double]$box[1] + [double]$box[3] / 2.0
+    $accent = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$Colors.Accent)
+
+    # 柔和外光
+    $auraSize = [double]$Spec.OrbAura
+    if ($auraSize -gt 4) {
+        $aura = New-Object System.Windows.Shapes.Ellipse
+        $aura.Width = $auraSize
+        $aura.Height = $auraSize
+        $brush = New-Object System.Windows.Media.RadialGradientBrush
+        $brush.Center = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+        $brush.GradientOrigin = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+        $brush.RadiusX = 0.5
+        $brush.RadiusY = 0.5
+        [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(58, $accent.R, $accent.G, $accent.B)), 0.0))
+        [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(0, $accent.R, $accent.G, $accent.B)), 1.0))
+        $aura.Fill = $brush
+        [System.Windows.Controls.Canvas]::SetLeft($aura, ($cx - $auraSize / 2.0))
+        [System.Windows.Controls.Canvas]::SetTop($aura, ($cy - $auraSize / 2.0))
+        [void]$Layer.Children.Add($aura)
+    }
+
+    # 呼吸光环：缩放 + 淡出，循环 2.8 秒
+    $ringSize = [double]$Spec.OrbRing
+    if ($ringSize -gt 4) {
+        $ring = New-Object System.Windows.Shapes.Ellipse
+        $ring.Width = $ringSize
+        $ring.Height = $ringSize
+        $ring.Fill = New-BrushSafe '#00000000'
+        $ring.Stroke = New-BrushSafe ([string]$Colors.Accent)
+        $ring.StrokeThickness = 1.4
+        $ring.Opacity = 0.55
+        $scale = New-Object System.Windows.Media.ScaleTransform -ArgumentList 0.6, 0.6
+        $ring.RenderTransformOrigin = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+        $ring.RenderTransform = $scale
+        [System.Windows.Controls.Canvas]::SetLeft($ring, ($cx - $ringSize / 2.0))
+        [System.Windows.Controls.Canvas]::SetTop($ring, ($cy - $ringSize / 2.0))
+        [void]$Layer.Children.Add($ring)
+
+        $scaleAnim = New-Object System.Windows.Media.Animation.DoubleAnimation
+        $scaleAnim.From = 0.6
+        $scaleAnim.To = 1.35
+        $scaleAnim.Duration = [TimeSpan]::FromSeconds(2.8)
+        $scaleAnim.RepeatBehavior = [System.Windows.Media.Animation.RepeatBehavior]::Forever
+        $scale.BeginAnimation([System.Windows.Media.ScaleTransform]::ScaleXProperty, $scaleAnim)
+        $scale.BeginAnimation([System.Windows.Media.ScaleTransform]::ScaleYProperty, $scaleAnim)
+
+        $fadeAnim = New-Object System.Windows.Media.Animation.DoubleAnimation
+        $fadeAnim.From = 0.55
+        $fadeAnim.To = 0.0
+        $fadeAnim.Duration = [TimeSpan]::FromSeconds(2.8)
+        $fadeAnim.RepeatBehavior = [System.Windows.Media.Animation.RepeatBehavior]::Forever
+        $ring.BeginAnimation([System.Windows.UIElement]::OpacityProperty, $fadeAnim)
+    }
+
+    # B3 的大光球本身也慢慢呼吸
+    if ([double]$Spec.OrbSize -ge 30) {
+        $breath = New-Object System.Windows.Media.Animation.DoubleAnimation
+        $breath.From = 1.0
+        $breath.To = 0.72
+        $breath.Duration = [TimeSpan]::FromSeconds(2.4)
+        $breath.AutoReverse = $true
+        $breath.RepeatBehavior = [System.Windows.Media.Animation.RepeatBehavior]::Forever
+        $script:StatusDot.BeginAnimation([System.Windows.UIElement]::OpacityProperty, $breath)
     }
 }
 
@@ -1397,6 +1816,40 @@ function Update-SchemeCustomText {
             if ($null -ne $script:RateText) { $script:RateText.Text = '0.5'; if ($isPeak) { $script:RateText.Text = '1.0' } }
             if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
             if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
+        }
+        'd1' {
+            if ($null -ne $script:StatusText) {
+                $script:StatusText.Text = '梁文谷时段'
+                if ($isPeak) { $script:StatusText.Text = '梁文峰时段' }
+            }
+            if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
+            if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
+        }
+        'c1' {
+            if ($null -ne $script:StatusText) {
+                $script:StatusText.Text = '空闲'
+                if ($isPeak) { $script:StatusText.Text = '高峰' }
+            }
+            if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
+            if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
+        }
+        'c3' {
+            if ($null -ne $script:StatusText) {
+                $script:StatusText.Text = '空闲'
+                if ($isPeak) { $script:StatusText.Text = '高峰' }
+            }
+            if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
+            if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
+        }
+        'c2' {
+            if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
+            if ($null -ne $script:WeekText) { $script:WeekText.Text = '· ' + [string]$Status.WeekText }
+        }
+        'b4' {
+            if ($null -ne $script:RateText) {
+                $script:RateText.Text = '0.5'
+                if ($isPeak) { $script:RateText.Text = '1.0' }
+            }
         }
         'c6' {
             if ($null -ne $script:RateText) { $script:RateText.Text = '0.5'; if ($isPeak) { $script:RateText.Text = '1.0' } }

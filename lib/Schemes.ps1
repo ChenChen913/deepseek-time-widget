@@ -40,13 +40,13 @@ $script:SchemePalettes = @{
         Badge = 'tint'
     }
     'panel' = @{
-        Peak = @{ Accent = '#FFB020'; AccentSoft = '#FFD166'; BadgeBg = '#26FFB020'; Track = '#1AFFFFFF'; Segment = '#FFB020'; Glow = $false }
-        Idle = @{ Accent = '#37E0A0'; AccentSoft = '#7CF0C4'; BadgeBg = '#2637E0A0'; Track = '#1AFFFFFF'; Segment = '#FFB020'; Glow = $false }
+        Peak = @{ Accent = '#FFB020'; AccentSoft = '#FFD166'; BadgeBg = '#26FFB020'; Track = '#1AFFFFFF'; Segment = '#FFB020'; Glow = $false; CdLabel = '#5A6272'; CdValue = '#E9ECF2'; Date = '#8A93A4'; Week = '#8A93A4'; Band = '#8CFFB020' }
+        Idle = @{ Accent = '#37E0A0'; AccentSoft = '#7CF0C4'; BadgeBg = '#2637E0A0'; Track = '#1AFFFFFF'; Segment = '#FFB020'; Glow = $false; CdLabel = '#5A6272'; CdValue = '#E9ECF2'; Date = '#8A93A4'; Week = '#8A93A4'; Band = '#8CFFB020' }
         Badge = 'tint'
     }
     'paper' = @{
-        Peak = @{ Accent = '#B45309'; AccentSoft = '#92400E'; BadgeBg = '#1AB45309'; Track = '#1F1C1917'; Segment = '#B45309'; Glow = $false }
-        Idle = @{ Accent = '#0F766E'; AccentSoft = '#115E59'; BadgeBg = '#1A0F766E'; Track = '#1F1C1917'; Segment = '#B45309'; Glow = $false }
+        Peak = @{ Accent = '#B45309'; AccentSoft = '#92400E'; BadgeBg = '#1AB45309'; Track = '#1F1C1917'; Segment = '#B45309'; Glow = $false; CdLabel = '#78716C'; CdValue = '#1C1917'; Date = '#78716C'; Week = '#44403C'; Band = '#8CB45309' }
+        Idle = @{ Accent = '#0F766E'; AccentSoft = '#115E59'; BadgeBg = '#1A0F766E'; Track = '#1F1C1917'; Segment = '#B45309'; Glow = $false; CdLabel = '#78716C'; CdValue = '#1C1917'; Date = '#78716C'; Week = '#44403C'; Band = '#8CB45309' }
         Badge = 'tint'
     }
     'solid' = @{
@@ -112,8 +112,10 @@ $script:SchemePalettes = @{
         Badge = 'onAccent'
     }
     'scope' = @{
-        Peak = @{ Accent = '#F87171'; AccentSoft = '#FCA5A5'; BadgeBg = '#26F87171'; Track = '#1AFFFFFF'; Segment = '#F87171'; Glow = $true }
-        Idle = @{ Accent = '#4ADE80'; AccentSoft = '#86EFAC'; BadgeBg = '#264ADE80'; Track = '#1AFFFFFF'; Segment = '#F87171'; Glow = $true }
+        Peak = @{ Accent = '#E85D3D'; AccentSoft = '#E85D3D'; BadgeBg = '#26E85D3D'; Track = '#1AFFFFFF'; Segment = '#E85D3D'; Glow = $true;
+            Status = '#E85D3D'; Rate = '#E85D3D'; Clock = '#E9EDF3'; Date = '#8B94A5'; Week = '#8B94A5'; CdLabel = '#5A6272'; CdValue = '#8B94A5'; StatusIcon = '#E85D3D' }
+        Idle = @{ Accent = '#2FB89A'; AccentSoft = '#2FB89A'; BadgeBg = '#262FB89A'; Track = '#1AFFFFFF'; Segment = '#2FB89A'; Glow = $true;
+            Status = '#2FB89A'; Rate = '#2FB89A'; Clock = '#E9EDF3'; Date = '#8B94A5'; Week = '#8B94A5'; CdLabel = '#5A6272'; CdValue = '#8B94A5'; StatusIcon = '#2FB89A' }
         Badge = 'tint'
     }
     # F1 峰谷示波器：网页稿整卡是琥珀色，峰/谷换色，周末与节假日换成青蓝平线
@@ -150,6 +152,110 @@ $script:SchemePalettes = @{
     }
 }
 
+# ============================ 玻璃背景画（网页稿的彩色底片） ============================
+# 网页里这些玻璃方案的彩色底来自页面背景 + backdrop-filter。WPF 没有真背景模糊，
+# 这里把同一套「紫 / 蓝 / 粉 / 青」光斑直接烘进卡片，再压一层半透明白玻璃。
+# 每个光斑：C=颜色，A=透明度(0-255)，X/Y=中心相对位置，R=直径相对卡片对角线的大小。
+$script:ArtStyles = @{
+    'a1' = @{
+        Base1 = '#1A1236'; Base2 = '#070B18'
+        Glass = 62; GlassMid = 14; Glass2 = 30; Grid = 0
+        Blobs = @(
+            @{ C = '#8B5CF6'; A = 155; X = 0.10; Y = 0.02; R = 1.15 },
+            @{ C = '#EC4899'; A = 115; X = 0.92; Y = 0.98; R = 1.05 },
+            @{ C = '#3B82F6'; A = 125; X = 0.55; Y = 0.28; R = 1.00 },
+            @{ C = '#14B8A6'; A = 75;  X = 0.10; Y = 0.95; R = 0.85 },
+            @{ C = '#FFFFFF'; A = 110; X = 0.88; Y = 0.88; R = 0.65 }
+        )
+        Glow = $true
+    }
+    'a5' = @{
+        Base1 = '#FDFEFF'; Base2 = '#ECF4FB'
+        Glass = 88; GlassMid = 26; Glass2 = 62; Grid = 0
+        Blobs = @(
+            @{ C = '#FFD08A'; A = 150; X = 0.10; Y = 1.00; R = 0.95 },
+            @{ C = '#8FE3D0'; A = 135; X = 0.92; Y = 0.95; R = 0.95 },
+            @{ C = '#BBD3F5'; A = 90;  X = 0.50; Y = 0.00; R = 0.80 }
+        )
+        Glow = $true
+    }
+    'b1' = @{
+        Base1 = '#1B2940'; Base2 = '#080C16'
+        Glass = 30; GlassMid = 7; Glass2 = 15; Grid = 16
+        Blobs = @(
+            @{ C = '#FFB020'; A = 125; X = 0.86; Y = 0.02; R = 0.90 },
+            @{ C = '#3B82F6'; A = 55;  X = 0.10; Y = 0.92; R = 0.90 },
+            @{ C = '#FFFFFF'; A = 35;  X = 0.35; Y = 0.00; R = 0.65 }
+        )
+        Glow = $true
+    }
+    'b5' = @{
+        Base1 = '#1A1D2A'; Base2 = '#06090F'
+        Glass = 22; GlassMid = 4; Glass2 = 10; Grid = 16
+        Blobs = @(
+            @{ C = '#FFB020'; A = 105; X = 0.04; Y = 0.00; R = 0.80 },
+            @{ C = '#3B82F6'; A = 45;  X = 0.92; Y = 0.92; R = 0.85 }
+        )
+        Glow = $true
+    }
+    'a3' = @{
+        Base1 = '#1A1330'; Base2 = '#0A0F22'
+        Glass = 40; GlassMid = 8; Glass2 = 20; Grid = 0
+        Blobs = @(
+            @{ C = '#8B5CF6'; A = 120; X = 0.10; Y = 0.00; R = 1.05 },
+            @{ C = '#EC4899'; A = 90;  X = 0.92; Y = 1.00; R = 1.00 },
+            @{ C = '#3B82F6'; A = 90;  X = 0.55; Y = 0.25; R = 0.95 },
+            @{ C = '#14B8A6'; A = 55;  X = 0.10; Y = 1.00; R = 0.80 }
+        )
+        Glow = $true
+    }
+    'b3' = @{
+        Base1 = '#141A2E'; Base2 = '#080C16'
+        Glass = 30; GlassMid = 6; Glass2 = 16; Grid = 16
+        Blobs = @(
+            @{ C = '#FFB020'; A = 100; X = 0.12; Y = 0.10; R = 0.85 },
+            @{ C = '#3B82F6'; A = 90;  X = 0.55; Y = 0.35; R = 0.95 },
+            @{ C = '#8B5CF6'; A = 60;  X = 0.95; Y = 0.90; R = 0.85 }
+        )
+        Glow = $true
+    }
+    'a6' = @{
+        Base1 = '#0C1224'; Base2 = '#05080F'
+        Glass = 24; GlassMid = 6; Glass2 = 14; Grid = 46
+        Blobs = @(
+            @{ C = '#3B82F6'; A = 105; X = 0.50; Y = 0.30; R = 0.95 },
+            @{ C = '#8B5CF6'; A = 85;  X = 0.85; Y = 0.90; R = 0.90 },
+            @{ C = '#FFFFFF'; A = 45;  X = 0.30; Y = 0.02; R = 0.60 }
+        )
+        Glow = $true
+    }
+    'b4' = @{
+        Base1 = '#101A2E'; Base2 = '#06090F'
+        Glass = 20; GlassMid = 5; Glass2 = 12; Grid = 46
+        Blobs = @(
+            @{ C = '#2E4A7D'; A = 115; X = 0.15; Y = 0.00; R = 0.90 },
+            @{ C = '#FFB020'; A = 55;  X = 0.05; Y = 0.20; R = 0.60 },
+            @{ C = '#8B5CF6'; A = 45;  X = 0.90; Y = 0.90; R = 0.80 }
+        )
+        Glow = $true
+    }
+    'c1' = @{
+        Base1 = '#15171D'; Base2 = '#111318'
+        Glass = 8; GlassMid = 2; Glass2 = 4; Grid = 15
+        Blobs = @(); Glow = $false
+    }
+    'c3' = @{
+        Base1 = '#12141A'; Base2 = '#0E1015'
+        Glass = 10; GlassMid = 3; Glass2 = 6; Grid = 15
+        Blobs = @(); Glow = $false
+    }
+    'd1' = @{
+        Base1 = '#111318'; Base2 = '#0B0D12'
+        Glass = 6; GlassMid = 2; Glass2 = 4; Grid = 16
+        Blobs = @(); Glow = $false
+    }
+}
+
 # ============================ 配方默认值 ============================
 
 $script:SchemeDefaults = @{
@@ -174,6 +280,22 @@ $script:SchemeDefaults = @{
     HideStatus = $false
     SurfaceByState = $false
     AccentBar = $false
+    Art       = ''          # 玻璃底片样式名（$script:ArtStyles）
+    InlineCountdown = $false
+    ClockSecSame = $false
+    OrbSize   = 0
+    OrbAura   = 0
+    OrbRing   = 0
+    RatePad   = '8,3,8,3'
+    RateRadius = 9
+    ClockWeight = 'Bold'
+    PillPad   = '10,5,12,5'
+    PillRadius = 14
+    StatusDotSize = 9
+    TickDark  = $false
+    WeekFirst = $false
+    DateFontSize = 13
+    WeekFontSize = 11
     Badge     = 'auto'     # auto = 跟随配色族
     Timeline  = $true
     Decor     = @()
@@ -228,90 +350,130 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'a1'; Num = 'A1'; Name = 'A1 · 极简折射流光'
     Hint = '克制通透的玻璃 + 一道缓慢扫过的折射光'
-    Layout = 'card'; Width = 316
+    Layout = 'card'; Width = 416; Height = 246
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'gradient'; From = '#D92A3448'; To = '#E6101620' }
-    Border = '#38FFFFFF'; BorderWidth = 1; Radius = 20
-    Shadow = @{ Blur = 26; Depth = 6; Opacity = 0.45; Color = '#000000' }
-    Decor = @('sheen')
+    Border = '#38FFFFFF'; BorderWidth = 1; Radius = 30; Margin = 14
+    BodyPad = '24,22,24,22'
+    ClockSize = 43; ClockSecSize = 16; StatusSize = 13.5; CountdownSize = 12
+    RatePad = '11,5,11,5'; RateRadius = 12
+    Shadow = @{ Blur = 34; Depth = 10; Opacity = 0.6; Color = '#000000' }
+    Text = @{ Status = '#FFFFFF'; PillBg = '#13FFFFFF'; StatusPillBorder = '#2BFFFFFF'; RateBorder = '#2BFFFFFF'; Date = '#A9B6C9'; Week = '#E8EDF6'; Hint = '#7C8AA5'; CdLabel = '#9EEBF4FF'; CdValue = '#F8FBFF' }
+    ClockWeight = 'SemiBold'
+    PillPad = '13,7,13,7'; PillRadius = 16
+    Art = 'a1'; Decor = @('sheen')
 }
 
 Add-Scheme @{
     Key = 'a3'; Num = 'A3'; Name = 'A3 · 灵动极简胶囊'
     Hint = '横向胶囊 500×120，左侧状态光球呼吸，最省桌面空间'
-    Layout = 'capsule'; Width = 500; Height = 120
+    Layout = 'banner'; Width = 516; Height = 140
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'gradient'; From = '#E61A2233'; To = '#F00B1018' }
-    Radius = 26; BodyPad = '18,9,18,9'
-    ClockSize = 38; StatusSize = 15; CountdownSize = 12
-    Decor = @('orb')
+    Border = '#38FFFFFF'; BorderWidth = 1; Radius = 42; Margin = 10
+    BodyPad = '28,0,28,0'
+    ClockSize = 34; ClockSecSize = 13; ClockSecSame = $false
+    StatusDotSize = 10; OrbSize = 10; OrbAura = 120; OrbRing = 28
+    PlainRate = $true
+    Timeline = $false
+    Shadow = @{ Blur = 30; Depth = 8; Opacity = 0.55; Color = '#000000' }
+    Text = @{ Status = '#FFFFFF'; Date = '#8AFFFFFF'; Week = '#8AFFFFFF'; CdLabel = '#8AFFFFFF'; CdValue = '#FFFFFF' }
+    Art = 'a3'; Decor = @('bannerpulse', 'sheen')
 }
 
 Add-Scheme @{
     Key = 'a5'; Num = 'A5'; Name = 'A5 · 霜白明澈玻璃'
     Hint = '浅色壁纸首选：霜白玻璃 + 深色字，像控制中心'
-    Layout = 'card'; Width = 316
+    Layout = 'card'; Width = 400; Height = 236
     Tone = 'light'; Palette = 'glass-light'
     Surface = @{ Type = 'gradient'; From = '#F2FFFFFF'; To = '#E6E8EEF6' }
-    Border = '#80FFFFFF'; BorderWidth = 1; Radius = 20
-    Shadow = @{ Blur = 24; Depth = 6; Opacity = 0.22; Color = '#1E293B' }
+    Border = '#EBFFFFFF'; BorderWidth = 1; Radius = 30; Margin = 14
+    BodyPad = '24,22,24,22'
+    ClockSize = 43; ClockSecSize = 16; StatusSize = 13.5; CountdownSize = 12
+    RatePad = '11,5,11,5'; RateRadius = 12
+    Shadow = @{ Blur = 30; Depth = 8; Opacity = 0.22; Color = '#1E293B' }
+    Text = @{ Status = '#0B1424'; PillBg = '#CCFFFFFF'; StatusPillBorder = '#FFFFFFFF'; RateBorder = '#E6FFFFFF'; Date = '#5A6B85'; Week = '#0B1424'; Hint = '#8A9AAE'; CdLabel = '#990B1424'; CdValue = '#0B1424' }
+    ClockWeight = 'SemiBold'
+    PillPad = '13,7,13,7'; PillRadius = 16
+    Art = 'a5'; Decor = @('sheen')
 }
 
 Add-Scheme @{
     Key = 'a6'; Num = 'A6'; Name = 'A6 · 24h 环形轨道玻璃'
     Hint = '圆形表盘 Ø300，外圈 24 小时轨道，当前时刻一根指针'
-    Layout = 'dial'; Width = 300; Height = 300
+    Layout = 'orbitA6'; Width = 326; Height = 326
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'gradient'; From = '#F0182233'; To = '#F00B1018' }
-    Radius = 150; Margin = 10; BodyPad = '0,52,0,44'
-    ClockSize = 40; StatusSize = 15
+    Radius = 153; Margin = 10; BodyPad = '0'
+    ClockSize = 41; ClockSecSize = 15; ClockWeight = 'SemiBold'
     Timeline = $false
-    Decor = @('ring')
+    Text = @{ Status = '#F2F8FF'; Date = '#8AFFFFFF'; Week = '#8AFFFFFF'; CdLabel = '#A0FFFFFF'; CdValue = '#E8EDF6' }
+    Art = 'a6'; Decor = @('orbitglow', 'sheen')
 }
 
 # ---------- B · v2 玻璃材质深化 ----------
 Add-Scheme @{
     Key = 'b1'; Num = 'B1'; Name = 'B1 · 深空琥珀'
     Hint = '深色厚玻璃，状态光晕从右上角渗出'
-    Layout = 'card'; Width = 316
+    Layout = 'card'; Width = 344; Height = 208
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'radial'; From = '#24F59E0B'; To = '#F00A0D14'; Center = '0.92,0.06' }
-    Radius = 20
-    Text = @{ Date = '#A9B6C9'; Hint = '#7C8AA5' }
-    Decor = @('glowcorner')
+    Radius = 20; Margin = 14
+    BodyPad = '16,13,16,13'
+    ClockSize = 40; ClockSecSize = 40; ClockSecSame = $true
+    ClockWeight = 'Light'
+    StatusSize = 14; RateSize = 16; CountdownSize = 12
+    DateInline = $true; PlainRate = $true; InlineCountdown = $true
+    Text = @{ Date = '#A9B6C9'; Hint = '#7C8AA5'; Track = '#402DD4A7'; CdLabel = '#8B94A5'; CdValue = '#F8FBFF' }
+    Art = 'b1'; Decor = @('glowcorner', 'sheen')
 }
 
 Add-Scheme @{
     Key = 'b3'; Num = 'B3'; Name = 'B3 · 流光胶囊'
     Hint = '横向胶囊 500×120，左侧光球呼吸 + 右侧信息横排，像桌面小宠物'
-    Layout = 'capsule'; Width = 500; Height = 120
+    Layout = 'banner'; Width = 500; Height = 130
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'gradient'; From = '#F0141A24'; To = '#F0080A0F' }
-    Radius = 26; BodyPad = '18,9,18,9'
-    ClockSize = 36; StatusSize = 15
-    Decor = @('orb')
+    Border = '#38FFFFFF'; BorderWidth = 1; Radius = 42; Margin = 10
+    BodyPad = '24,0,24,0'
+    ClockSize = 40; ClockSecSize = 40; ClockSecSame = $true
+    ClockWeight = 'SemiBold'
+    StatusDotSize = 54; OrbSize = 54; OrbAura = 150; OrbRing = 92
+    PlainRate = $true
+    Timeline = $true
+    Shadow = @{ Blur = 30; Depth = 8; Opacity = 0.55; Color = '#000000' }
+    Text = @{ Date = '#A9B6C9'; Week = '#A9B6C9'; CdLabel = '#8B94A5'; CdValue = '#F8FBFF'; Track = '#402DD4A7' }
+    Art = 'b3'; Decor = @('bannerpulse', 'sheen')
 }
 
 Add-Scheme @{
     Key = 'b4'; Num = 'B4'; Name = 'B4 · 石英表盘'
     Hint = '24 小时压成一圈，两段高峰弧 + 当前时刻指针'
-    Layout = 'dial'; Width = 300; Height = 300
+    Layout = 'orbitB4'; Width = 320; Height = 320
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'gradient'; From = '#F0161C26'; To = '#F006080C' }
-    Radius = 150; Margin = 10; BodyPad = '0,58,0,40'
-    ClockSize = 38; StatusSize = 14
+    Radius = 150; Margin = 10; BodyPad = '0'
+    ClockSize = 40; ClockSecSize = 40; ClockSecSame = $true; ClockWeight = 'Light'
+    RateSize = 28; PlainRate = $true
     Timeline = $false
-    Decor = @('quartz')
+    Text = @{ Rate = '#F59E0B'; CdLabel = '#7C8AA5'; CdValue = '#8B94A5' }
+    Art = 'b4'; Decor = @('quartzring', 'sheen')
 }
 
 Add-Scheme @{
     Key = 'b5'; Num = 'B5'; Name = 'B5 · 熔岩边缘'
     Hint = '去掉流光颗粒，只留左侧 3px 状态光柱，最安静'
-    Layout = 'card'; Width = 316
+    Layout = 'card'; Width = 344; Height = 208
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'gradient'; From = '#1E2028'; To = '#090A0E' }
-    Border = '#1AFFFFFF'; Radius = 16
-    StatusDot = $false; AccentBar = $true
+    Border = '#1AFFFFFF'; Radius = 20; Margin = 14
+    BodyPad = '16,13,16,13'
+    ClockSize = 40; ClockSecSize = 40; ClockSecSame = $true
+    ClockWeight = 'Light'
+    StatusSize = 14; RateSize = 16; CountdownSize = 12
+    DateInline = $true; PlainRate = $true; InlineCountdown = $true
+    Text = @{ Date = '#A9B6C9'; Hint = '#7C8AA5'; Track = '#402DD4A7'; CdLabel = '#8B94A5'; CdValue = '#F8FBFF' }
+    StatusDot = $false; AccentBar = $true; Art = 'b5'; Decor = @('sheen')
     Shadow = @{ Blur = 24; Depth = 6; Opacity = 0.55; Color = '#000000' }
 }
 
@@ -319,43 +481,55 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'c1'; Num = 'C1'; Name = 'C1 · 仪表盘'
     Hint = '实色仪器面板 + 等宽数字 + 底部刻度尺'
-    Layout = 'card'; Width = 316
+    Layout = 'card'; Width = 344; Height = 208
     Tone = 'mono'; Palette = 'panel'
     ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 32
-    Surface = @{ Type = 'solid'; From = '#10151C'; To = '#10151C' }
-    Border = '#2A3441'; Radius = 10
+    ClockSize = 38
+    ClockWeight = 'Normal'
+    Surface = @{ Type = 'solid'; From = '#15171D'; To = '#15171D' }
+    Border = '#2C313D'; Radius = 6; Margin = 14
     Shadow = @{ Blur = 16; Depth = 4; Opacity = 0.4; Color = '#000000' }
-    BodyPad = '16,13,16,28'
+    BodyPad = '15,13,15,26'
     Timeline = $false
-    Decor = @('ticks')
+    StatusDotSize = 4; PillPad = '8,4,8,4'; PillRadius = 4
+    Art = 'c1'; Decor = @('ticks')
 }
 
 Add-Scheme @{
     Key = 'c2'; Num = 'C2'; Name = 'C2 · 报表'
     Hint = '米白纸感 + 衬线数字，左侧 4px 竖色条是唯一状态信号'
-    Layout = 'card'; Width = 316
+    Layout = 'card'; Width = 344; Height = 208
     Tone = 'paper'; Palette = 'paper'
     ClockFont = 'Cambria, Georgia, Microsoft YaHei UI'
     ClockSize = 34
+    ClockWeight = 'Normal'
     Surface = @{ Type = 'solid'; From = '#F7F3EA'; To = '#F7F3EA' }
-    Border = '#E2D9C8'; Radius = 4
+    Border = '#E2D9C8'; Radius = 4; Margin = 14
     Shadow = @{ Blur = 14; Depth = 3; Opacity = 0.18; Color = '#57534E' }
+    BodyPad = '15,30,15,13'
     AccentBar = $true
+    ClockSecSame = $true; ClockSecSize = 34
+    InlineCountdown = $true
+    StatusSquare = $true
+    Timeline = $false; TickDark = $true
+    Decor = @('c2header', 'ticks')
 }
 
 Add-Scheme @{
     Key = 'c3'; Num = 'C3'; Name = 'C3 · 刻度带'
     Hint = '520×120 横向窄条，整条刻度尺贯穿底部'
-    Layout = 'capsule'; Width = 520; Height = 120
+    Layout = 'tape'; Width = 480; Height = 132
     Tone = 'mono'; Palette = 'panel'
     ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 32
-    Surface = @{ Type = 'solid'; From = '#0E1319'; To = '#0E1319' }
-    Border = '#232C38'; Radius = 8
-    BodyPad = '18,9,18,9'
+    ClockSize = 38; ClockWeight = 'Normal'
+    ClockSecSize = 38; ClockSecSame = $true
+    Surface = @{ Type = 'solid'; From = '#12141A'; To = '#12141A' }
+    Border = '#232C38'; Radius = 8; Margin = 10
+    BodyPad = '16,12,16,12'
+    StatusDotSize = 4; StatusSize = 10.5; RateSize = 16
+    PlainRate = $true
     Timeline = $false
-    Decor = @('ticks')
+    Art = 'c3'; Decor = @('ticks')
 }
 
 Add-Scheme @{
@@ -393,15 +567,17 @@ Add-Scheme @{
 Add-Scheme @{
     Key = 'd1'; Num = 'D1'; Name = 'D1 · 示波器'
     Hint = '一整天画成一条连续波形：两个平台是峰，中间凹陷是谷'
-    Layout = 'card'; Width = 320
+    Layout = 'card'; Width = 344; Height = 208
     Tone = 'dark'; Palette = 'scope'
-    ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
-    ClockSize = 32
-    Surface = @{ Type = 'solid'; From = '#0B0F14'; To = '#0B0F14' }
-    Border = '#1E2836'; Radius = 12
-    BodyPad = '16,13,16,38'
+    ClockFont = 'Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI'
+    ClockSize = 36; ClockSecSize = 36; ClockSecSame = $true
+    ClockWeight = 'Light'
+    Surface = @{ Type = 'solid'; From = '#111318'; To = '#111318' }
+    Border = '#1E2836'; Radius = 12; Margin = 14
+    BodyPad = '15,13,15,10'
     Timeline = $false
-    Decor = @('wave')
+    InlineCountdown = $true
+    Art = 'd1'; Decor = @('wave')
 }
 
 Add-Scheme @{
@@ -512,19 +688,19 @@ Add-Scheme @{
 # 网页原稿卡片对照图留在本地 design/_states/web（不入库）。
 $script:SchemeTweaks = @{
     # 默认界面：价格是药丸，倒计时整句「距空闲时段还有」
-    'default' = @{ ClockSecSize = 16; RateSize = 11; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
+    'default' = @{ ClockSecSize = 34; ClockSecSame = $true; InlineCountdown = $true; WeekFirst = $true; DateFontSize = 11; WeekFontSize = 13; RateSize = 11; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
     # A1 / A5：状态和价格都是药丸（带底色和细描边）
-    'a1'      = @{ StatusSize = 15; StatusPillStyle = $true; RateSize = 11; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
-    'a5'      = @{ StatusSize = 15; StatusPillStyle = $true; RateSize = 11; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
+    'a1'      = @{ StatusSize = 13.5; StatusPillStyle = $true; RateSize = 11; ClockSecSize = 16; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
+    'a5'      = @{ StatusSize = 13.5; StatusPillStyle = $true; RateSize = 11; ClockSecSize = 16; CdIdle = '距空闲时段还有'; CdPeak = '距高峰时段还有' }
     # B 组：价格是裸文字「1.0×」，字号明显大于小标签
-    'b1'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距空闲'; CdPeak = '距高峰' }
-    'b5'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    'b1'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 16; ClockSecSize = 40; ClockSecSame = $true; InlineCountdown = $true; DateFontSize = 12; WeekFontSize = 12; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    'b5'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 16; ClockSecSize = 40; ClockSecSame = $true; InlineCountdown = $true; DateFontSize = 12; WeekFontSize = 12; CdIdle = '距空闲'; CdPeak = '距高峰' }
     # C 组：仪表类，时钟全同号（等宽），价格裸文字
-    'c1'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 17; StatusPillStyle = $true; StatusPillSolid = $true; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰' }
-    'c2'      = @{ StatusSize = 13; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 34; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    'c1'      = @{ StatusSize = 10.5; DateInline = $true; PlainRate = $true; RateSize = 14; StatusPillStyle = $true; StatusPillSolid = $true; ClockSecSize = 38; ClockSecSame = $true; InlineCountdown = $true; DateFontSize = 11; WeekFontSize = 11; CdIdle = '距空闲'; CdPeak = '距高峰' }
+    'c2'      = @{ StatusSize = 14; DateInline = $true; PlainRate = $true; RateSize = 14; ClockSecSize = 34; ClockSecSame = $true; InlineCountdown = $true; DateFontSize = 11; WeekFontSize = 11; CdIdle = '距空闲'; CdPeak = '距高峰' }
     'c6'      = @{ StatusSize = 12; DateInline = $true; PlainRate = $true; RateSize = 16; StatusSquare = $true; ClockSecSize = 38; CdIdle = '距空闲'; CdPeak = '距高峰' }
     # D 组：梗图向，倒计时写成「距梁文谷 / 距梁文峰」
-    'd1'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 17; ClockSecSize = 17; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
+    'd1'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 16; ClockSecSize = 36; ClockSecSame = $true; InlineCountdown = $true; DateFontSize = 11.5; WeekFontSize = 11.5; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
     'd3'      = @{ StatusSize = 12.5; DateInline = $true; PlainRate = $true; RateSize = 16; ClockSecSize = 34; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
     'd6'      = @{ StatusSize = 12.5; DateInline = $true; PlainRate = $true; RateSize = 16; ClockSecSize = 38; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
     # E 组：工业 HUD / 液晶，全英文等宽标签
@@ -645,6 +821,7 @@ $script:LayoutCard = @'
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
@@ -686,7 +863,7 @@ $script:LayoutCard = @'
           <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#7C8AA5" HorizontalAlignment="Right" Margin="0,3,0,0" />
         </StackPanel>
       </Grid>
-      <Grid Grid.Row="2" Margin="0,10,0,0" Height="10">
+      <Grid Grid.Row="3" Margin="0,10,0,0" Height="10">
         <Canvas x:Name="TimelineCanvas" Height="10" ClipToBounds="True" HorizontalAlignment="Stretch">
           <Rectangle x:Name="TimelineTrack" Canvas.Left="0" Canvas.Top="2" Height="6" RadiusX="3" RadiusY="3" Fill="#332A3A4D" />
           <Rectangle x:Name="PeakSegment1" Canvas.Top="2" Height="6" RadiusX="3" RadiusY="3" Fill="#F59E0B" Visibility="Collapsed" />
@@ -694,12 +871,12 @@ $script:LayoutCard = @'
           <Rectangle x:Name="TimeMarker" Canvas.Top="0" Width="2" Height="10" RadiusX="1" RadiusY="1" Fill="#F8FAFC" />
         </Canvas>
       </Grid>
-      <Grid Grid.Row="3" Margin="0,8,0,0">
+      <Grid x:Name="FootGrid" Grid.Row="4" Margin="0,8,0,0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel x:Name="FootStack" Orientation="Horizontal" VerticalAlignment="Center">
           <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
           <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="10" Foreground="#5B6B82" Margin="10,2,0,0" VerticalAlignment="Center" />
         </StackPanel>
@@ -822,8 +999,9 @@ $script:LayoutXaml = @{
     dial    = $script:LayoutDial
 }
 
-# 9 个「结构本身就不一样」的方案走专属模板（峰谷示波器 / 点阵液晶 / 瑞士分屏 /
-# 新野兽派 / 半谷 / K 线 / 色块 / HUD / 圆表），模板与装饰器都在 SchemesPro.ps1。
+# 14 个「结构本身就不一样」的方案走 13 套专属模板（A3/B3 胶囊、A6/B4 圆盘、C3 刻度带、
+# 峰谷示波器 / 点阵液晶 / 瑞士分屏 / 新野兽派 / 半谷 / K 线 / 色块 / HUD / 圆表），
+# 通用卡片和胶囊方案则靠「彩色玻璃底片 + 网络 + 排版开关」对齐网页稿。
 . (Join-Path $PSScriptRoot 'SchemesPro.ps1')
 
 # ============================ 渲染工具 ============================
@@ -1033,6 +1211,102 @@ function Get-DayRate {
 # 每个装饰器都是「一次性画完」，状态变化时整层重建（一天最多几次，开销可忽略）。
 # 需要每秒动的（指针、呼吸灯）另外走 Update-DecorTick。
 
+# 把网页稿的彩色玻璃底片画进卡片：底色 + 光斑 + 状态光 + 白玻璃层 + 细网格
+function Add-DecorArt {
+    param($Layer, [double]$W, [double]$H, $Spec, $Colors)
+    if ([string]::IsNullOrWhiteSpace([string]$Spec.Art)) { return }
+    $style = $script:ArtStyles[[string]$Spec.Art]
+    if ($null -eq $style) { return }
+
+    # 底：斜向双色渐变
+    $baseRect = New-Object System.Windows.Shapes.Rectangle
+    $baseRect.Width = $W
+    $baseRect.Height = $H
+    $baseBrush = New-Object System.Windows.Media.LinearGradientBrush
+    $baseBrush.StartPoint = New-Object System.Windows.Point -ArgumentList 0, 0
+    $baseBrush.EndPoint = New-Object System.Windows.Point -ArgumentList 1, 1
+    $c1 = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$style.Base1)
+    $c2 = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$style.Base2)
+    [void]$baseBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $c1, 0.0))
+    [void]$baseBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $c2, 1.0))
+    $baseRect.Fill = $baseBrush
+    [void]$Layer.Children.Add($baseRect)
+
+    # 彩色光斑：径向渐变从中心色淡出到透明
+    foreach ($blob in @($style.Blobs)) {
+        $diam = [Math]::Sqrt($W * $H) * [double]$blob.R
+        if ($diam -lt 4) { continue }
+        $color = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$blob.C)
+        $alpha = [int]$blob.A
+        $ellipse = New-Object System.Windows.Shapes.Ellipse
+        $ellipse.Width = $diam
+        $ellipse.Height = $diam
+        $brush = New-Object System.Windows.Media.RadialGradientBrush
+        $brush.Center = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+        $brush.GradientOrigin = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+        $brush.RadiusX = 0.5
+        $brush.RadiusY = 0.5
+        [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb($alpha, $color.R, $color.G, $color.B)), 0.0))
+        [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb([int]($alpha * 0.55), $color.R, $color.G, $color.B)), 0.55))
+        [void]$brush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(0, $color.R, $color.G, $color.B)), 1.0))
+        $ellipse.Fill = $brush
+        [System.Windows.Controls.Canvas]::SetLeft($ellipse, (([double]$blob.X * $W) - $diam / 2.0))
+        [System.Windows.Controls.Canvas]::SetTop($ellipse, (([double]$blob.Y * $H) - $diam / 2.0))
+        [void]$Layer.Children.Add($ellipse)
+    }
+
+    # 状态光：右下角一圈状态色微光，对应网页稿的 --soft
+    if ([bool]$style.Glow) {
+        $accent = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$Colors.Accent)
+        $glowDiam = [Math]::Sqrt($W * $H) * 1.15
+        $glow = New-Object System.Windows.Shapes.Ellipse
+        $glow.Width = $glowDiam
+        $glow.Height = $glowDiam
+        $glowBrush = New-Object System.Windows.Media.RadialGradientBrush
+        $glowBrush.Center = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+        $glowBrush.GradientOrigin = New-Object System.Windows.Point -ArgumentList 0.5, 0.5
+        $glowBrush.RadiusX = 0.5
+        $glowBrush.RadiusY = 0.5
+        [void]$glowBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(55, $accent.R, $accent.G, $accent.B)), 0.0))
+        [void]$glowBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(0, $accent.R, $accent.G, $accent.B)), 1.0))
+        $glow.Fill = $glowBrush
+        [System.Windows.Controls.Canvas]::SetLeft($glow, ($W * 0.92 - $glowDiam / 2.0))
+        [System.Windows.Controls.Canvas]::SetTop($glow, ($H * 1.06 - $glowDiam / 2.0))
+        [void]$Layer.Children.Add($glow)
+    }
+
+    # 白玻璃层：左上亮、中心薄、右下再亮一点
+    $glass = New-Object System.Windows.Shapes.Rectangle
+    $glass.Width = $W
+    $glass.Height = $H
+    $glassBrush = New-Object System.Windows.Media.LinearGradientBrush
+    $glassBrush.StartPoint = New-Object System.Windows.Point -ArgumentList 0, 0
+    $glassBrush.EndPoint = New-Object System.Windows.Point -ArgumentList 1, 1
+    [void]$glassBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb([int]$style.Glass, 255, 255, 255)), 0.0))
+    [void]$glassBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb([int]$style.GlassMid, 255, 255, 255)), 0.45))
+    [void]$glassBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb([int]$style.Glass2, 255, 255, 255)), 1.0))
+    $glass.Fill = $glassBrush
+    [void]$Layer.Children.Add($glass)
+
+    # 细网格：B 组 / C 组 / D1 的仪器网格
+    $spacing = [double]$style.Grid
+    if ($spacing -gt 1) {
+        $gridColor = '#0BFFFFFF'
+        $x = 0.0
+        while ($x -lt $W) {
+            $line = New-LineShape -X1 $x -Y1 0 -X2 $x -Y2 $H -Color $gridColor -Thickness 0.7
+            [void]$Layer.Children.Add($line)
+            $x += $spacing
+        }
+        $y = 0.0
+        while ($y -lt $H) {
+            $line = New-LineShape -X1 0 -Y1 $y -X2 $W -Y2 $y -Color $gridColor -Thickness 0.7
+            [void]$Layer.Children.Add($line)
+            $y += $spacing
+        }
+    }
+}
+
 function Add-DecorSheen {
     param($Layer, [double]$W, [double]$H)
 
@@ -1193,22 +1467,50 @@ function Add-DecorSectors {
 
 function Add-DecorWave {
     param($Layer, [double]$W, [double]$H, $Colors, $Status)
-    $padX = 14.0
-    $band = Get-DecorBand -H $H
-    $top = [double]$band[0]
-    $bottom = [double]$band[1]
+    $padX = 15.0
+    # 波形区夹在日期行和底部倒计时之间（D1 的卡片布局给这里留了一段空档）
+    $top = $H * 0.5
+    $bottom = $H - 34.0
+    try {
+        if ($null -ne $script:DateBox) {
+            $dateBox = Get-ElementBox -Element $script:DateBox -FallbackW ($W - 30) -FallbackH 16
+            $top = [double]$dateBox[1] + [double]$dateBox[3] + 8.0
+        }
+        if ($null -ne $script:FootGrid) {
+            $footBox = Get-ElementBox -Element $script:FootGrid -FallbackW ($W - 30) -FallbackH 18
+            $bottom = [double]$footBox[1] - 6.0
+        }
+    } catch { }
+    if (($bottom - $top) -lt 28.0) { $bottom = $top + 28.0 }
     $baseY = ($top + $bottom) / 2.0
     $amplitude = ($bottom - $top) / 2.0 - 1.0
-    if ($amplitude -lt 3.0) { $amplitude = 3.0 }
+    if ($amplitude -lt 8.0) { $amplitude = 8.0 }
+
     $steps = 160
     $points = New-Object System.Windows.Media.PointCollection
     for ($i = 0; $i -le $steps; $i++) {
         $fraction = $i / [double]$steps
-        $rate = Get-DayRate -Fraction $fraction -Windows $Status.PeakWindows
+        $rate = Get-DayRate -Fraction $fraction -Windows $Status.PeakWindows -Soft 0.045
         $x = $padX + $fraction * ($W - $padX * 2)
         $y = $baseY - ($rate - 0.5) * 2.0 * $amplitude
         [void]$points.Add((New-Object System.Windows.Point -ArgumentList $x, $y))
     }
+
+    # 曲线下方的暗色填充
+    $fillFigure = New-Object System.Windows.Media.PathFigure
+    $fillFigure.IsClosed = $true
+    $fillFigure.StartPoint = $points[0]
+    for ($i = 1; $i -lt $points.Count; $i++) {
+        [void]$fillFigure.Segments.Add((New-Object System.Windows.Media.LineSegment -ArgumentList $points[$i], $true))
+    }
+    [void]$fillFigure.Segments.Add((New-Object System.Windows.Media.LineSegment -ArgumentList (New-Object System.Windows.Point -ArgumentList ($W - $padX), ($bottom + 2)), $true))
+    [void]$fillFigure.Segments.Add((New-Object System.Windows.Media.LineSegment -ArgumentList (New-Object System.Windows.Point -ArgumentList $padX, ($bottom + 2)), $true))
+    $fillGeometry = New-Object System.Windows.Media.PathGeometry
+    [void]$fillGeometry.Figures.Add($fillFigure)
+    $fill = New-Object System.Windows.Shapes.Path
+    $fill.Data = $fillGeometry
+    $fill.Fill = New-BrushSafe ([string]$Colors.Accent) 0.10
+    [void]$Layer.Children.Add($fill)
 
     $figure = New-Object System.Windows.Media.PathFigure
     $figure.StartPoint = $points[0]
@@ -1228,20 +1530,34 @@ function Add-DecorWave {
 
     $path = New-Object System.Windows.Shapes.Path
     $path.Data = $geometry
-    $path.Stroke = New-BrushSafe ([string]$Colors.Accent) 0.8
-    $path.StrokeThickness = 1.5
+    $path.Stroke = New-BrushSafe ([string]$Colors.Accent) 0.85
+    $path.StrokeThickness = 1.6
     $path.StrokeLineJoin = [System.Windows.Media.PenLineJoin]::Round
     [void]$Layer.Children.Add($path)
+
+    # 当前时刻：白色圆点 + 向下延伸的竖虚线
+    $nowX = $padX + [double]$Status.DayFraction * ($W - $padX * 2)
+    $nowRate = Get-DayRate -Fraction ([double]$Status.DayFraction) -Windows $Status.PeakWindows -Soft 0.045
+    $nowY = $baseY - ($nowRate - 0.5) * 2.0 * $amplitude
+    $nowLine = New-LineShape -X1 $nowX -Y1 ($nowY + 4) -X2 $nowX -Y2 ($bottom + 2) -Color '#55FFFFFF' -Thickness 1
+    $nowLine.StrokeDashArray = New-Object System.Windows.Media.DoubleCollection
+    [void]$nowLine.StrokeDashArray.Add(2.0)
+    [void]$nowLine.StrokeDashArray.Add(2.0)
+    [void]$Layer.Children.Add($nowLine)
 
     $dot = New-Object System.Windows.Shapes.Ellipse
     $dot.Width = 6; $dot.Height = 6
     $dot.Fill = New-BrushSafe '#FFFFFF'
-    $dot.Opacity = 0.9
+    $dot.Opacity = 0.95
+    [System.Windows.Controls.Canvas]::SetLeft($dot, ($nowX - 3))
+    [System.Windows.Controls.Canvas]::SetTop($dot, ($nowY - 3))
     [void]$Layer.Children.Add($dot)
 
     $script:DecorRefs['WaveBaseY'] = $baseY
     $script:DecorRefs['WaveAmplitude'] = $amplitude
     $script:DecorRefs['WaveDot'] = $dot
+    $script:DecorRefs['WaveNowLine'] = $nowLine
+    $script:DecorRefs['WaveBottomY'] = $bottom
     $script:DecorRefs['WavePadX'] = $padX
     $script:DecorRefs['WaveWidth'] = $W
     $script:DecorRefs['WaveWindows'] = $Status.PeakWindows
@@ -1359,25 +1675,58 @@ function Add-DecorLamps {
 }
 
 function Add-DecorTicks {
-    param($Layer, [double]$W, [double]$H, $Colors, $Status)
-    $padX = 16.0
-    $baseY = $H - 12.0
+    param($Layer, [double]$W, [double]$H, $Colors, $Status, $Spec)
+    $padX = 15.0
     $span = $W - $padX * 2
+    $baseY = $H - 14.0
+    # 卡片布局的刻度尺坐在底部倒计时上方；胶囊布局（C3）则贴底
+    try {
+        if ($null -ne $script:FootGrid) {
+            $footBox = Get-ElementBox -Element $script:FootGrid -FallbackW $span -FallbackH 18
+            $baseY = [double]$footBox[1] - 8.0
+        }
+    } catch { }
+
+    $tickWeak = '#40FFFFFF'
+    $tickStrong = '#8AFFFFFF'
+    $marker = '#F8FAFC'
+    if ([bool]$Spec.TickDark) {
+        $tickWeak = '#331C1917'
+        $tickStrong = '#661C1917'
+        $marker = '#0B1420'
+    }
+
+    $baseline = New-LineShape -X1 $padX -Y1 $baseY -X2 ($padX + $span) -Y2 $baseY -Color $tickWeak -Thickness 1
+    [void]$Layer.Children.Add($baseline)
+
+    $bandColor = [string]$Colors.Accent
+    if ($Colors.ContainsKey('Band')) { $bandColor = [string]$Colors.Band }
     foreach ($window in $Status.PeakWindows) {
         $startX = $padX + [double]$window.Start * $span
         $endX = $padX + [double]$window.End * $span
-        $band = New-RectShape -X $startX -Y ($baseY - 3) -W ($endX - $startX) -H 3 -Color ([string]$Colors.Accent)
-        $band.Opacity = 0.75
+        $band = New-RectShape -X $startX -Y ($baseY - 6) -W ($endX - $startX) -H 6 -Color $bandColor
+        $band.Opacity = 0.8
         [void]$Layer.Children.Add($band)
     }
     for ($hour = 0; $hour -le 24; $hour++) {
         $x = $padX + $hour / 24.0 * $span
         $length = 4.0
-        $opacity = '#40FFFFFF'
-        if (($hour % 6) -eq 0) { $length = 8.0; $opacity = '#8AFFFFFF' }
+        $opacity = $tickWeak
+        if (($hour % 6) -eq 0) { $length = 8.0; $opacity = $tickStrong }
         $line = New-LineShape -X1 $x -Y1 ($baseY - $length) -X2 $x -Y2 $baseY -Color $opacity -Thickness 1
         [void]$Layer.Children.Add($line)
     }
+
+    # 当前时刻：竖线 + 顶端小圆点
+    $nowX = $padX + [double]$Status.DayFraction * $span
+    $stem = New-LineShape -X1 $nowX -Y1 ($baseY - 13) -X2 $nowX -Y2 ($baseY + 2) -Color $marker -Thickness 2
+    [void]$Layer.Children.Add($stem)
+    $dot = New-Object System.Windows.Shapes.Ellipse
+    $dot.Width = 5; $dot.Height = 5
+    $dot.Fill = New-BrushSafe $marker
+    [System.Windows.Controls.Canvas]::SetLeft($dot, ($nowX - 2.5))
+    [System.Windows.Controls.Canvas]::SetTop($dot, ($baseY - 15))
+    [void]$Layer.Children.Add($dot)
 }
 
 function Add-DecorSplit {
@@ -1505,7 +1854,20 @@ function Build-SchemeDecor {
     $canvas.Width = $w
     $canvas.Height = $h
     $canvas.IsHitTestVisible = $false
+    # 装饰层跟着卡片圆角裁一圈，彩色底片和流光不会盖住卡片外的透明区域
+    $clipRadius = [double]$Spec.Radius
+    if ($clipRadius -lt 0) { $clipRadius = 0 }
+    try {
+        $clipRect = New-Object System.Windows.Rect -ArgumentList 0, 0, $w, $h
+        $clipGeo = New-Object System.Windows.Media.RectangleGeometry -ArgumentList $clipRect, $clipRadius, $clipRadius
+        $canvas.Clip = $clipGeo
+    } catch { }
     [void]$hostLayer.Children.Add($canvas)
+
+    # 玻璃方案的彩色底片先画，后面的装饰和内容都压在上面
+    if (-not [string]::IsNullOrWhiteSpace([string]$Spec.Art)) {
+        Add-DecorArt -Layer $canvas -W $w -H $h -Spec $Spec -Colors $Colors
+    }
 
     foreach ($name in $Spec.Decor) {
         switch ([string]$name) {
@@ -1518,7 +1880,7 @@ function Build-SchemeDecor {
             'sine'       { Add-DecorSine -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'candles'    { Add-DecorCandles -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'lamps'      { Add-DecorLamps -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
-            'ticks'      { Add-DecorTicks -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
+            'ticks'      { Add-DecorTicks -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status -Spec $Spec }
             'split'      { Add-DecorSplit -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'plate'      { Add-DecorPlate -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'lcd'        { Add-DecorLcd -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
@@ -1527,7 +1889,11 @@ function Build-SchemeDecor {
             # ---- SchemesPro.ps1 里的专属装饰 ----
             'scope'      { Add-DecorScope -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'kline'      { Add-DecorKline -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
-            'lcdvig'     { Add-DecorLcdVignette -Layer $canvas -W $w -H $h -Colors $Colors }
+            'bannerpulse' { Add-DecorBannerPulse -Layer $canvas -W $w -H $h -Colors $Colors -Spec $Spec -Status $Status }
+            'orbitglow'  { Add-DecorOrbitRing -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status -Style 'glow' }
+            'quartzring' { Add-DecorOrbitRing -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status -Style 'quartz' }
+            'tape'       { }
+            'c2header'   { Add-DecorPaperHeader -Layer $canvas -W $w -H $h -Colors $Colors }
             'scalebar'   { Add-DecorScaleBar -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'gauge'      { Add-DecorGauge -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
             'hudprogress' { Add-DecorHudProgress -Layer $canvas -W $w -H $h -Colors $Colors -Status $Status }
@@ -1566,10 +1932,17 @@ function Update-SchemeDecorTick {
         $windows = $script:DecorRefs['WaveWindows']
         $fraction = [double]$Status.DayFraction
         $x = $padX + $fraction * ($w - $padX * 2)
-        $rate = Get-DayRate -Fraction $fraction -Windows $windows
+        $rate = Get-DayRate -Fraction $fraction -Windows $windows -Soft 0.045
         $y = $baseY - ($rate - 0.5) * 2.0 * $amplitude
         [System.Windows.Controls.Canvas]::SetLeft($dot, ($x - 3.5))
         [System.Windows.Controls.Canvas]::SetTop($dot, ($y - 3.5))
+        $nowLine = $script:DecorRefs['WaveNowLine']
+        if ($null -ne $nowLine) {
+            $nowLine.X1 = $x
+            $nowLine.X2 = $x
+            $nowLine.Y1 = $y + 4
+            $nowLine.Y2 = [double]$script:DecorRefs['WaveBottomY'] + 2
+        }
     }
 }
 
@@ -1635,10 +2008,23 @@ function Apply-SchemeSurface {
     $script:Body.Margin = ConvertTo-Thickness ([string]$Spec.BodyPad)
     $script:ClockText.FontFamily = Resolve-FontFamily ([string]$Spec.ClockFont)
     $script:ClockText.FontSize = [double]$Spec.ClockSize
+    $clockWeight = [System.Windows.FontWeights]::Bold
+    switch ([string]$Spec.ClockWeight) {
+        'Light'    { $clockWeight = [System.Windows.FontWeights]::Light }
+        'Normal'   { $clockWeight = [System.Windows.FontWeights]::Normal }
+        'Medium'   { $clockWeight = [System.Windows.FontWeights]::Medium }
+        'SemiBold' { $clockWeight = [System.Windows.FontWeights]::SemiBold }
+        'Black'    { $clockWeight = [System.Windows.FontWeights]::Black }
+    }
+    if (-not $isCustom) {
+        $script:ClockText.FontWeight = $clockWeight
+    }
     if (-not $isCustom) {
         # 专属模板的字号写在自己的 XAML 里（每个方案的信息密度差很多），
         # 通用补丁表里的 StatusSize / CountdownSize 不往它们身上套。
         $script:StatusText.FontSize = [double]$Spec.StatusSize
+        $script:DateText.FontSize = [double]$Spec.DateFontSize
+        $script:WeekText.FontSize = [double]$Spec.WeekFontSize
         $script:CountdownText.FontSize = [double]$Spec.CountdownSize
     }
 
@@ -1646,7 +2032,19 @@ function Apply-SchemeSurface {
     # 时钟后面的「:24」：网页稿里是小号灰字，只有仪表类方案才全同号
     if ($null -ne $script:ClockSec) {
         $script:ClockSec.FontFamily = $script:ClockText.FontFamily
-        $script:ClockSec.FontSize = [double]$Spec.ClockSecSize
+        if ([bool]$Spec.ClockSecSame) {
+            # 整串同号：秒数和时钟一样大、一样粗、贴着基线
+            $script:ClockSec.FontSize = [double]$Spec.ClockSize
+            if (-not $isCustom) { $script:ClockSec.FontWeight = $clockWeight }
+            $script:ClockSec.Margin = New-Object System.Windows.Thickness -ArgumentList 0
+            $script:ClockSec.VerticalAlignment = [System.Windows.VerticalAlignment]::Bottom
+        } else {
+            $script:ClockSec.FontSize = [double]$Spec.ClockSecSize
+            if (-not $isCustom) {
+                $script:ClockSec.FontWeight = [System.Windows.FontWeights]::Normal
+                $script:ClockSec.Margin = New-Object System.Windows.Thickness -ArgumentList 1, 0, 0, 6
+            }
+        }
     }
     # 价格：裸文字（1.0×）还是药丸（价格 1.0×）
     $script:RateText.FontSize = [double]$Spec.RateSize
@@ -1657,13 +2055,14 @@ function Apply-SchemeSurface {
         $script:RateBadge.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
         $script:RateBadge.Padding = New-Object System.Windows.Thickness -ArgumentList 0
     } else {
-        $script:RateBadge.Padding = New-Object System.Windows.Thickness -ArgumentList 8, 3, 8, 3
+        $script:RateBadge.Padding = ConvertTo-Thickness ([string]$Spec.RatePad)
+        $script:RateBadge.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList ([double]$Spec.RateRadius)
     }
     # 状态：药丸底（A1 / A5 那种）还是裸排
     if (($null -ne $script:StatusPill) -and (-not $isCustom)) {
         if ([bool]$Spec.StatusPillStyle) {
-            $script:StatusPill.Padding = New-Object System.Windows.Thickness -ArgumentList 10, 5, 12, 5
-            $script:StatusPill.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList 14
+            $script:StatusPill.Padding = ConvertTo-Thickness ([string]$Spec.PillPad)
+            $script:StatusPill.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList ([double]$Spec.PillRadius)
         } else {
             $script:StatusPill.Padding = New-Object System.Windows.Thickness -ArgumentList 0
             $script:StatusPill.Background = ConvertTo-Brush '#00000000'
@@ -1686,9 +2085,8 @@ function Apply-SchemeSurface {
             $script:DateBox.Orientation = [System.Windows.Controls.Orientation]::Horizontal
             $script:DateBox.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Left
             $script:DateBox.Margin = New-Object System.Windows.Thickness -ArgumentList 0, 3, 0, 0
-            $script:DateText.FontSize = 12
-            $script:WeekText.FontSize = 12
             $script:WeekText.Margin = New-Object System.Windows.Thickness -ArgumentList 6, 0, 0, 0
+            $script:DateText.Margin = New-Object System.Windows.Thickness -ArgumentList 0
             $script:DateText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Left
             $script:WeekText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Left
         } else {
@@ -1698,12 +2096,28 @@ function Apply-SchemeSurface {
             $script:DateBox.Orientation = [System.Windows.Controls.Orientation]::Vertical
             $script:DateBox.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
             $script:DateBox.Margin = New-Object System.Windows.Thickness -ArgumentList 12, 0, 0, 0
-            $script:DateText.FontSize = 13
-            $script:WeekText.FontSize = 11
-            $script:WeekText.Margin = New-Object System.Windows.Thickness -ArgumentList 0, 3, 0, 0
             $script:DateText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
             $script:WeekText.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
+            $script:DateText.Margin = New-Object System.Windows.Thickness -ArgumentList 0
+            $script:WeekText.Margin = New-Object System.Windows.Thickness -ArgumentList 0, 3, 0, 0
+            if ([bool]$Spec.WeekFirst) {
+                $script:DateText.Margin = New-Object System.Windows.Thickness -ArgumentList 0, 3, 0, 0
+                $script:WeekText.Margin = New-Object System.Windows.Thickness -ArgumentList 0
+            }
         }
+        # 默认界面是「周几在上、日期在下」，A1 / A5 是「日期在上、周几在下」
+        try {
+            $first = $script:DateBox.Children[0]
+            if ([bool]$Spec.WeekFirst -and ($first -ne $script:WeekText)) {
+                $script:DateBox.Children.Clear()
+                [void]$script:DateBox.Children.Add($script:WeekText)
+                [void]$script:DateBox.Children.Add($script:DateText)
+            } elseif ((-not [bool]$Spec.WeekFirst) -and ($first -ne $script:DateText)) {
+                $script:DateBox.Children.Clear()
+                [void]$script:DateBox.Children.Add($script:DateText)
+                [void]$script:DateBox.Children.Add($script:WeekText)
+            }
+        } catch { }
     }
 
     # 卡片布局里日期列被大号时钟挤在右边，宽度只够放下「10月28日」这一行；
@@ -1711,8 +2125,16 @@ function Apply-SchemeSurface {
     $script:CompactDate = ([string]$Spec.Layout -eq 'card')
 
     # 状态点：胶囊布局要放大成光球，由 orb 装饰接管
-    $script:StatusDot.Width = 9
-    $script:StatusDot.Height = 9
+    $script:StatusDot.Width = [double]$Spec.StatusDotSize
+    $script:StatusDot.Height = [double]$Spec.StatusDotSize
+    if (($null -ne $script:OrbHost) -and ([double]$Spec.OrbSize -gt 0)) {
+        $script:OrbHost.Width = [double]$Spec.OrbSize
+        $script:OrbHost.Height = [double]$Spec.OrbSize
+        $glow = $script:StatusDot.Effect
+        if ($null -ne $glow) {
+            if ([double]$Spec.OrbSize -ge 30) { $glow.BlurRadius = 34 } else { $glow.BlurRadius = 16 }
+        }
+    }
     if ([bool]$Spec.HideStatus) {
         $script:StatusDot.Visibility = [System.Windows.Visibility]::Collapsed
         if ($null -ne $script:StatusSquare) { $script:StatusSquare.Visibility = [System.Windows.Visibility]::Collapsed }
@@ -1740,6 +2162,10 @@ function Apply-SchemeSurface {
     if ([bool]$Spec.AccentBar) {
         $script:AccentBar.Visibility = [System.Windows.Visibility]::Visible
         $script:AccentBar.Width = 4
+        $script:AccentBar.Effect = $null
+        $barColor = '#FFB020'
+        if ($Spec.Text.ContainsKey('AccentBar')) { $barColor = [string]$Spec.Text['AccentBar'] }
+        $script:AccentBar.Fill = ConvertTo-Brush $barColor
         $script:AccentBar.Margin = New-Object System.Windows.Thickness -ArgumentList 0, 0, 0, 0
         $script:AccentBar.RadiusX = 0
         $script:AccentBar.RadiusY = 0
@@ -1784,12 +2210,43 @@ function Apply-SchemeState {
     # 可选元素（只有卡片布局有）
     if ($null -ne $script:ClockSec) {
         $secColor = ''
-        if ($colors.ContainsKey('ClockSec')) { $secColor = [string]$colors.ClockSec }
+        if ([bool]$Spec.ClockSecSame) {
+            $secColor = [string]$colors.Clock
+        } elseif ($colors.ContainsKey('ClockSec')) {
+            $secColor = [string]$colors.ClockSec
+        }
         if ([string]::IsNullOrWhiteSpace($secColor)) { $secColor = [string]$colors.Week }
         $script:ClockSec.Foreground = ConvertTo-Brush $secColor
     }
     if ($null -ne $script:CountdownValue) {
         $script:CountdownValue.Foreground = ConvertTo-Brush $cdValueColor
+    }
+    # 有的方案（B1 / B5 / C1 / C2 / D1）倒计时是「距空闲 01:29:36」连在一起，
+    # 有的（A1 / A5）是左右分列。切换方案时把同一个 TextBlock 在两个容器之间挪。
+    if (($null -ne $script:FootGrid) -and ($null -ne $script:FootStack) -and ($null -ne $script:CountdownValue)) {
+        if ([bool]$Spec.InlineCountdown) {
+            $parent = $script:CountdownValue.Parent
+            if ($parent -ne $script:FootStack) {
+                if (($null -ne $parent) -and ($parent -is [System.Windows.Controls.Panel])) {
+                    [void]$parent.Children.Remove($script:CountdownValue)
+                }
+                $script:FootStack.Children.Insert(1, $script:CountdownValue)
+            }
+            $script:CountdownValue.Margin = New-Object System.Windows.Thickness -ArgumentList 6, 0, 0, 0
+            $script:CountdownValue.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Left
+            [System.Windows.Controls.Grid]::SetColumn($script:CountdownValue, 0)
+        } else {
+            $parent = $script:CountdownValue.Parent
+            if ($parent -ne $script:FootGrid) {
+                if (($null -ne $parent) -and ($parent -is [System.Windows.Controls.Panel])) {
+                    [void]$parent.Children.Remove($script:CountdownValue)
+                }
+                [void]$script:FootGrid.Children.Add($script:CountdownValue)
+            }
+            $script:CountdownValue.Margin = New-Object System.Windows.Thickness -ArgumentList 10, 0, 0, 0
+            $script:CountdownValue.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
+            [System.Windows.Controls.Grid]::SetColumn($script:CountdownValue, 1)
+        }
     }
     if ($null -ne $script:StatusSquare) {
         # 满版色块方案（C6）里方块必须用对比色，跟状态文字同色，否则和底色糊在一起
@@ -1803,7 +2260,9 @@ function Apply-SchemeState {
             $script:StatusText.Foreground = ConvertTo-Brush '#0B0F14'
             $script:StatusDot.Fill = ConvertTo-Brush '#0B0F14'
         } else {
-            $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.BadgeBg)
+            $pillBg = [string]$colors.BadgeBg
+            if ($Spec.Text.ContainsKey('PillBg')) { $pillBg = [string]$Spec.Text['PillBg'] }
+            $script:StatusPill.Background = ConvertTo-Brush $pillBg
             $borderColor = [string]$Spec.Text['StatusPillBorder']
             if ([string]::IsNullOrWhiteSpace($borderColor)) { $borderColor = [string]$colors.Accent }
             $script:StatusPill.BorderBrush = ConvertTo-Brush $borderColor
@@ -1842,6 +2301,7 @@ function Apply-SchemeState {
         # 专属模板：价格 / 徽章形状由模板自己定，这里只换文字和描边色
         $rateColor = [string]$colors.Accent
         if ($colors.ContainsKey('Rate')) { $rateColor = [string]$colors.Rate }
+        elseif ([bool]$Spec.PlainRate) { $rateColor = [string]$colors.AccentSoft }
         $script:RateText.Foreground = ConvertTo-Brush $rateColor
         if (($null -ne $script:RateBadge) -and ([string]$Spec.Layout -eq 'hud')) {
             # 网页稿的 RATE 标签是一圈状态色描边
@@ -1869,6 +2329,12 @@ function Apply-SchemeState {
         }
     }
 
+    # 玻璃方案的价签有一圈细白边（A1 / A5）
+    if (($null -ne $script:RateBadge) -and (-not $isCustom) -and $Spec.Text.ContainsKey('RateBorder')) {
+        $script:RateBadge.BorderBrush = ConvertTo-Brush ([string]$Spec.Text['RateBorder'])
+        $script:RateBadge.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1
+    }
+
     # ---- 专属模板里需要跟状态走的部件 ----
     if ([string]$Spec.Layout -eq 'lcd') {
         # E5：整屏底色和屏框都跟状态走（暖棕 / 墨绿）
@@ -1877,6 +2343,28 @@ function Apply-SchemeState {
         if ($null -ne $script:StatusPill) {
             $script:StatusPill.BorderBrush = ConvertTo-Brush ([string]$colors.Accent)
         }
+    }
+    if ([string]$Spec.Layout -eq 'tape') {
+        # C3：琥珀芯片 + 深色字，跟 C1 一样是实底
+        if ($null -ne $script:StatusPill) {
+            $script:StatusPill.Background = ConvertTo-Brush ([string]$colors.Accent)
+            $script:StatusPill.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
+        }
+        if ($null -ne $script:StatusText) { $script:StatusText.Foreground = ConvertTo-Brush '#0B0F14' }
+        if ($null -ne $script:StatusDot) { $script:StatusDot.Fill = ConvertTo-Brush '#0B0F14' }
+    }
+    if (([string]$Spec.Layout -eq 'banner') -and ([double]$Spec.OrbSize -ge 30) -and ($null -ne $script:StatusDot)) {
+        # B3 的大光球：中心亮、边缘深，像一颗被灯照亮的玻璃珠
+        $softColor = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$colors.AccentSoft)
+        $accentColor = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$colors.Accent)
+        $orbBrush = New-Object System.Windows.Media.RadialGradientBrush
+        $orbBrush.Center = New-Object System.Windows.Point -ArgumentList 0.38, 0.32
+        $orbBrush.GradientOrigin = New-Object System.Windows.Point -ArgumentList 0.38, 0.32
+        $orbBrush.RadiusX = 0.65
+        $orbBrush.RadiusY = 0.65
+        [void]$orbBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $softColor, 0.0))
+        [void]$orbBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList $accentColor, 0.75))
+        $script:StatusDot.Fill = $orbBrush
     }
     if ([string]$Spec.Layout -eq 'half') {
         # D6：104° 斜切双色，峰 64% / 空闲 36% / 周末全天只留 12% 的红
@@ -1917,6 +2405,28 @@ function Apply-SchemeState {
     if ($null -ne $script:HudTopBar) {
         $script:HudTopBar.Fill = ConvertTo-Brush ([string]$colors.Accent)
     }
+    if ([string]$Spec.Key -eq 'b5') {
+        # B5 的左侧光柱是渐变 + 外发光，不是一根实线
+        $accent = [System.Windows.Media.ColorConverter]::ConvertFromString([string]$colors.Accent)
+        $barBrush = New-Object System.Windows.Media.LinearGradientBrush
+        $barBrush.StartPoint = New-Object System.Windows.Point -ArgumentList 0, 0
+        $barBrush.EndPoint = New-Object System.Windows.Point -ArgumentList 0, 1
+        [void]$barBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(0, $accent.R, $accent.G, $accent.B)), 0.0))
+        [void]$barBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(220, $accent.R, $accent.G, $accent.B)), 0.35))
+        [void]$barBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(220, $accent.R, $accent.G, $accent.B)), 0.65))
+        [void]$barBrush.GradientStops.Add((New-Object System.Windows.Media.GradientStop -ArgumentList ([System.Windows.Media.Color]::FromArgb(0, $accent.R, $accent.G, $accent.B)), 1.0))
+        $script:AccentBar.Width = 6
+        $script:AccentBar.Fill = $barBrush
+        try {
+            $glow = New-Object System.Windows.Media.Effects.DropShadowEffect
+            $glow.BlurRadius = 18
+            $glow.ShadowDepth = 0
+            $glow.Opacity = 0.65
+            $glow.Color = $accent
+            $script:AccentBar.Effect = $glow
+        } catch { }
+    }
+
     if ($null -ne $script:StatusIconPath) {
         $iconColor = [string]$colors.Accent
         if ($colors.ContainsKey('StatusIcon')) { $iconColor = [string]$colors.StatusIcon }
@@ -2033,6 +2543,9 @@ function Install-Layout {
     $script:ChipDot = Find-LayoutElement 'ChipDot'
     $script:StatusIconPath = Find-LayoutElement 'StatusIconPath'
     $script:DateBox = Find-LayoutElement 'DateBox'
+    $script:OrbHost = Find-LayoutElement 'OrbHost'
+    $script:FootGrid = Find-LayoutElement 'FootGrid'
+    $script:FootStack = Find-LayoutElement 'FootStack'
     $script:ScopeBox = Find-LayoutElement 'ScopeBox'
     $script:CandleBox = Find-LayoutElement 'CandleBox'
     $script:ScaleBox = Find-LayoutElement 'ScaleBox'
@@ -2150,3 +2663,4 @@ function Set-UiScheme {
         try { $script:MenuSchemeHeader.Tag = '当前：' + [string]$spec.Name } catch { }
     }
 }
+

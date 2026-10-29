@@ -104,10 +104,10 @@
 ├─ lib/
 │  ├─ DeepSeekTime.ps1     # 时段判断核心逻辑（纯函数）
 │  ├─ Schemes.ps1          # 界面方案引擎：22 份配方 + 3 套通用布局 + 15 个装饰器
-│  └─ SchemesPro.ps1       # 9 套专属布局（示波器/液晶/瑞士分屏/野兽派/半谷/K线/色块/HUD/圆表）+ 6 个专属装饰器
+│  └─ SchemesPro.ps1       # 13 套专属布局（A3/B3 胶囊、A6/B4 表盘、C3 刻度带、示波器/液晶/瑞士分屏/野兽派/半谷/K线/色块/HUD/圆表）+ 10 个专属装饰器
 ├─ test/
 │  ├─ Test-Core.ps1        # 单元测试（79 项断言）
-│  └─ Test-Schemes.ps1     # 界面方案数据校验（826 项断言）
+│  └─ Test-Schemes.ps1     # 界面方案数据校验（835 项断言）
 ├─ tools/
 │  ├─ make-icon.ps1        # 重新生成图标
 │  ├─ capture-schemes.ps1  # 逐方案离屏截图（-Schemes a1,c6…）
