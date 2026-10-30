@@ -1229,6 +1229,116 @@ $script:Window.Add_SourceInitialized({
 # 仍然可以从右下角右键「退出挂件」。
 $script:TrayIcon = $null
 $script:TrayMenu = $null
+$script:TrayMenuRenderer = $null
+
+# 托盘菜单自绘：深色 HUD 面板、状态色高亮、胶囊式 hover、右侧开关状态。
+# WinForms 默认菜单是白底系统样式，和挂件的玻璃/HUD 外观差得太远。
+if (-not ('DeepSeekTrayRenderer' -as [type])) {
+    Add-Type -AssemblyName System.Drawing
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -ReferencedAssemblies 'System.Drawing','System.Windows.Forms' -TypeDefinition @'
+using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+
+public class DeepSeekTrayRenderer : ToolStripRenderer {
+    public Color Accent = Color.FromArgb(245, 165, 36);
+    private readonly Color Bg = Color.FromArgb(15, 19, 26);
+    private readonly Color Border = Color.FromArgb(42, 52, 64);
+    private readonly Color Text = Color.FromArgb(230, 235, 242);
+    private readonly Color Dim = Color.FromArgb(138, 146, 160);
+    private readonly Color Line = Color.FromArgb(38, 46, 58);
+    private readonly Color Danger = Color.FromArgb(248, 113, 113);
+    private readonly Font TitleFont = new Font("Microsoft YaHei UI", 10.5f, FontStyle.Bold);
+    private readonly Font SubFont = new Font("Microsoft YaHei UI", 8.5f, FontStyle.Regular);
+    private readonly Font StateFont = new Font("Microsoft YaHei UI", 8f, FontStyle.Regular);
+
+    private static GraphicsPath RoundRect(Rectangle r, int radius) {
+        GraphicsPath path = new GraphicsPath();
+        int d = radius * 2;
+        path.AddArc(r.X, r.Y, d, d, 180, 90);
+        path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+        path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+        path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+        path.CloseFigure();
+        return path;
+    }
+
+    protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e) {
+        e.Graphics.Clear(Bg);
+    }
+
+    protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e) {
+        Graphics g = e.Graphics;
+        using (Pen p = new Pen(Border, 1f)) {
+            g.DrawRectangle(p, 0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+        }
+        using (SolidBrush b = new SolidBrush(Accent)) {
+            g.FillRectangle(b, 1, 1, e.ToolStrip.Width - 2, 2);
+        }
+    }
+
+    protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e) {
+        ToolStripItem item = e.Item;
+        Graphics g = e.Graphics;
+        bool header = item.Tag != null && item.Tag.ToString() == "header";
+        if (header) {
+            using (SolidBrush b = new SolidBrush(Color.FromArgb(10, 255, 255, 255))) {
+                g.FillRectangle(b, 7, 5, item.Width - 14, item.Height - 6);
+            }
+            using (Pen p = new Pen(Color.FromArgb(70, Accent))) {
+                g.DrawLine(p, 7, item.Height - 2, item.Width - 7, item.Height - 2);
+            }
+            return;
+        }
+        if (item.Selected && item.Enabled) {
+            Rectangle r = new Rectangle(7, 2, item.Width - 14, item.Height - 4);
+            using (GraphicsPath path = RoundRect(r, 6))
+            using (SolidBrush b = new SolidBrush(Color.FromArgb(26, Accent))) {
+                g.FillPath(b, path);
+            }
+            using (SolidBrush b = new SolidBrush(Accent)) {
+                g.FillRectangle(b, 7, r.Top + 5, 2, r.Height - 10);
+            }
+        }
+    }
+
+    protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e) {
+        ToolStripItem item = e.Item;
+        Graphics g = e.Graphics;
+        bool header = item.Tag != null && item.Tag.ToString() == "header";
+        bool danger = item.Tag != null && item.Tag.ToString() == "danger";
+        bool check = item.Tag != null && item.Tag.ToString() == "check";
+        if (header) {
+            TextRenderer.DrawText(g, e.Text, TitleFont, new Point(20, 8), Text, TextFormatFlags.NoPadding);
+            string sub = item.AccessibleDescription;
+            if (!string.IsNullOrEmpty(sub)) {
+                TextRenderer.DrawText(g, sub, SubFont, new Point(20, 28), Accent, TextFormatFlags.NoPadding);
+            }
+            return;
+        }
+        Color color = danger ? Danger : (item.Enabled ? Text : Dim);
+        Rectangle rect = new Rectangle(20, 0, item.Width - 64, item.Height);
+        TextRenderer.DrawText(g, e.Text, e.TextFont, rect, color,
+            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+        if (check) {
+            ToolStripMenuItem mi = item as ToolStripMenuItem;
+            bool on = mi != null && mi.Checked;
+            using (SolidBrush b = new SolidBrush(on ? Accent : Dim)) {
+                g.FillEllipse(b, 11, item.Height / 2 - 2, 4, 4);
+            }
+        }
+    }
+
+    protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e) {
+        using (Pen p = new Pen(Line)) {
+            e.Graphics.DrawLine(p, 14, e.Item.Height / 2, e.Item.Width - 14, e.Item.Height / 2);
+        }
+    }
+}
+'@
+}
 
 function Initialize-TrayIcon {
     try {
@@ -1255,11 +1365,32 @@ function Initialize-TrayIcon {
             } catch { }
         })
 
-        # 右键菜单：显示/隐藏 + 退出挂件
+        # 右键菜单：深色 HUD 面板 + 状态色高亮 + 开关状态
         $menu = New-Object System.Windows.Forms.ContextMenuStrip
         $menu.ShowImageMargin = $false
-        $menu.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9)
-        $itemToggle = New-Object System.Windows.Forms.ToolStripMenuItem '显示 / 隐藏挂件'
+        $menu.ShowCheckMargin = $false
+        $menu.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9.5)
+        $menu.BackColor = [System.Drawing.Color]::FromArgb(15, 19, 26)
+        $menu.ForeColor = [System.Drawing.Color]::FromArgb(230, 235, 242)
+        $menu.Padding = New-Object System.Windows.Forms.Padding -ArgumentList 6
+        $menu.DropShadowEnabled = $true
+        $renderer = New-Object DeepSeekTrayRenderer
+        $menu.Renderer = $renderer
+        $script:TrayMenuRenderer = $renderer
+
+        $itemHeader = New-Object System.Windows.Forms.ToolStripMenuItem 'DeepSeek 时段挂件'
+        $itemHeader.Tag = 'header'
+        $itemHeader.Enabled = $false
+        $itemHeader.AutoSize = $false
+        $itemHeader.Size = New-Object System.Drawing.Size -ArgumentList 232, 52
+        $itemHeader.Margin = New-Object System.Windows.Forms.Padding -ArgumentList 0
+        $itemHeader.AccessibleDescription = '高峰时段 · 1.0×'
+
+        $itemToggle = New-Object System.Windows.Forms.ToolStripMenuItem '隐藏挂件'
+        $itemToggle.Tag = 'item'
+        $itemToggle.AutoSize = $false
+        $itemToggle.Size = New-Object System.Drawing.Size -ArgumentList 232, 36
+        $itemToggle.Margin = New-Object System.Windows.Forms.Padding -ArgumentList 0
         $itemToggle.Add_Click({
             try {
                 if ($script:Window.IsVisible) {
@@ -1269,15 +1400,111 @@ function Initialize-TrayIcon {
                 }
             } catch { }
         })
+
+        $itemTopmost = New-Object System.Windows.Forms.ToolStripMenuItem '窗口置顶　已关'
+        $itemTopmost.Tag = 'check'
+        $itemTopmost.CheckOnClick = $true
+        $itemTopmost.Checked = [bool]$script:Window.Topmost
+        if ($itemTopmost.Checked) { $itemTopmost.Text = '窗口置顶　已开' }
+        $itemTopmost.AccessibleDescription = ''
+        $itemTopmost.AutoSize = $false
+        $itemTopmost.Size = New-Object System.Drawing.Size -ArgumentList 232, 36
+        $itemTopmost.Margin = New-Object System.Windows.Forms.Padding -ArgumentList 0
+        $itemTopmost.Add_Click({
+            try {
+                $script:Window.Topmost = [bool]$script:TrayTopmostItem.Checked
+                $script:TrayTopmostItem.Text = '窗口置顶　' + $(if ($script:Window.Topmost) { '已开' } else { '已关' })
+                if ($null -ne $script:MenuTopmost) {
+                    $script:MenuTopmost.IsChecked = [bool]$script:TrayTopmostItem.Checked
+                }
+                Save-Settings
+            } catch { }
+        })
+
+        $itemAutoStart = New-Object System.Windows.Forms.ToolStripMenuItem '开机自动启动　已关'
+        $itemAutoStart.Tag = 'check'
+        $itemAutoStart.CheckOnClick = $true
+        $itemAutoStart.Checked = Test-AutoStartEnabled
+        if ($itemAutoStart.Checked) { $itemAutoStart.Text = '开机自动启动　已开' }
+        $itemAutoStart.AccessibleDescription = ''
+        $itemAutoStart.AutoSize = $false
+        $itemAutoStart.Size = New-Object System.Drawing.Size -ArgumentList 232, 36
+        $itemAutoStart.Margin = New-Object System.Windows.Forms.Padding -ArgumentList 0
+        $itemAutoStart.Add_Click({
+            $desired = [bool]$script:TrayAutoStartItem.Checked
+            try {
+                Set-AutoStartEnabled -Enabled $desired
+                $script:TrayAutoStartItem.Text = '开机自动启动　' + $(if ($desired) { '已开' } else { '已关' })
+                if ($null -ne $script:MenuAutoStart) {
+                    $script:MenuAutoStart.IsChecked = $desired
+                }
+            } catch {
+                $script:TrayAutoStartItem.Checked = -not $desired
+                $script:TrayAutoStartItem.Text = '开机自动启动　' + $(if (-not $desired) { '已开' } else { '已关' })
+            }
+        })
+
         $itemExit = New-Object System.Windows.Forms.ToolStripMenuItem '退出挂件'
-        $itemExit.Font = New-Object System.Drawing.Font('Microsoft YaHei UI', 9, [System.Drawing.FontStyle]::Bold)
+        $itemExit.Tag = 'danger'
+        $itemExit.AutoSize = $false
+        $itemExit.Size = New-Object System.Drawing.Size -ArgumentList 232, 40
+        $itemExit.Margin = New-Object System.Windows.Forms.Padding -ArgumentList 0
         $itemExit.Add_Click({
             try { $script:Window.Close() } catch { }
         })
+
+        $sepTop = New-Object System.Windows.Forms.ToolStripSeparator
+        $sepTop.AutoSize = $false
+        $sepTop.Size = New-Object System.Drawing.Size -ArgumentList 232, 10
+        $sepTop.Margin = New-Object System.Windows.Forms.Padding -ArgumentList 0
+        $sepBottom = New-Object System.Windows.Forms.ToolStripSeparator
+        $sepBottom.AutoSize = $false
+        $sepBottom.Size = New-Object System.Drawing.Size -ArgumentList 232, 10
+        $sepBottom.Margin = New-Object System.Windows.Forms.Padding -ArgumentList 0
+
+        [void]$menu.Items.Add($itemHeader)
+        [void]$menu.Items.Add($sepTop)
         [void]$menu.Items.Add($itemToggle)
-        [void]$menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator))
+        [void]$menu.Items.Add($itemTopmost)
+        [void]$menu.Items.Add($itemAutoStart)
+        [void]$menu.Items.Add($sepBottom)
         [void]$menu.Items.Add($itemExit)
+
         $script:TrayMenu = $menu
+        $script:TrayHeaderItem = $itemHeader
+        $script:TrayToggleItem = $itemToggle
+        $script:TrayTopmostItem = $itemTopmost
+        $script:TrayAutoStartItem = $itemAutoStart
+        $script:TrayExitItem = $itemExit
+
+        # 每次弹出前刷新状态副标题、开关状态和状态色
+        $menu.Add_Opening({
+            try {
+                $st = $script:LastStatus
+                $sub = 'DeepSeek 时段挂件'
+                $accent = '#F59E0B'
+                if ($null -ne $st) {
+                    $rate = '0.5×'
+                    if ([bool]$st.IsPeak) { $rate = '1.0×' }
+                    $sub = [string]$st.StatusText + ' · ' + $rate
+                    $spec = Get-SchemeSpec -Key ([string]$script:Settings.UiScheme)
+                    $colors = Get-SchemeColors -Spec $spec -Status $st
+                    if ($null -ne $colors -and $colors.ContainsKey('Accent')) { $accent = [string]$colors.Accent }
+                }
+                $script:TrayHeaderItem.AccessibleDescription = $sub
+                $script:TrayMenuRenderer.Accent = [System.Drawing.ColorTranslator]::FromHtml($accent)
+                $script:TrayToggleItem.Text = '隐藏挂件'
+                if (-not $script:Window.IsVisible) { $script:TrayToggleItem.Text = '显示挂件' }
+                $topmost = [bool]$script:Window.Topmost
+                $script:TrayTopmostItem.Checked = $topmost
+                $script:TrayTopmostItem.Text = '窗口置顶　' + $(if ($topmost) { '已开' } else { '已关' })
+                $autoStart = Test-AutoStartEnabled
+                $script:TrayAutoStartItem.Checked = $autoStart
+                $script:TrayAutoStartItem.Text = '开机自动启动　' + $(if ($autoStart) { '已开' } else { '已关' })
+                $script:TrayMenu.Refresh()
+            } catch { }
+        })
+
         $script:TrayIcon.ContextMenuStrip = $menu
 
         $script:TrayIcon.Visible = $true
