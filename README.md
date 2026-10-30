@@ -1,6 +1,6 @@
 # DeepSeek 时段挂件
 
-> Windows 桌面小挂件：一眼看清现在是 DeepSeek 的「高峰时段」还是「空闲时段」。液态玻璃视觉，Windows 自带 PowerShell 5.1 + WPF，**无第三方依赖**。
+> Windows 桌面小挂件：一眼看清现在是 DeepSeek 的「高峰时段」还是「空闲时段」，以及还有多久切换。23 套界面可切换，只依赖 Windows 自带的 PowerShell 5.1 + WPF，**无第三方依赖**。
 >
 > 非 DeepSeek 官方项目。
 
@@ -9,54 +9,65 @@
 [![Windows 10 / 11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4.svg)](#快速开始)
 
 <p align="center">
-  <img src="docs/preview-peak.png" width="380" alt="高峰时段" />
-  <img src="docs/preview-idle.png" width="380" alt="空闲时段" />
+  <img src="docs/preview-peak.png" width="330" alt="高峰时段（默认界面实际截图）" />
+  <img src="docs/preview-idle.png" width="330" alt="空闲时段（默认界面实际截图）" />
 </p>
+<p align="center">
+  <img src="docs/preview-weekend.png" width="330" alt="周末（默认界面实际截图）" />
+  <img src="docs/preview-holiday.png" width="330" alt="法定节假日（默认界面实际截图）" />
+</p>
+
+> 四张图分别是高峰、工作日夜晚、周末、法定节假日下默认界面的实际渲染结果，不是网页设计稿。
 
 ## 功能
 
-- **实时状态**：每秒刷新，高峰 / 空闲两种配色（色点、标题、价格徽标、时间轴同步变色）
-- **北京时间和日期**：大号时钟 + 星期、日期、法定节假日名称
-- **今日时段轴**：两个高峰窗口用琥珀色标出，白线是当前时间位置；周末/法定节假日整条变成流动青绿（全天空闲）
+- **实时状态**：每秒刷新；高峰 / 空闲 / 周末 / 法定节假日分别有自己的状态文案与配色
+- **北京时间**：始终按 UTC+8 计算，与本机时区无关；显示日期、星期和法定节假日名称
+- **两种时间口径**：
+  - 默认界面、A1、A5、B1、B3、B5 底部是 **当天 00:00–24:00** 的时段轴：两个高峰窗口用状态色标出，白线是当前时刻，午夜归零
+  - E2 / E2B 的 8 段 HUD 条按 **当前这一段** 计算：周五 18:00 到周一 09:00 是同一段空闲，跨周末连续，不会在周六、周日零点重置
 - **切换倒计时**：自动跨过午休、夜间、周末和法定节假日，跨天显示「N天 HH:MM:SS」
-- **液态玻璃卡片**：透明圆角浮窗 + 光影 + 状态光晕，置顶显示、可拖动、位置自动记忆
-- **单实例**：重复启动不会开第二个窗口，而是把已在运行的挂件叫回前台
+- **23 套界面**：卡片右键「界面方案」随时切换，选中即生效并写入 `settings.json`，不用重启；其中 8 套共用通用卡片骨架，其余 15 套由 13 套专属模板渲染
+- **单实例**：重复启动不会开第二个窗口，而是把已在运行的挂件叫到前台
 - **托盘图标**：左键单击显示 / 隐藏挂件；右键打开深色 HUD 菜单，可置顶、开关开机自启、退出
-- **右键菜单**：卡片右键是自绘圆角玻璃面板，托盘右键是同风格的深色 HUD 面板，均替代系统默认菜单
-- **界面方案可切换**：右键 →「界面方案」可在 **23 套外观**之间随时切换（默认界面 + 22 个方案，含 E2B 中文余量 HUD），选中即生效、勾选状态与「当前」标题同步；选择写进 `settings.json`，下次启动沿用。同进程切换会重建布局（通用卡片 / 胶囊 / 表盘 + 13 套专属模板），不必重启
-- **日期行随布局自适应**：周末不再额外标「· 周末」（周几那行已经写明周六 / 周日）；节假日名在卡片布局里改放到周几那一行，在胶囊 / 表盘布局里才跟在日期后面 —— 卡片布局的日期列被大号时钟挤在右边，硬塞节日名会把「10月31日」截成「10月31…」
-- **开机自启**：卡片或托盘右键菜单勾选即可，切换时不再弹提示
+- **右键菜单**：卡片右键是自绘圆角玻璃面板，托盘右键是同风格深色面板，均替代系统默认菜单
+- **开机自启**：卡片或托盘菜单勾选即可，切换时不弹提示
 - **节假日数据**：内置 2025、2026 年中国法定节假日（共 61 天），支持右键联网更新
-- **无依赖**：只需 Windows 10/11 自带的 Windows PowerShell 5.1
+- **无依赖**：只需 Windows 10 / 11 自带的 Windows PowerShell 5.1
 
-## 视觉方向稿（6 个历史方向）
+## 界面
 
-`design/design-options.html` 是 6 个液态玻璃 UI 方向的网页预览（下载后用浏览器打开，包含真实背景模糊、流光、状态光晕等效果），每个方案都展示了 **高峰 / 空闲 / 周末 / 法定节假日** 四种状态。
+默认界面是深色玻璃卡片。右键「界面方案」里列出的 23 套，都是挂件里真实可切换的布局，不存在「网页里有、程序里没有」的方案。
 
-> 在线预览（GitHub Pages）：<https://chenchen913.github.io/deepseek-time-widget/design/design-options.html>
+下面 4 张是其中一部分的实际运行截图（统一拍在高峰态）：
 
-**全部方案总入口**：`design/all-schemes.html` 收着筛过一轮后的 **25 个方案**——「默认界面」的 4 个状态作基准（L1–L4），加上 7 个方向里留下的 21 个（A1 / A3 / A5 / A6、B1 / B3 / B4 / B5、C1–C4 / C6、D1 / D3 / D6、E2–E5 / F1）。编号沿用各组原来的序号，删掉的编号直接空着，方便对回原稿。**这 21 个方案都已实现进挂件本体**，可直接右键切换，不是纸面预览；另有 E2B 中文余量 HUD 变体，直接做进了挂件，未收进这个审查台。
+| A1 · 极简折射流光 | C4 · 圆表 |
+| --- | --- |
+| ![](design/previews/scheme-a1.png) | ![](design/previews/scheme-c4.png) |
+| **E2B · 中文余量 HUD** | **F1 · 峰谷示波器** |
+| ![](design/previews/scheme-e2b.png) | ![](design/previews/scheme-f1.png) |
 
-页面有三个页签：**总览**（卡片网格，可标「已看 / 候选」）、**逻辑映射**（把时间显示、峰谷切换、周末节假日换算、特效、窗口尺寸五条底层机制逐条对照 25 个方案，给出落地难度与主要风险）、**逐项**（右侧直接渲染原稿，`←` `→` 连续翻阅）。A1 详情页还能切「初版 / 展开版」。
+> 23 张方案截图都在 `design/previews/scheme-*.png`，由 `tools/capture-schemes.ps1` 调用挂件自身的离屏渲染生成，统一拍在同一时刻（2026-10-28 10:30:24 周三高峰）。所以各方案的时钟数字相同——这是同一时刻的真实渲染，不是占位图。
 
-| 编号 | 方向 | 一句话 |
-| --- | --- | --- |
-| 01 | 极简流光 | 很薄的一层玻璃 + 顶部折射高光，时钟为主角，最克制耐看 |
-| 02 | 极光液光 | 玻璃内两团缓慢游动的状态色光斑，最“液态” |
-| 03 | 灵动胶囊 | 横向胶囊形，占位最矮，适合贴在屏幕边缘 |
-| 04 | 双层幻彩 | 主玻璃里再嵌一块小玻璃片，层次最多、信息最全 |
-| 05 | 霜白玻璃 | 明亮霜白玻璃 + 深色文字，适合浅色壁纸 |
-| 06 | 轨道玻璃 | 圆形 24 小时表盘，外圈标出高峰窗口和白点“现在”，最特别 |
+| 分组 | 方案与窗口尺寸 |
+| --- | --- |
+| 默认 | 默认界面（316 宽，高度自适应） |
+| A | A1 316 / A3 516×140 / A5 316 / A6 326×326 |
+| B | B1 344×208 / B3 500×130 / B4 320×320 / B5 344×208 |
+| C | C1 344×208 / C2 344×208 / C3 480×132 / C4 320×320 / C6 304×184 |
+| D | D1 344×208 / D3 340×204 / D6 324×194 |
+| E | E2 314×189 / E2B 334×202 / E3 314×189 / E4 330×175 / E5 315×180 |
+| F | F1 304×226 |
 
-预览（完整动态效果以 HTML 为准）：
+尺寸里的「316」表示宽度 316、高度由布局自适应。
 
-| 01 | 02 | 03 |
-| --- | --- | --- |
-| ![01](design/previews/design-01.jpg) | ![02](design/previews/design-02.jpg) | ![03](design/previews/design-03.jpg) |
-| **04** | **05** | **06** |
-| ![04](design/previews/design-04.jpg) | ![05](design/previews/design-05.jpg) | ![06](design/previews/design-06.jpg) |
+### 关于 design/ 目录
 
-> 上面 6 张图是最初的方向稿；最终落地的是审查台里的 21 个方案 + 默认界面，外加 E2B 中文余量 HUD，均已实现并可在右键菜单里切换。每个方案的实际挂件截图见 `design/previews/scheme-*.png`（由 `tools/capture-schemes.ps1` 生成）。
+`design/` 里保留的是开发过程中的视觉评审稿：`design-options*.html`、`all-schemes.html`、`code*.html`、`live-v1-states.html`。它们都是网页草图，**不是挂件的实际界面**；部分方案没有落地，颜色、圆角、排版也可能与最终 WPF 实现不同。
+
+- 实际界面以运行中的挂件和 `design/previews/scheme-*.png` 为准
+- 旧版在线预览 `design/design-options.html` 是 2026-10-28 的 6 方向稿，已不代表当前版本；README 不再提供它的在线预览入口
+- `design/all-schemes.html` 是当时的 25 方案评审台存档，只用于追溯设计过程
 
 ## 计费规则（来自 DeepSeek 官网）
 
@@ -104,18 +115,21 @@
 ├─ lib/
 │  ├─ DeepSeekTime.ps1     # 时段判断核心逻辑（纯函数）
 │  ├─ Schemes.ps1          # 界面方案引擎：23 份配方 + 3 套通用布局 + 15 个装饰器
-│  └─ SchemesPro.ps1       # 13 套专属布局（A3/B3 胶囊、A6/B4 表盘、C3 刻度带、示波器/液晶/瑞士分屏/野兽派/半谷/K线/色块/HUD/圆表）+ 10 个专属装饰器
+│  └─ SchemesPro.ps1       # 13 套专属布局（A3/B3 胶囊、A6/B4 表盘、C3 刻度带、示波器/液晶/瑞士分屏/野兽派/半谷/K线/色块/HUD/圆表）+ 9 个专属装饰器
 ├─ test/
 │  ├─ Test-Core.ps1        # 单元测试（79 项断言）
 │  └─ Test-Schemes.ps1     # 界面方案数据校验（872 项断言）
 ├─ tools/
 │  ├─ make-icon.ps1        # 重新生成图标
-│  ├─ capture-schemes.ps1  # 逐方案离屏截图（-Schemes a1,c6…）
+│  ├─ capture-schemes.ps1  # 逐方案离屏截图
 │  ├─ capture-web-refs.mjs # 抓取网页原稿对照图（design/_states/web）
 │  └─ build-scheme-gallery.py  # 生成 design/all-schemes.html（方案清单在文件里）
 ├─ assets/                 # 图标
-├─ docs/                   # 预览截图
-├─ design/                 # 视觉方案 HTML（all-schemes.html 为 25 个方案终选审查台；live-v1-states.html 是默认界面四态基准）
+├─ docs/                   # 默认界面四态实际截图（README 使用）
+├─ design/
+│  ├─ previews/            # 23 套方案实际截图（scheme-*.png）+ 早期方向稿 jpg
+│  ├─ _states/             # 开发过程的时间点调试图
+│  └─ *.html               # 早期视觉评审稿存档，非实际界面
 ├─ research/
 │  └─ notes.md             # 节假日数据来源与三方核验记录
 ├─ .github/workflows/      # CI：推送后自动跑单元测试
@@ -135,8 +149,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Schemes.ps1
 # 命令行查看当前状态（不弹界面）
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PrintStatus
 
-# 指定时刻（排查边界 / 生成截图）
+# 指定时刻（排查边界）
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PrintStatus -PreviewTime 2026-10-01T10:00:00+08:00
+
+# 生成某套方案的实际截图（离屏渲染，不弹窗口）
+powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PreviewTime 2026-10-28T10:30:24+08:00 -UiScheme e2b -CapturePath .\e2b.png
 ```
 
 ## 说明

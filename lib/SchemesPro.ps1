@@ -1597,12 +1597,16 @@ function Add-DecorHudProgress {
     $phaseProgress = $null
     if ($Status.PSObject.Properties['PhaseProgress']) { $phaseProgress = [double]$Status.PhaseProgress }
 
-    if ([bool]$Spec.HudDrain -and ($null -ne $phaseProgress)) {
-        # 余量版：按「当前这一段」的真实起止时间计算，跨周末不重置
+    if (($null -ne $phaseProgress) -and ([bool]$Spec.HudDrain -or [string]$Spec.Key -eq 'e2')) {
+        # 按「当前这一段」的真实起止时间计算，跨周末不重置
         $progress = $phaseProgress
         if ($progress -lt 0) { $progress = 0 }
         if ($progress -gt 1) { $progress = 1 }
-        $lit = (1.0 - $progress) * $count
+        if ([bool]$Spec.HudDrain) {
+            $lit = (1.0 - $progress) * $count
+        } else {
+            $lit = $progress * $count
+        }
     } elseif (-not [bool]$Status.IsPeakDay) {
         $lit = [double]$count
     } else {
@@ -1715,11 +1719,17 @@ function Format-HourLabel {
 
 # 当前段落的起止时刻；跨天时带上「周五 / 周一」，同一天只显示 HH:mm
 function Format-PhaseClock {
-    param($Time, $Now)
+    param($Time, $Now, [switch]$English)
     if ($null -eq $Time) { return '--:--' }
     $weekNames = @{
         'Monday' = '周一'; 'Tuesday' = '周二'; 'Wednesday' = '周三'; 'Thursday' = '周四'
         'Friday' = '周五'; 'Saturday' = '周六'; 'Sunday' = '周日'
+    }
+    if ($English) {
+        $weekNames = @{
+            'Monday' = 'MON'; 'Tuesday' = 'TUE'; 'Wednesday' = 'WED'; 'Thursday' = 'THU'
+            'Friday' = 'FRI'; 'Saturday' = 'SAT'; 'Sunday' = 'SUN'
+        }
     }
     $prefix = ''
     if ([DateTime]$Time.Date -ne [DateTime]$Now.Date) {
@@ -1947,7 +1957,18 @@ function Update-SchemeCustomText {
                     $script:CountdownValue.Text = $matches[1] + 'D ' + $matches[2]
                 }
             }
-            Update-HudWindowLabels -Status $Status
+            # 高峰窗口用当天标签；空闲段落用真实起止，跨周末时显示 FRI 18:00 → MON 09:00
+            if ($isPeak -or ($null -eq $Status.PhaseStart) -or ($null -eq $Status.PhaseEnd)) {
+                Update-HudWindowLabels -Status $Status
+            } else {
+                if ($null -ne $script:WinLeft) {
+                    $script:WinLeft.Text = Format-PhaseClock -Time $Status.PhaseStart -Now $Status.Now -English
+                }
+                if ($null -ne $script:WinRight) {
+                    $script:WinRight.Text = Format-PhaseClock -Time $Status.PhaseEnd -Now $Status.Now -English
+                }
+                if ($null -ne $script:WinMid) { $script:WinMid.Text = 'OFF-PEAK' }
+            }
         }
         'e2b' {
             # 全中文版 HUD：文案全部换成中文，时间更大更粗，进度条按剩余量排空
@@ -2212,9 +2233,6 @@ function Update-SchemeCustomTick {
         if ($null -ne $canvas) {
             $colors = Get-SchemeColors -Spec $Spec -Status $Status
             Add-DecorHudProgress -Layer $script:DecorHost -W ([double]$script:Card.ActualWidth) -H ([double]$script:Card.ActualHeight) -Colors $colors -Status $Status -Spec $Spec
-            if ([string]$Spec.Key -eq 'e2') {
-                Update-HudWindowLabels -Status $Status
-            }
         }
     }
 }

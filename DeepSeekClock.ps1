@@ -1125,13 +1125,13 @@ function Build-ContextMenu {
 
     [void]$menu.Items.Add((New-MenuSeparator))
 
-    $itemGallery = New-ContextMenuItem -Header '查看全部方案…'
+    $itemGallery = New-ContextMenuItem -Header '查看方案截图…'
     $itemGallery.Add_Click({
-        $galleryPath = Join-Path $script:AppDir 'design\all-schemes.html'
+        $galleryPath = Join-Path $script:AppDir 'design\previews'
         if (Test-Path -LiteralPath $galleryPath) {
             Start-Process -FilePath $galleryPath
         } else {
-            Show-Dialog -Message ('没找到方案审查台：' + $galleryPath) -Kind 'Warning'
+            Show-Dialog -Message ('没找到方案截图文件夹：' + $galleryPath) -Kind 'Warning'
         }
     })
     [void]$menu.Items.Add($itemGallery)

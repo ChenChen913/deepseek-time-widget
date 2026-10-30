@@ -377,7 +377,7 @@ Add-Scheme @{
 
 Add-Scheme @{
     Key = 'a3'; Num = 'A3'; Name = 'A3 · 灵动极简胶囊'
-    Hint = '横向胶囊 500×120，左侧状态光球呼吸，最省桌面空间'
+    Hint = '横向胶囊 516×140，左侧状态光球呼吸，最省桌面空间'
     Layout = 'banner'; Width = 516; Height = 140
     Tone = 'dark'; Palette = 'glass-dark'
     Surface = @{ Type = 'gradient'; From = '#E61A2233'; To = '#F00B1018' }
@@ -532,7 +532,7 @@ Add-Scheme @{
 
 Add-Scheme @{
     Key = 'c3'; Num = 'C3'; Name = 'C3 · 刻度带'
-    Hint = '520×120 横向窄条，整条刻度尺贯穿底部'
+    Hint = '480×132 横向窄条，整条刻度尺贯穿底部'
     Layout = 'tape'; Width = 480; Height = 132
     Tone = 'mono'; Palette = 'panel'
     ClockFont = 'Consolas, Cascadia Mono, Microsoft YaHei UI'
