@@ -116,6 +116,39 @@ function Find-NextTransition {
     return $null
 }
 
+# 当前这一段（高峰窗口或空闲间隔）是从哪个边界开始的。
+# 跨周末时不能只看当天：周五 18:00 之后、周六周日、周一 09:00 前都属于同一段空闲，
+# 起点应保持周五 18:00，而不是每天 00:00 重新开始。
+function Find-PhaseStart {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [DateTimeOffset]$Time,
+        [string[]]$Holidays = @()
+    )
+    $beijing = ConvertTo-BeijingTime -Time $Time
+    $currentIsPeak = Test-IsPeakTime -Time $beijing -Holidays $Holidays
+    $offset = [TimeSpan]::FromHours(8)
+    $boundaries = @(540, 720, 840, 1080)
+
+    $lastChange = $null
+    $prevState = $null
+    # 向前扫 21 天，足够覆盖春节等最长连续假期
+    for ($dayOffset = -21; $dayOffset -le 0; $dayOffset++) {
+        $day = $beijing.Date.AddDays($dayOffset)
+        foreach ($minuteOfDay in $boundaries) {
+            $candidate = [System.DateTimeOffset]::new($day.AddMinutes($minuteOfDay), $offset)
+            if ($candidate -gt $beijing) { continue }
+            $state = Test-IsPeakTime -Time $candidate -Holidays $Holidays
+            if (($null -ne $prevState) -and ($state -ne $prevState) -and ($state -eq $currentIsPeak)) {
+                $lastChange = $candidate
+            }
+            $prevState = $state
+        }
+    }
+    return $lastChange
+}
+
 function Get-DurationText {
     [CmdletBinding()]
     param(
@@ -209,6 +242,18 @@ function Get-DeepSeekTimeStatus {
     }
     $dayFraction = (($beijing.Hour * 3600) + ($beijing.Minute * 60) + $beijing.Second) / 86400.0
 
+    $phaseStart = Find-PhaseStart -Time $beijing -Holidays $Holidays
+    $phaseEnd = $nextChange
+    $phaseProgress = 0.0
+    if (($null -ne $phaseStart) -and ($null -ne $phaseEnd)) {
+        $spanSeconds = ($phaseEnd - $phaseStart).TotalSeconds
+        if ($spanSeconds -gt 0) {
+            $phaseProgress = ($beijing - $phaseStart).TotalSeconds / $spanSeconds
+            if ($phaseProgress -lt 0) { $phaseProgress = 0.0 }
+            if ($phaseProgress -gt 1) { $phaseProgress = 1.0 }
+        }
+    }
+
     return [pscustomobject]@{
         Now             = $beijing
         IsPeak          = $isPeak
@@ -229,6 +274,9 @@ function Get-DeepSeekTimeStatus {
         CountdownText   = $countdownText
         TodayText       = $todayText
         DayFraction     = $dayFraction
+        PhaseStart      = $phaseStart
+        PhaseEnd        = $phaseEnd
+        PhaseProgress   = $phaseProgress
         PeakWindows     = $peakWindows
     }
 }

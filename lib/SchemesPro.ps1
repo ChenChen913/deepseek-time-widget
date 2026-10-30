@@ -1594,14 +1594,23 @@ function Add-DecorHudProgress {
         $glowBlur = 6.0
     }
 
-    if (-not [bool]$Status.IsPeakDay) {
+    $phaseProgress = $null
+    if ($Status.PSObject.Properties['PhaseProgress']) { $phaseProgress = [double]$Status.PhaseProgress }
+
+    if ([bool]$Spec.HudDrain -and ($null -ne $phaseProgress)) {
+        # 余量版：按「当前这一段」的真实起止时间计算，跨周末不重置
+        $progress = $phaseProgress
+        if ($progress -lt 0) { $progress = 0 }
+        if ($progress -gt 1) { $progress = 1 }
+        $lit = (1.0 - $progress) * $count
+    } elseif (-not [bool]$Status.IsPeakDay) {
         $lit = [double]$count
     } else {
         $progress = Get-PhaseProgress -Fraction ([double]$Status.DayFraction) -Status $Status
         if ($progress -lt 0) { $progress = 0 }
         if ($progress -gt 1) { $progress = 1 }
         if ([bool]$Spec.HudDrain) {
-            # 剩余量：窗口开始时满格，结束时排空
+            # 兜底：PhaseProgress 不可用时仍按当天窗口排空
             $lit = (1.0 - $progress) * $count
         } else {
             # 原版 E2：已过时间越多，点亮的段越多
@@ -1702,6 +1711,21 @@ function Format-HourLabel {
     $h = [int][Math]::Floor($total / 60)
     $m = $total % 60
     return ('{0:00}:{1:00}' -f $h, $m)
+}
+
+# 当前段落的起止时刻；跨天时带上「周五 / 周一」，同一天只显示 HH:mm
+function Format-PhaseClock {
+    param($Time, $Now)
+    if ($null -eq $Time) { return '--:--' }
+    $weekNames = @{
+        'Monday' = '周一'; 'Tuesday' = '周二'; 'Wednesday' = '周三'; 'Thursday' = '周四'
+        'Friday' = '周五'; 'Saturday' = '周六'; 'Sunday' = '周日'
+    }
+    $prefix = ''
+    if ([DateTime]$Time.Date -ne [DateTime]$Now.Date) {
+        $prefix = [string]$weekNames[[string]$Time.DayOfWeek] + ' '
+    }
+    return $prefix + $Time.ToString('HH:mm')
 }
 
 function Update-SchemeCustomText {
@@ -1954,17 +1978,42 @@ function Update-SchemeCustomText {
                 $script:DateText.FontSize = 11
             }
             if ($null -ne $script:TzText) { $script:TzText.Text = '北京时间' }
-            if (($Status.IsWeekend -or $Status.IsHoliday) -and ($null -ne $script:CountdownText)) {
-                $script:CountdownText.Text = '距周一高峰'
-            }
             if ($null -ne $script:CountdownText) { $script:CountdownText.FontSize = 10.5 }
             if ($null -ne $script:CountdownValue) {
                 $script:CountdownValue.FontSize = 14
                 $script:CountdownValue.FontWeight = [System.Windows.FontWeights]::Bold
             }
-            Update-HudWindowLabels -Status $Status -Chinese
-            # 夜间 / 周末的左标签不是具体时刻，就不显示「开始 / 结束」小字
-            $showTags = [bool]$Status.IsPeakDay -and ([string]$script:WinLeft.Text -match '^\d')
+
+            # 高峰窗口沿用当天的起止；空闲段落按真实起止（可能跨周末/节假日）
+            if ($isPeak -or ($null -eq $Status.PhaseStart) -or ($null -eq $Status.PhaseEnd)) {
+                Update-HudWindowLabels -Status $Status -Chinese
+            } else {
+                if ($null -ne $script:WinLeft) {
+                    $script:WinLeft.Text = Format-PhaseClock -Time $Status.PhaseStart -Now $Status.Now
+                }
+                if ($null -ne $script:WinRight) {
+                    $script:WinRight.Text = Format-PhaseClock -Time $Status.PhaseEnd -Now $Status.Now
+                }
+                if ($null -ne $script:WinMid) { $script:WinMid.Text = '空闲时段' }
+            }
+
+            if ($null -ne $script:CountdownText) {
+                if ($isPeak) {
+                    $script:CountdownText.Text = '距空闲还有'
+                } elseif ($null -ne $Status.PhaseEnd -and ([DateTime]$Status.PhaseEnd.Date -ne [DateTime]$Status.Now.Date)) {
+                    $weekNames = @{
+                        'Monday' = '周一'; 'Tuesday' = '周二'; 'Wednesday' = '周三'; 'Thursday' = '周四'
+                        'Friday' = '周五'; 'Saturday' = '周六'; 'Sunday' = '周日'
+                    }
+                    $weekName = [string]$weekNames[[string]$Status.PhaseEnd.DayOfWeek]
+                    $script:CountdownText.Text = '距' + $weekName + '高峰'
+                } else {
+                    $script:CountdownText.Text = '距高峰还有'
+                }
+            }
+
+            # 左标签是具体时刻才显示「开始 / 结束」小字
+            $showTags = [regex]::IsMatch([string]$script:WinLeft.Text, '\d{1,2}:\d{2}')
             $tagVis = [System.Windows.Visibility]::Collapsed
             if ($showTags) { $tagVis = [System.Windows.Visibility]::Visible }
             if ($null -ne $script:WinLeftTag) { $script:WinLeftTag.Visibility = $tagVis }
@@ -2163,7 +2212,9 @@ function Update-SchemeCustomTick {
         if ($null -ne $canvas) {
             $colors = Get-SchemeColors -Spec $Spec -Status $Status
             Add-DecorHudProgress -Layer $script:DecorHost -W ([double]$script:Card.ActualWidth) -H ([double]$script:Card.ActualHeight) -Colors $colors -Status $Status -Spec $Spec
-            Update-HudWindowLabels -Status $Status -Chinese:([string]$Spec.Key -eq 'e2b')
+            if ([string]$Spec.Key -eq 'e2') {
+                Update-HudWindowLabels -Status $Status
+            }
         }
     }
 }
