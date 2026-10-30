@@ -2,7 +2,7 @@
 
 - 调研任务：task-1
 - 调研日期：2026-10-28（Asia/Shanghai）
-- 产出：`_research/holidays.json`（正式数据）、`_research/raw/`（原始抓取证据）、本文件
+- 产出：仓库根目录的 `holidays.json`（正式数据）、本文件；调研时的原始抓取物保存在本地 `_research/raw/`，未随仓库分发
 - 用途：Windows 桌面挂件判断 DeepSeek 计费高峰/空闲时段
   - 高峰：北京时间周一至周五（不含中国法定节假日）09:00–12:00、14:00–18:00
   - 空闲：其余所有时间（含周末与法定节假日全天）
@@ -15,7 +15,7 @@
 |---|---|---|---|
 | 2025 | 国办发明电〔2024〕12号 | 2024-11-12 | https://www.gov.cn/zhengce/content/202411/content_6986382.htm |
 | 2026 | 国办发明电〔2025〕7号 | 2025-11-04 | https://www.gov.cn/zhengce/content/202511/content_7047090.htm |
-| 2027 | —（截至 2026-10-28 未发布） | — | — |
+| 2027 | —（截至本笔记调研日 2026-10-28 未发布） | — | — |
 
 交叉验证来源（第三方接口）：
 
@@ -29,7 +29,7 @@
 - https://raw.githubusercontent.com/NateScarlet/holiday-cn/master/2026.json
 - https://raw.githubusercontent.com/NateScarlet/holiday-cn/master/2027.json
 
-原始抓取物已保存在 `_research/raw/`：
+原始抓取物（调研时保存在本地 `_research/raw/`，未随仓库分发）：
 `gov2025.html`、`gov2026.html`（gov.cn 页面原始字节，UTF-8 解码后可复核正文）、
 `timor_2025.json`、`timor_2026.json`、`timor_2027.json`、
 `holidaycn_2025.json`、`holidaycn_2026.json`、`holidaycn_2027.json`。
@@ -134,7 +134,7 @@
 - 搜索“2027年部分节假日安排”仅见预测/日历类页面，其中 webfem 明确写“2027年安排尚待官方发布，
   最终以国务院办公厅文件为准”；未发现任何 gov.cn 2027 年通知原文。
 - 规律佐证：2025 年通知发布于 2024-11-12，2026 年通知发布于 2025-11-04，均为上一年 11 月上旬；
-  当前为 2026-10-28，尚未到发布窗口。
+  调研时为 2026-10-28，尚未到发布窗口。
 - 因此 `holidays.json` 的 `holidays` / `makeupWorkdays` **不含 2027**（未放空数组，避免被误读为
   “2027 年没有节假日”）。挂件在缺少 2027 数据时应回退为“仅按周末判断”，并在 2026 年 11 月上旬
   通知发布后重新抓取更新。
