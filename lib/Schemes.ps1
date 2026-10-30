@@ -299,6 +299,7 @@ $script:SchemeDefaults = @{
     HudBarHeight = 5       # HUD 分段进度条的高度
     HudSegments = 8        # HUD 分段数量
     HudTopBar = $true      # HUD 顶部状态色横线是否显示
+    HudCdBox = $true       # HUD 底部倒计时外框是否显示
     WeekFirst = $false
     DateFontSize = 13
     WeekFontSize = 11
@@ -649,7 +650,7 @@ Add-Scheme @{
     BodyPad = '14,12,14,12'
     Timeline = $false; StatusDot = $false
     Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
-    HudDrain = $true; HudBarHeight = 9; HudTopBar = $false
+    HudDrain = $true; HudBarHeight = 9; HudTopBar = $false; HudCdBox = $false
     Decor = @('hudprogress')
 }
 
@@ -2034,6 +2035,19 @@ function Apply-SchemeSurface {
         $script:HudTopBar.Visibility = [System.Windows.Visibility]::Visible
         if (-not [bool]$Spec.HudTopBar) {
             $script:HudTopBar.Visibility = [System.Windows.Visibility]::Collapsed
+        }
+    }
+
+    # HUD 底部倒计时外框：E2 保留描边和淡底，E2B 完全去掉框线与色差
+    if ($null -ne $script:CdBox) {
+        if ([bool]$Spec.HudCdBox) {
+            $script:CdBox.Background = ConvertTo-Brush '#05FFFFFF'
+            $script:CdBox.BorderBrush = ConvertTo-Brush '#0DFFFFFF'
+            $script:CdBox.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1
+        } else {
+            $script:CdBox.Background = ConvertTo-Brush '#00000000'
+            $script:CdBox.BorderBrush = ConvertTo-Brush '#00000000'
+            $script:CdBox.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
         }
     }
 
