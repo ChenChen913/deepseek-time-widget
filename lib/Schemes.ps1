@@ -298,6 +298,7 @@ $script:SchemeDefaults = @{
     HudDrain = $false      # HUD 进度条：true = 满格开始逐渐排空（剩余量）
     HudBarHeight = 5       # HUD 分段进度条的高度
     HudSegments = 8        # HUD 分段数量
+    HudTopBar = $true      # HUD 顶部状态色横线是否显示
     WeekFirst = $false
     DateFontSize = 13
     WeekFontSize = 11
@@ -648,7 +649,7 @@ Add-Scheme @{
     BodyPad = '14,12,14,12'
     Timeline = $false; StatusDot = $false
     Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
-    HudDrain = $true; HudBarHeight = 9
+    HudDrain = $true; HudBarHeight = 9; HudTopBar = $false
     Decor = @('hudprogress')
 }
 
@@ -2027,6 +2028,14 @@ function Apply-SchemeSurface {
     $script:Card.BorderThickness = New-Object System.Windows.Thickness -ArgumentList ([double]$Spec.BorderWidth)
     $script:Card.BorderBrush = ConvertTo-Brush ([string]$Spec.Border)
     $script:Card.Background = New-SurfaceBrush -Surface $Spec.Surface
+
+    # HUD 顶部状态色横线：E2 保留，E2B 关闭
+    if ($null -ne $script:HudTopBar) {
+        $script:HudTopBar.Visibility = [System.Windows.Visibility]::Visible
+        if (-not [bool]$Spec.HudTopBar) {
+            $script:HudTopBar.Visibility = [System.Windows.Visibility]::Collapsed
+        }
+    }
 
     $shadow = $Spec.Shadow
     $direction = 270.0
