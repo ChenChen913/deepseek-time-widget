@@ -1065,16 +1065,21 @@ function Build-ContextMenu {
     $script:MenuAutoStart = New-ContextMenuItem -Header '开机自动启动' -Checkable $true -Checked (Test-AutoStartEnabled)
     $script:MenuAutoStart.Add_Click({
         $desired = [bool]$script:MenuAutoStart.IsChecked
+        $ok = $true
         try {
             Set-AutoStartEnabled -Enabled $desired
-            if ($desired) {
-                Show-Dialog -Message '已开启开机自动启动：下次登录 Windows 后挂件会自动出现。' -Kind 'Information'
-            } else {
-                Show-Dialog -Message '已关闭开机自动启动。' -Kind 'Information'
-            }
         } catch {
-            $script:MenuAutoStart.IsChecked = -not $desired
-            Show-Dialog -Message ('设置开机自启动失败：' + $_.Exception.Message) -Kind 'Error'
+            $ok = $false
+            [Console]::Error.WriteLine('设置开机自启动失败：' + $_.Exception.Message)
+        }
+        $final = $desired
+        if (-not $ok) {
+            $final = -not $desired
+            $script:MenuAutoStart.IsChecked = $final
+        }
+        if ($null -ne $script:TrayAutoStartItem) {
+            $script:TrayAutoStartItem.Checked = $final
+            $script:TrayAutoStartItem.Text = '开机自动启动　' + $(if ($final) { '已开' } else { '已关' })
         }
     })
     [void]$menu.Items.Add($script:MenuAutoStart)
