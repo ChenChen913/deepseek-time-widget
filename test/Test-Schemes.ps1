@@ -42,7 +42,7 @@ $knownDecor = @(
 
 # ---------- 清单基本形态 ----------
 $schemes = @($script:UiSchemes)
-Assert-True ($schemes.Count -eq 22) '方案数量为 22（默认界面 + 21 个）' ("实际 " + $schemes.Count)
+Assert-True ($schemes.Count -eq 23) '方案数量为 23（默认界面 + 22 个）' ("实际 " + $schemes.Count)
 Assert-True ($schemes[0].Key -eq 'default') '第一条是默认界面' ([string]$schemes[0].Key)
 
 $keys = @{}

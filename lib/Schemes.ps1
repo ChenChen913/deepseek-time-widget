@@ -295,6 +295,9 @@ $script:SchemeDefaults = @{
     TickDark  = $false
     MarkerWidth = 2        # 时间轴游标的宽度（A1 需要更明显的「刻度线」）
     MarkerGlow = $false    # 时间轴游标是否带白色辉光
+    HudDrain = $false      # HUD 进度条：true = 满格开始逐渐排空（剩余量）
+    HudBarHeight = 5       # HUD 分段进度条的高度
+    HudSegments = 8        # HUD 分段数量
     WeekFirst = $false
     DateFontSize = 13
     WeekFontSize = 11
@@ -634,6 +637,22 @@ Add-Scheme @{
 }
 
 Add-Scheme @{
+    Key = 'e2b'; Num = 'E2B'; Name = 'E2B · 中文余量 HUD'
+    Hint = '全中文工业 HUD；剩余时间从满格递减，时间更大更粗，进度条更厚'
+    Layout = 'hud'; Width = 334; Height = 202
+    Tone = 'mono'; Palette = 'hud'
+    ClockFont = 'Cascadia Code, Consolas, Microsoft YaHei UI'
+    ClockSize = 40
+    Surface = @{ Type = 'solid'; From = '#0A0E14'; To = '#0A0E14' }
+    Border = '#1E293B'; BorderWidth = 1; Radius = 4; Margin = 12
+    BodyPad = '14,12,14,12'
+    Timeline = $false; StatusDot = $false
+    Shadow = @{ Blur = 18; Depth = 4; Opacity = 0.45; Color = '#000000' }
+    HudDrain = $true; HudBarHeight = 9
+    Decor = @('hudprogress')
+}
+
+Add-Scheme @{
     Key = 'e3'; Num = 'E3'; Name = 'E3 · 新野兽派'
     Hint = '白底 + 2px 黑边 + 零模糊硬投影，高对比年轻化'
     Layout = 'brutal'; Width = 314; Height = 189
@@ -715,6 +734,7 @@ $script:SchemeTweaks = @{
     'd6'      = @{ StatusSize = 12.5; DateInline = $true; PlainRate = $true; RateSize = 16; ClockSecSize = 38; CdIdle = '距梁文谷'; CdPeak = '距梁文峰' }
     # E 组：工业 HUD / 液晶，全英文等宽标签
     'e2'      = @{ StatusSize = 11; DateInline = $true; PlainRate = $true; RateSize = 10; StatusPillStyle = $true; ClockSecSize = 28; CdIdle = 'NEXT IDLE IN:'; CdPeak = 'NEXT PEAK IN:' }
+    'e2b'     = @{ StatusSize = 13; DateInline = $true; RateSize = 13; StatusPillStyle = $true; CdIdle = '距空闲还有'; CdPeak = '距高峰还有' }
     'e3'      = @{ StatusSize = 11; DateInline = $true; PlainRate = $true; RateSize = 11; ClockSecSize = 34; CdIdle = '距空闲倒计时'; CdPeak = '距高峰倒计时'; Timeline = $false }
     'e4'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 20; ClockSecSize = 32; CdIdle = '距空闲'; CdPeak = '距高峰'; Timeline = $false }
     'e5'      = @{ StatusSize = 11; DateInline = $true; PlainRate = $true; RateSize = 11; StatusPillStyle = $true; ClockSecSize = 34; CdIdle = 'NEXT IDLE:'; CdPeak = 'NEXT PEAK:' }

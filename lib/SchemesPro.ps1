@@ -1562,7 +1562,7 @@ function Add-DecorGauge {
 # 网页稿是 8 段发光块。这里做成「完全点亮的段 + 正在填充的那一段」，
 # 每秒重算，进度会连续往前爬，而不是十分钟才跳一格。
 function Add-DecorHudProgress {
-    param($Layer, [double]$W, [double]$H, $Colors, $Status)
+    param($Layer, [double]$W, [double]$H, $Colors, $Status, $Spec)
     $canvas = $script:HudProgress
     if ($null -eq $canvas) { return }
 
@@ -1570,25 +1570,42 @@ function Add-DecorHudProgress {
     if ($width -lt 20) { $width = $W - 28 }
     if ($width -lt 20) { return }
     $count = 8
+    if ([int]$Spec.HudSegments -gt 0) { $count = [int]$Spec.HudSegments }
     $gap = 2.0
     $segW = ($width - $gap * ($count - 1)) / $count
     if ($segW -lt 3) { return }
     $height = 5.0
+    if ([double]$Spec.HudBarHeight -gt 0) { $height = [double]$Spec.HudBarHeight }
+    $canvas.Height = $height
     $accent = [string]$Colors.Accent
+    # 原版 E2 保持 1px 圆角 + 4px 辉光；厚版 E2B 才用 2px 圆角 + 6px 辉光
+    $barRadius = 1.0
+    $glowBlur = 4.0
+    if ($height -ge 8) {
+        $barRadius = 2.0
+        $glowBlur = 6.0
+    }
 
     if (-not [bool]$Status.IsPeakDay) {
-        $lit = 8.0
+        $lit = [double]$count
     } else {
         $progress = Get-PhaseProgress -Fraction ([double]$Status.DayFraction) -Status $Status
         if ($progress -lt 0) { $progress = 0 }
         if ($progress -gt 1) { $progress = 1 }
-        $lit = $progress * $count
+        if ([bool]$Spec.HudDrain) {
+            # 剩余量：窗口开始时满格，结束时排空
+            $lit = (1.0 - $progress) * $count
+        } else {
+            # 原版 E2：已过时间越多，点亮的段越多
+            $lit = $progress * $count
+        }
     }
 
-    # 只在宽度变化时重建 16 个矩形；之后每秒只改「点亮部分」的宽度和颜色
+    # 只在宽度/高度变化时重建矩形；之后每秒只改「点亮部分」的宽度和颜色
     $needBuild = $true
     if ([int]$script:DecorRefs['HudSegmentCount'] -eq $count) {
-        if ([Math]::Abs([double]$script:DecorRefs['HudWidth'] - $width) -lt 0.5) { $needBuild = $false }
+        if ([Math]::Abs([double]$script:DecorRefs['HudWidth'] - $width) -lt 0.5 -and
+            [Math]::Abs([double]$script:DecorRefs['HudHeight'] - $height) -lt 0.5) { $needBuild = $false }
     }
     if ($needBuild) {
         $canvas.Children.Clear()
@@ -1596,10 +1613,10 @@ function Add-DecorHudProgress {
         $script:DecorRefs['HudLit'] = @()
         for ($i = 0; $i -lt $count; $i++) {
             $x = $i * ($segW + $gap)
-            $base = New-RectShape -X $x -Y 0 -W $segW -H $height -Color '#1E293B' -Radius 1
-            $litRect = New-RectShape -X $x -Y 0 -W 0 -H $height -Color $accent -Radius 1
+            $base = New-RectShape -X $x -Y 0 -W $segW -H $height -Color '#1E293B' -Radius $barRadius
+            $litRect = New-RectShape -X $x -Y 0 -W 0 -H $height -Color $accent -Radius $barRadius
             $litRect.Fill = New-BrushSafe $accent
-            try { $litRect.Effect = New-CardShadow -Blur 4 -Depth 0 -Opacity 0.4 } catch { }
+            try { $litRect.Effect = New-CardShadow -Blur $glowBlur -Depth 0 -Opacity 0.4 } catch { }
             [void]$canvas.Children.Add($base)
             [void]$canvas.Children.Add($litRect)
             $script:DecorRefs['HudBase'] += , $base
@@ -1613,7 +1630,6 @@ function Add-DecorHudProgress {
     }
 
     $segW = [double]$script:DecorRefs['HudSegW']
-    $gap = [double]$script:DecorRefs['HudGap']
     $litRects = @($script:DecorRefs['HudLit'])
     for ($i = 0; $i -lt $litRects.Count; $i++) {
         $remain = $lit - $i
@@ -1625,7 +1641,7 @@ function Add-DecorHudProgress {
             $rect.Visibility = [System.Windows.Visibility]::Visible
             if (-not [string]::Equals([string]$script:DecorRefs['HudAccent'], $accent)) {
                 $rect.Fill = New-BrushSafe $accent
-                try { $rect.Effect = New-CardShadow -Blur 4 -Depth 0 -Opacity 0.4 } catch { }
+                try { $rect.Effect = New-CardShadow -Blur $glowBlur -Depth 0 -Opacity 0.4 } catch { }
             }
         } else {
             $rect.Visibility = [System.Windows.Visibility]::Collapsed
@@ -1890,6 +1906,45 @@ function Update-SchemeCustomText {
             }
             Update-HudWindowLabels -Status $Status
         }
+        'e2b' {
+            # 全中文版 HUD：文案全部换成中文，时间更大更粗，进度条按剩余量排空
+            if ($null -ne $script:StatusText) {
+                $script:StatusText.Text = '空闲时段'
+                if ($isPeak) { $script:StatusText.Text = '高峰时段' }
+                if ($Status.IsWeekend) { $script:StatusText.Text = '周末' }
+                if ($Status.IsHoliday) {
+                    $name = [string]$Status.HolidayName
+                    if ([string]::IsNullOrWhiteSpace($name)) { $name = '节假日' }
+                    $script:StatusText.Text = '节假日 · ' + $name
+                }
+                $script:StatusText.FontSize = 13
+            }
+            if ($null -ne $script:RateText) {
+                $rate = '价格 0.5×'
+                if ($isPeak) { $rate = '价格 1.0×' }
+                if ($Status.IsWeekend -or $Status.IsHoliday) { $rate = '价格 0.5×' }
+                $script:RateText.Text = $rate
+                $script:RateText.FontSize = 13
+            }
+            if ($null -ne $script:ClockText) {
+                $script:ClockText.FontSize = 40
+                $script:ClockText.FontWeight = [System.Windows.FontWeights]::Black
+            }
+            if ($null -ne $script:DateText) {
+                $script:DateText.Text = ([string]$Status.DateText + ' ' + [string]$Status.WeekText).Trim()
+                $script:DateText.FontSize = 11
+            }
+            if ($null -ne $script:TzText) { $script:TzText.Text = '北京时间' }
+            if (($Status.IsWeekend -or $Status.IsHoliday) -and ($null -ne $script:CountdownText)) {
+                $script:CountdownText.Text = '距周一高峰'
+            }
+            if ($null -ne $script:CountdownText) { $script:CountdownText.FontSize = 10.5 }
+            if ($null -ne $script:CountdownValue) {
+                $script:CountdownValue.FontSize = 14
+                $script:CountdownValue.FontWeight = [System.Windows.FontWeights]::Bold
+            }
+            Update-HudWindowLabels -Status $Status -Chinese
+        }
         'c4' {
             if ($null -ne $script:StatusText) {
                 $script:StatusText.Text = '空闲'
@@ -1908,24 +1963,37 @@ function Update-SchemeCustomText {
 
 # HUD 的窗口标签：左边起点、中间第几个窗口、右边终点
 function Update-HudWindowLabels {
-    param($Status)
+    param($Status, [switch]$Chinese)
     $f = [double]$Status.DayFraction
     $windows = @($Status.PeakWindows)
     $left = '00:00'
     $right = '24:00'
     $mid = 'IDLE WINDOW'
+    if ($Chinese) { $mid = '空闲时段' }
     $index = 0
 
     if (-not [bool]$Status.IsPeakDay) {
         # 周末 / 节假日：整块矩阵常亮，标签改成全天口径
         if ([bool]$Status.IsHoliday) {
-            $left = 'NATIONAL DAY'
-            $mid = 'IDLE LOCKED'
-            $right = '24H'
+            if ($Chinese) {
+                $left = '节假日'
+                $mid = '全天半价'
+                $right = '24 小时'
+            } else {
+                $left = 'NATIONAL DAY'
+                $mid = 'IDLE LOCKED'
+                $right = '24H'
+            }
         } else {
-            $left = 'WEEKEND'
-            $mid = 'ALL MATRIX ON'
-            $right = '24H IDLE'
+            if ($Chinese) {
+                $left = '周末'
+                $mid = '全天半价'
+                $right = '24 小时'
+            } else {
+                $left = 'WEEKEND'
+                $mid = 'ALL MATRIX ON'
+                $right = '24H IDLE'
+            }
         }
         if ($null -ne $script:WinLeft) { $script:WinLeft.Text = $left }
         if ($null -ne $script:WinMid) { $script:WinMid.Text = $mid }
@@ -1941,11 +2009,15 @@ function Update-HudWindowLabels {
                 $left = Format-HourLabel -Fraction $a
                 $right = Format-HourLabel -Fraction $b
                 $index = $windows.IndexOf($window) + 1
-                $mid = ('PEAK WINDOW {0}/{1}' -f $index, $windows.Count)
+                if ($Chinese) {
+                    $mid = ('高峰窗口 {0}/{1}' -f $index, $windows.Count)
+                } else {
+                    $mid = ('PEAK WINDOW {0}/{1}' -f $index, $windows.Count)
+                }
                 break
             }
         }
-        if ($mid -eq 'IDLE WINDOW') {
+        if ($mid -eq 'IDLE WINDOW' -or $mid -eq '空闲时段') {
             $prevEnd = 0.0
             $nextStart = 1.0
             foreach ($window in $windows) {
@@ -1955,12 +2027,18 @@ function Update-HudWindowLabels {
                 if (($a -gt $f) -and ($a -lt $nextStart)) { $nextStart = $a }
             }
             if ($prevEnd -le 0.001) {
-                $left = 'NIGHT'
+                $left = '夜间'
+                if (-not $Chinese) { $left = 'NIGHT' }
             } else {
                 $left = Format-HourLabel -Fraction $prevEnd
             }
-            $mid = 'OFF-PEAK'
-            $right = 'NEXT:' + (Format-HourLabel -Fraction $nextStart)
+            if ($Chinese) {
+                $mid = '空闲时段'
+                $right = '下一段 ' + (Format-HourLabel -Fraction $nextStart)
+            } else {
+                $mid = 'OFF-PEAK'
+                $right = 'NEXT:' + (Format-HourLabel -Fraction $nextStart)
+            }
         }
     }
     if ($null -ne $script:WinLeft) { $script:WinLeft.Text = $left }
@@ -1987,13 +2065,13 @@ function Update-SchemeCustomTick {
         $needle.Y2 = $cy + $rOut * [Math]::Sin($rad)
     }
 
-    # E2 HUD 进度条：每秒重画一次，段数跟着时间涨
-    if ([string]$Spec.Key -eq 'e2') {
+    # E2 / E2B HUD 进度条：每秒重画一次
+    if ([string]$Spec.Key -eq 'e2' -or [string]$Spec.Key -eq 'e2b') {
         $canvas = $script:HudProgress
         if ($null -ne $canvas) {
             $colors = Get-SchemeColors -Spec $Spec -Status $Status
-            Add-DecorHudProgress -Layer $script:DecorHost -W ([double]$script:Card.ActualWidth) -H ([double]$script:Card.ActualHeight) -Colors $colors -Status $Status
-            Update-HudWindowLabels -Status $Status
+            Add-DecorHudProgress -Layer $script:DecorHost -W ([double]$script:Card.ActualWidth) -H ([double]$script:Card.ActualHeight) -Colors $colors -Status $Status -Spec $Spec
+            Update-HudWindowLabels -Status $Status -Chinese:([string]$Spec.Key -eq 'e2b')
         }
     }
 }
