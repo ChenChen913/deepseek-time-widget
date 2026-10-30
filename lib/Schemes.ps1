@@ -2220,6 +2220,10 @@ function Apply-SchemeState {
     param([object]$Spec, [object]$Status)
 
     $colors = Get-SchemeColors -Spec $Spec -Status $Status
+    # E2B 的窗口标签（开始/胶囊/结束）需要跟状态色联动，只在 HUD 布局上处理
+    if ([string]$Spec.Layout -eq 'hud') {
+        try { Set-HudLabelStyle -Spec $Spec -Colors $colors -Status $Status } catch { }
+    }
     # 专属模板的价格 / 状态块长什么样由各自 XAML 定，这里只换文字色
     $isCustom = -not (@('card', 'capsule', 'dial') -contains [string]$Spec.Layout)
 
@@ -2609,6 +2613,9 @@ function Install-Layout {
     $script:WinLeft = Find-LayoutElement 'WinLeft'
     $script:WinMid = Find-LayoutElement 'WinMid'
     $script:WinRight = Find-LayoutElement 'WinRight'
+    $script:WinLeftTag = Find-LayoutElement 'WinLeftTag'
+    $script:WinMidBox = Find-LayoutElement 'WinMidBox'
+    $script:WinEndTag = Find-LayoutElement 'WinEndTag'
     $script:CdBox = Find-LayoutElement 'CdBox'
     Apply-SchemeWindowSize -Spec $Spec -OldRight $oldRight
 

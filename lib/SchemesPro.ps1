@@ -855,9 +855,17 @@ $script:LayoutHud = @'
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
           </Grid.ColumnDefinitions>
-          <TextBlock x:Name="WinLeft" Text="09:00" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" />
-          <TextBlock x:Name="WinMid" Grid.Column="1" Text="PEAK WINDOW 1/2" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Center" />
-          <TextBlock x:Name="WinRight" Grid.Column="2" Text="12:00" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Right" />
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock x:Name="WinLeftTag" Text="开始" FontSize="8" Foreground="#4B5563" FontFamily="Microsoft YaHei UI" Visibility="Collapsed" Margin="0,0,4,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="WinLeft" Text="09:00" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" VerticalAlignment="Center" />
+          </StackPanel>
+          <Border x:Name="WinMidBox" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" CornerRadius="3" Padding="0">
+            <TextBlock x:Name="WinMid" Text="PEAK WINDOW 1/2" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <TextBlock x:Name="WinRight" Text="12:00" FontSize="9" Foreground="#475569" FontFamily="Cascadia Mono, Consolas" VerticalAlignment="Center" />
+            <TextBlock x:Name="WinEndTag" Text="结束" FontSize="8" Foreground="#4B5563" FontFamily="Microsoft YaHei UI" Visibility="Collapsed" Margin="4,0,0,0" VerticalAlignment="Center" />
+          </StackPanel>
         </Grid>
         <Canvas x:Name="HudProgress" Height="5" ClipToBounds="True" />
       </StackPanel>
@@ -1630,14 +1638,25 @@ function Add-DecorHudProgress {
     }
 
     $segW = [double]$script:DecorRefs['HudSegW']
+    $gap = [double]$script:DecorRefs['HudGap']
     $litRects = @($script:DecorRefs['HudLit'])
+    $drain = [bool]$Spec.HudDrain
     for ($i = 0; $i -lt $litRects.Count; $i++) {
-        $remain = $lit - $i
+        if ($drain) {
+            # 剩余量靠右：亮的段是「还没走完的未来」，紧贴结束时间
+            $remain = $lit - ($count - 1 - $i)
+        } else {
+            $remain = $lit - $i
+        }
         if ($remain -lt 0) { $remain = 0 }
         if ($remain -gt 1) { $remain = 1 }
         $rect = $litRects[$i]
         $rect.Width = $segW * $remain
         if ($remain -gt 0) {
+            $baseX = $i * ($segW + $gap)
+            $leftX = $baseX
+            if ($drain) { $leftX = $baseX + $segW * (1.0 - $remain) }
+            [System.Windows.Controls.Canvas]::SetLeft($rect, $leftX)
             $rect.Visibility = [System.Windows.Visibility]::Visible
             if (-not [string]::Equals([string]$script:DecorRefs['HudAccent'], $accent)) {
                 $rect.Fill = New-BrushSafe $accent
@@ -1944,6 +1963,12 @@ function Update-SchemeCustomText {
                 $script:CountdownValue.FontWeight = [System.Windows.FontWeights]::Bold
             }
             Update-HudWindowLabels -Status $Status -Chinese
+            # 夜间 / 周末的左标签不是具体时刻，就不显示「开始 / 结束」小字
+            $showTags = [bool]$Status.IsPeakDay -and ([string]$script:WinLeft.Text -match '^\d')
+            $tagVis = [System.Windows.Visibility]::Collapsed
+            if ($showTags) { $tagVis = [System.Windows.Visibility]::Visible }
+            if ($null -ne $script:WinLeftTag) { $script:WinLeftTag.Visibility = $tagVis }
+            if ($null -ne $script:WinEndTag) { $script:WinEndTag.Visibility = $tagVis }
         }
         'c4' {
             if ($null -ne $script:StatusText) {
@@ -2034,7 +2059,13 @@ function Update-HudWindowLabels {
             }
             if ($Chinese) {
                 $mid = '空闲时段'
-                $right = '下一段 ' + (Format-HourLabel -Fraction $nextStart)
+                if ($prevEnd -le 0.001) {
+                    # 凌晨到第一个高峰之间没有「开始」时刻，保留「下一段」提示
+                    $right = '下一段 ' + (Format-HourLabel -Fraction $nextStart)
+                } else {
+                    # 12:00–14:00 这种空闲间隔：左边是开始，右边直接写结束时刻
+                    $right = Format-HourLabel -Fraction $nextStart
+                }
             } else {
                 $mid = 'OFF-PEAK'
                 $right = 'NEXT:' + (Format-HourLabel -Fraction $nextStart)
@@ -2044,6 +2075,67 @@ function Update-HudWindowLabels {
     if ($null -ne $script:WinLeft) { $script:WinLeft.Text = $left }
     if ($null -ne $script:WinMid) { $script:WinMid.Text = $mid }
     if ($null -ne $script:WinRight) { $script:WinRight.Text = $right }
+}
+
+# HUD 上方的「开始 09:00 / 窗口胶囊 / 12:00 结束」视觉：只有 E2B 用新样式，
+# E2 切回来时重置成原来的灰色 9px 等宽小字。
+function Set-HudLabelStyle {
+    param($Spec, $Colors, $Status)
+    $isB = [string]$Spec.Key -eq 'e2b'
+
+    if ($null -eq $script:WinLeft -or $null -eq $script:WinRight -or $null -eq $script:WinMid) { return }
+
+    if ($isB) {
+        $accent = [string]$Colors.Accent
+        $edge = '#59' + $accent.Substring(1)
+        $wash = '#14' + $accent.Substring(1)
+        foreach ($el in @($script:WinLeft, $script:WinRight)) {
+            $el.FontSize = 11
+            $el.FontWeight = [System.Windows.FontWeights]::SemiBold
+            $el.Foreground = ConvertTo-Brush '#C7D0DA'
+        }
+        $script:WinMid.FontSize = 9.5
+        $script:WinMid.FontWeight = [System.Windows.FontWeights]::SemiBold
+        $script:WinMid.Foreground = ConvertTo-Brush $accent
+        if ($null -ne $script:WinMidBox) {
+            $script:WinMidBox.Background = New-BrushSafe $wash
+            $script:WinMidBox.BorderBrush = New-BrushSafe $edge
+            $script:WinMidBox.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1
+            $script:WinMidBox.Padding = ConvertTo-Thickness '6,1,6,1'
+            $script:WinMidBox.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList 3
+        }
+    } else {
+        foreach ($el in @($script:WinLeft, $script:WinRight)) {
+            $el.FontSize = 9
+            $el.FontWeight = [System.Windows.FontWeights]::Normal
+            $el.Foreground = ConvertTo-Brush '#475569'
+        }
+        $script:WinMid.FontSize = 9
+        $script:WinMid.FontWeight = [System.Windows.FontWeights]::Normal
+        $script:WinMid.Foreground = ConvertTo-Brush '#475569'
+        if ($null -ne $script:WinMidBox) {
+            $script:WinMidBox.Background = ConvertTo-Brush '#00000000'
+            $script:WinMidBox.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 0
+            $script:WinMidBox.Padding = New-Object System.Windows.Thickness -ArgumentList 0
+            $script:WinMidBox.CornerRadius = New-Object System.Windows.CornerRadius -ArgumentList 0
+        }
+    }
+
+    if ($null -ne $script:WinLeftTag) {
+        $script:WinLeftTag.Text = '开始'
+        $script:WinLeftTag.FontSize = 8.5
+        $script:WinLeftTag.Foreground = ConvertTo-Brush '#7C8798'
+    }
+    if ($null -ne $script:WinEndTag) {
+        $script:WinEndTag.Text = '结束'
+        $script:WinEndTag.FontSize = 8.5
+        $script:WinEndTag.Foreground = ConvertTo-Brush '#7C8798'
+    }
+    $showTags = $isB -and [bool]$Status.IsPeakDay
+    $tagVis = [System.Windows.Visibility]::Collapsed
+    if ($showTags) { $tagVis = [System.Windows.Visibility]::Visible }
+    if ($null -ne $script:WinLeftTag) { $script:WinLeftTag.Visibility = $tagVis }
+    if ($null -ne $script:WinEndTag) { $script:WinEndTag.Visibility = $tagVis }
 }
 
 # ============================ 每秒要动的东西 ============================
