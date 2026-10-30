@@ -131,7 +131,8 @@
 │  ├─ _states/             # 开发过程的时间点调试图
 │  └─ *.html               # 早期视觉评审稿存档，非实际界面
 ├─ research/
-│  └─ notes.md             # 节假日数据来源与三方核验记录
+│  ├─ notes.md             # 节假日数据来源与三方核验记录
+│  └─ dsh-plugin.md        # DSH（DeepSeek Harness）插件方案调研
 ├─ .github/workflows/      # CI：推送后自动跑单元测试
 ├─ LICENSE                 # MIT
 └─ README.md
@@ -155,6 +156,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -Pri
 # 生成某套方案的实际截图（离屏渲染，不弹窗口）
 powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PreviewTime 2026-10-28T10:30:24+08:00 -UiScheme e2b -CapturePath .\e2b.png
 ```
+
+## 相关文档
+
+- [DSH（DeepSeek Harness）插件方案调研](research/dsh-plugin.md)：如果要把时段状态做进 DSH 的会话标题栏，具体怎么做、放在哪个插槽、用什么技术栈、如何发布到插件市场
 
 ## 说明
 
