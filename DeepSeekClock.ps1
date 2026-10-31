@@ -45,6 +45,12 @@ $script:SettingsPath = Join-Path $script:SettingsDir 'settings.json'
 $script:UserDataPath = Join-Path $script:SettingsDir 'holidays.json'
 $script:IconPath = Join-Path $script:AppDir 'assets\deepseek-clock.ico'
 $script:LauncherPath = Join-Path $script:AppDir '启动挂件.vbs'
+# 开机自启写进 HKCU 的 Run 键：注册表 Run 每次登录都会执行，
+# 而“启动”文件夹里的快捷方式在部分机器上会被系统跳过（本机实测就没执行过）
+$script:AutoStartRunKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+$script:AutoStartApprovedRunKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run'
+$script:AutoStartApprovedFolderKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
+$script:AutoStartValueName = 'DeepSeekClockWidget'
 $script:RequestedCapturePath = $CapturePath
 $script:CycleCaptureDir = $CycleCapture
 
@@ -194,19 +200,68 @@ function Create-DesktopShortcut {
     return $shortcutPath
 }
 
+function Get-AutoStartCommand {
+    # Run 键里带空格 / 中文的路径必须加引号，登录时 Explorer 才会正确解析
+    return ('"' + (Join-Path $env:SystemRoot 'System32\wscript.exe') + '" "' + $script:LauncherPath + '"')
+}
+
+function Get-AutoStartRegistryValue {
+    try {
+        $props = Get-ItemProperty -LiteralPath $script:AutoStartRunKey -ErrorAction Stop
+        $prop = $props.PSObject.Properties[$script:AutoStartValueName]
+        if ($null -ne $prop) { return [string]$prop.Value }
+    } catch { }
+    return ''
+}
+
+function Clear-AutoStartBlockFlags {
+    # 系统“启动应用”里被手动关掉会写入禁用标记，会让登录时直接跳过本程序；这里清掉本程序自己的标记
+    try { Remove-ItemProperty -LiteralPath $script:AutoStartApprovedRunKey -Name $script:AutoStartValueName -ErrorAction SilentlyContinue } catch { }
+    $leaf = Split-Path -Path (Get-StartupShortcutPath) -Leaf
+    try { Remove-ItemProperty -LiteralPath $script:AutoStartApprovedFolderKey -Name $leaf -ErrorAction SilentlyContinue } catch { }
+}
+
+function Remove-LegacyAutoStartShortcut {
+    # 清理旧版本写在“启动”文件夹里的快捷方式，避免新旧两套机制同时拉起
+    $shortcutPath = Get-StartupShortcutPath
+    if (Test-Path -LiteralPath $shortcutPath) {
+        Remove-Item -LiteralPath $shortcutPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Test-AutoStartEnabled {
+    if (-not [string]::IsNullOrWhiteSpace((Get-AutoStartRegistryValue))) { return $true }
+    # 兼容旧版本：还没迁移的“启动”文件夹快捷方式也算已开启
     return (Test-Path -LiteralPath (Get-StartupShortcutPath))
 }
 
 function Set-AutoStartEnabled {
     param([bool]$Enabled)
-    $shortcutPath = Get-StartupShortcutPath
+    Clear-AutoStartBlockFlags
+    Remove-LegacyAutoStartShortcut
     if ($Enabled) {
-        New-ShortcutFile -ShortcutPath $shortcutPath -TargetPath (Join-Path $env:SystemRoot 'System32\wscript.exe') -Arguments (Get-LauncherArguments) -WorkingDirectory $script:AppDir -Description 'DeepSeek 计费时段挂件（开机自动启动）'
+        if (-not (Test-Path -LiteralPath $script:AutoStartRunKey)) {
+            New-Item -Path $script:AutoStartRunKey -Force | Out-Null
+        }
+        New-ItemProperty -LiteralPath $script:AutoStartRunKey -Name $script:AutoStartValueName -Value (Get-AutoStartCommand) -PropertyType String -Force | Out-Null
         return
     }
-    if (Test-Path -LiteralPath $shortcutPath) {
-        Remove-Item -LiteralPath $shortcutPath -Force
+    Remove-ItemProperty -LiteralPath $script:AutoStartRunKey -Name $script:AutoStartValueName -ErrorAction SilentlyContinue
+}
+
+function Repair-AutoStartRegistration {
+    $expected = Get-AutoStartCommand
+    $current = Get-AutoStartRegistryValue
+    if (-not [string]::IsNullOrWhiteSpace($current)) {
+        # 程序目录搬家后旧路径会失效，自动改写为当前位置
+        if ($current -ne $expected) {
+            try { Set-AutoStartEnabled -Enabled $true } catch { }
+        }
+        return
+    }
+    # 旧版本把快捷方式放在“启动”文件夹，自动迁移到注册表 Run
+    if (Test-Path -LiteralPath (Get-StartupShortcutPath)) {
+        try { Set-AutoStartEnabled -Enabled $true } catch { }
     }
 }
 
@@ -405,7 +460,7 @@ if ($InstallDesktopShortcut) {
 
 if ($EnableAutoStart) {
     Set-AutoStartEnabled -Enabled $true
-    Write-Output ('已开启开机自动启动：' + (Get-StartupShortcutPath))
+    Write-Output ('已开启开机自动启动：' + $script:AutoStartRunKey + '\' + $script:AutoStartValueName)
     return
 }
 
@@ -548,6 +603,11 @@ $script:Settings.LaunchCount = [int]$script:Settings.LaunchCount + 1
 # （以前靠改 settings 来切方案，万一被正在运行的挂件回写，会把用户的位置一起弄乱）
 if ((-not [string]::IsNullOrWhiteSpace($UiScheme)) -and ((-not [string]::IsNullOrWhiteSpace($script:RequestedCapturePath)) -or (-not [string]::IsNullOrWhiteSpace($script:CycleCaptureDir)))) {
     $script:Settings.UiScheme = $UiScheme
+}
+
+# 开机自启自检：把旧版“启动”文件夹快捷方式迁移到注册表 Run，程序目录变动时自动改写路径
+if ([string]::IsNullOrWhiteSpace($script:RequestedCapturePath) -and [string]::IsNullOrWhiteSpace($script:CycleCaptureDir)) {
+    Repair-AutoStartRegistration
 }
 
 $xamlText = @'
