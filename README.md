@@ -4,10 +4,9 @@
 
 <h1 align="center">DeepSeek 时段挂件</h1>
 
-<p align="center">
-  Windows 桌面小挂件：一眼看清现在是 DeepSeek 的「高峰时段」还是「空闲时段」，以及还有多久切换。23 套界面可切换，只依赖 Windows 自带的 PowerShell 5.1 + WPF，<strong>无第三方依赖</strong>。<br />
-  非 DeepSeek 官方项目。
-</p>
+> Windows 桌面小挂件：一眼看清现在是 DeepSeek 的「高峰时段」还是「空闲时段」，以及还有多久切换。23 套界面可切换，只依赖 Windows 自带的 PowerShell 5.1 + WPF，**无第三方依赖**。
+>
+> 非 DeepSeek 官方项目。
 
 <p align="center">
   <a href="https://github.com/ChenChen913/deepseek-time-widget/actions/workflows/test.yml"><img src="https://github.com/ChenChen913/deepseek-time-widget/actions/workflows/test.yml/badge.svg" alt="test" /></a>
