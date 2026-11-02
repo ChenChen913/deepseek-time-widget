@@ -14,12 +14,26 @@
   <a href="#快速开始"><img src="https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4.svg" alt="Windows 10 / 11" /></a>
 </p>
 
-| | |
-| --- | --- |
-| **C3 · 刻度带**<br><img src="design/previews/scheme-c3.png" width="330" alt="C3 · 刻度带实际截图" /> | **F1 · 峰谷示波器**<br><img src="design/previews/scheme-f1.png" width="330" alt="F1 · 峰谷示波器实际截图" /> |
-| **D1 · 示波器**<br><img src="design/previews/scheme-d1.png" width="330" alt="D1 · 示波器实际截图" /> | **D3 · K 线**<br><img src="design/previews/scheme-d3.png" width="330" alt="D3 · K 线实际截图" /> |
-| **C6 · 色块**<br><img src="design/previews/scheme-c6.png" width="330" alt="C6 · 色块实际截图" /> | **E4 · 双色瑞士分屏**<br><img src="design/previews/scheme-e4.png" width="330" alt="E4 · 双色瑞士分屏实际截图" /> |
-| **E2B · 中文余量 HUD**<br><img src="design/previews/scheme-e2b.png" width="330" alt="E2B · 中文余量 HUD 实际截图" /> | **C4 · 圆表**<br><img src="design/previews/scheme-c4.png" width="330" alt="C4 · 圆表实际截图" /> |
+<div align="center">
+<table>
+  <tr>
+    <td align="center"><b>C3 · 刻度带</b><br><img src="design/previews/scheme-c3.png" width="330" alt="C3 · 刻度带实际截图" /></td>
+    <td align="center"><b>F1 · 峰谷示波器</b><br><img src="design/previews/scheme-f1.png" width="330" alt="F1 · 峰谷示波器实际截图" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>D1 · 示波器</b><br><img src="design/previews/scheme-d1.png" width="330" alt="D1 · 示波器实际截图" /></td>
+    <td align="center"><b>D3 · K 线</b><br><img src="design/previews/scheme-d3.png" width="330" alt="D3 · K 线实际截图" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>C6 · 色块</b><br><img src="design/previews/scheme-c6.png" width="330" alt="C6 · 色块实际截图" /></td>
+    <td align="center"><b>E4 · 双色瑞士分屏</b><br><img src="design/previews/scheme-e4.png" width="330" alt="E4 · 双色瑞士分屏实际截图" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>E2B · 中文余量 HUD</b><br><img src="design/previews/scheme-e2b.png" width="330" alt="E2B · 中文余量 HUD 实际截图" /></td>
+    <td align="center"><b>默认界面</b><br><img src="design/previews/scheme-default.png" width="330" alt="默认界面实际截图" /></td>
+  </tr>
+</table>
+</div>
 
 > 8 张都是挂件实际渲染，不是网页设计稿，统一拍在 2026-10-28 10:30:24 周三高峰。全部 23 套截图在 [design/previews](design/previews)，右键「界面方案」可随时切换。
 
