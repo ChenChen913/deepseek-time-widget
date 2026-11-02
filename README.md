@@ -53,7 +53,7 @@
 
 `默认；A1/A3/A5/A6；B1/B3/B4/B5；C1/C2/C3/C4/C6；D1/D3/D6；E2/E2B/E3/E4/E5；F1`
 
-23 张实拍在 `design/previews/scheme-*.png`，由挂件自身的离屏渲染生成。`design/*.html` 是早期网页评审稿，不代表实际界面。
+23 张实拍在 `design/previews/scheme-*.png`，由挂件自身的离屏渲染生成。
 
 ## 计费规则
 
