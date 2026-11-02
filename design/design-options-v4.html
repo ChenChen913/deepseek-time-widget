@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeepSeek 时段挂件 · UI 方案 v4 · 梁文峰 / 梁文谷</title>
+<style>
+/* ================= 页面 ================= */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:#FAF8F3;color:#14161B;
+  font-family:"Microsoft YaHei UI","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.page{max-width:1380px;margin:0 auto;padding:52px 32px 80px}
+
+/* ================= 页头 ================= */
+.hero{margin-bottom:28px}
+.kicker{
+  font-size:11.5px;letter-spacing:.2em;font-weight:600;color:#9A9384;
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+}
+.kicker::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,#DED8C9,transparent)}
+.hero h1{
+  margin:0;font-size:46px;line-height:1.1;font-weight:700;letter-spacing:-.025em;
+}
+.hero h1 .p{color:#E85D3D}
+.hero h1 .v{color:#2FB89A}
+.hero h1 em{font-style:normal;font-weight:300;color:#B5AE9E;font-size:30px}
+.hero-sub{margin:16px 0 0;font-size:15px;color:#4E4B44;max-width:800px;line-height:1.8}
+.hero-sub b{color:#14161B;font-weight:600}
+.hero-sub code{
+  font-family:"Cascadia Mono","Consolas",monospace;font-size:12.5px;
+  background:#EFEBE0;padding:1px 6px;border-radius:3px;color:#4A4438;
+}
+.hero-meta{display:inline-flex;flex-wrap:wrap;margin-top:22px;border:1px solid #DED8C9;border-radius:4px;overflow:hidden;background:#fff}
+.hero-meta span{
+  font-size:12px;color:#4E4B44;padding:7px 13px;border-right:1px solid #EDE8DB;
+}
+.hero-meta span:last-child{border-right:none}
+.hero-meta b{color:#14161B;font-weight:600}
+
+/* ================= 梗说明 ================= */
+.joke{
+  display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #DED8C9;border-radius:6px;
+  overflow:hidden;margin-bottom:26px;background:#fff;
+}
+.joke-card{padding:22px 24px;position:relative}
+.joke-card + .joke-card{border-left:1px solid #EDE8DB}
+.joke-card h3{margin:0 0 4px;font-size:26px;font-weight:700;letter-spacing:-.02em}
+.joke-card h3 small{font-size:11px;font-weight:600;letter-spacing:.14em;margin-left:8px;vertical-align:middle}
+.joke-card .sub{font-size:12px;color:#8A8375;margin-bottom:10px}
+.joke-card p{margin:0;font-size:13px;color:#4E4B44;line-height:1.8}
+.joke-card .mini{
+  position:absolute;right:20px;top:20px;width:64px;height:34px;opacity:.9;
+}
+.jc-peak h3{color:#E85D3D}
+.jc-peak h3 small{color:#E8A08C}
+.jc-free h3{color:#2FB89A}
+.jc-free h3 small{color:#8ECFBE}
+
+/* ================= 说明 / 图例 ================= */
+.panel{background:#fff;border:1px solid #DED8C9;border-radius:6px;padding:22px 24px;margin-bottom:26px}
+.panel-title{font-size:11px;letter-spacing:.14em;color:#9A9384;font-weight:600;margin:0 0 14px}
+.notice{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px 26px}
+.notice div{font-size:13px;color:#4E4B44;line-height:1.75}
+.notice b{display:block;color:#14161B;font-weight:600;font-size:12.5px;margin-bottom:3px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;padding-top:16px;border-top:1px dashed #E4DED0}
+.lg{
+  display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#3E3B34;
+  background:#FBF9F5;border:1px solid #E4DED0;border-radius:999px;padding:5px 12px 5px 8px;
+}
+.lg::before{content:'';width:9px;height:9px;flex:none;border-radius:50%}
+.lg-peak::before{background:#E85D3D}
+.lg-free::before{background:#2FB89A}
+.lg-tag::before{background:#8A8375;border-radius:2px}
+.lg-stale::before{background:transparent;border:1.5px dashed #9A9384}
+
+/* ================= 方案卡 ================= */
+.plan{background:#fff;border:1px solid #DED8C9;border-radius:6px;margin-bottom:28px;overflow:hidden}
+.plan-head{
+  display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:start;
+  padding:24px 26px 20px;border-bottom:1px solid #EFEADE;
+}
+.plan-num{
+  font-size:13px;font-weight:700;color:#fff;background:#14161B;width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;border-radius:50%;flex:none;
+  font-family:"Cascadia Mono","Consolas",monospace;
+}
+.plan-name{margin:0;font-size:21px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.plan-name small{font-size:11px;font-weight:400;letter-spacing:.1em;color:#A8A192;text-transform:uppercase}
+.plan-tagline{margin:7px 0 0;font-size:13.5px;color:#4E4B44;max-width:750px;line-height:1.7}
+.plan-tags{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.plan-tags span{
+  font-size:11px;color:#4E4B44;background:#F7F4EC;border:1px solid #E8E2D4;
+  padding:3px 9px;border-radius:4px;white-space:nowrap;
+}
+
+/* ================= Token ================= */
+.tokens{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(224px,1fr));
+  gap:1px;background:#EFEADE;border-bottom:1px solid #EFEADE;
+}
+.token{background:#fff;padding:9px 13px;display:flex;align-items:flex-start;gap:8px;font-size:12.5px;min-width:0}
+.token b{font-weight:500;color:#A8A192;flex:none;min-width:48px;font-size:11.5px;padding-top:1px}
+.token span{color:#1B1D22;line-height:1.5;font-variant-numeric:tabular-nums}
+.sw{display:block;width:12px;height:12px;border-radius:3px;flex:none;margin-top:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+
+/* ================= 场景 ================= */
+.scene{position:relative;padding:50px 24px 24px}
+.scene + .scene{border-top:1px solid #EFEADE}
+.wall-dark{
+  background:
+    radial-gradient(95% 80% at 16% 10%,#25344C 0%,rgba(37,52,76,0) 62%),
+    radial-gradient(80% 72% at 84% 84%,#4C2A38 0%,rgba(76,42,56,0) 65%),
+    linear-gradient(158deg,#0E1220 0%,#171D2C 52%,#0A0D16 100%);
+}
+.wall-light{
+  background:
+    radial-gradient(100% 85% at 14% 12%,#DEE6F1 0%,rgba(222,230,241,0) 62%),
+    radial-gradient(88% 78% at 86% 82%,#F4E4CF 0%,rgba(244,228,207,0) 64%),
+    linear-gradient(152deg,#EBEEF4 0%,#F8F4EB 52%,#E6EAF1 100%);
+}
+.scene::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(88% 88% at 50% 45%,#000 18%,transparent 100%);
+  mask-image:radial-gradient(88% 88% at 50% 45%,#000 18%,transparent 100%);
+}
+.wall-light::after{
+  background-image:
+    linear-gradient(rgba(20,26,40,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(20,26,40,.045) 1px,transparent 1px);
+}
+.scene-cap{
+  position:absolute;top:0;left:0;right:0;height:36px;display:flex;align-items:center;gap:9px;
+  padding:0 20px;font-size:11px;letter-spacing:.05em;z-index:5;
+}
+.wall-dark .scene-cap{color:rgba(216,224,238,.44);border-bottom:1px solid rgba(255,255,255,.06)}
+.wall-light .scene-cap{color:rgba(28,34,48,.44);border-bottom:1px solid rgba(20,26,40,.07)}
+.scene-cap b{font-weight:600;letter-spacing:.12em}
+.wall-dark .scene-cap b{color:rgba(216,224,238,.8)}
+.wall-light .scene-cap b{color:rgba(28,34,48,.8)}
+
+.grid4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 24px;justify-items:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 24px;justify-items:center}
+.cell{display:flex;flex-direction:column;align-items:center;gap:11px;min-width:0}
+.cell-cap{font-size:10.5px;letter-spacing:.02em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wall-dark .cell-cap{color:rgba(216,224,238,.38)}
+.wall-light .cell-cap{color:rgba(28,34,48,.38)}
+
+/* ================= 挂件通用 ================= */
+.w{
+  position:relative;width:var(--w);height:var(--h);
+  background:var(--bg);color:var(--fg);
+  border-radius:var(--r,10px);box-shadow:var(--sh);overflow:hidden;isolation:isolate;zoom:1.15;
+  font-family:"Microsoft YaHei UI","Segoe UI Variable Text","Segoe UI",sans-serif;
+  transition:transform .32s cubic-bezier(.22,1,.36,1);will-change:transform;
+}
+.w:hover{transform:translateY(-3px)}
+.w[data-m="peak"]{--st:#E85D3D;--st2:#FF8A63}
+.w[data-m="free"]{--st:#2FB89A;--st2:#5FD9BF}
+.content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column}
+
+/* 状态行 */
+.st-row{display:flex;align-items:center;justify-content:space-between;gap:10px;line-height:1}
+.st-name{
+  display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  color:var(--st);letter-spacing:.02em;white-space:nowrap;min-width:0;
+}
+.st-name .ic,.ic{display:block;width:11px;height:11px;flex:none}
+.mult{
+  font-size:16px;font-weight:700;color:var(--st);letter-spacing:-.02em;line-height:1;
+  font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;
+}
+.mult em{font-style:normal;font-size:11px;opacity:.65;margin-left:1px}
+
+/* 时钟 */
+.clock{
+  font-family:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",sans-serif;
+  font-size:var(--ck,38px);line-height:1;font-weight:300;letter-spacing:-.025em;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  white-space:nowrap;color:var(--fg);
+}
+/* 日期行 */
+.d-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim);white-space:nowrap;min-width:0}
+.d-row .d{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tag{
+  flex:none;font-size:10px;line-height:1;padding:3px 6px;border-radius:4px;
+  background:var(--tag-bg);color:var(--tag-fg);border:1px solid var(--tag-bd);
+}
+.stale{
+  flex:none;font-size:10px;line-height:1;padding:3px 6px;border-radius:4px;
+  color:var(--stale-fg);border:1px dashed var(--stale-bd);
+}
+/* 倒计时 */
+.cd-row{display:flex;align-items:baseline;gap:6px;font-size:11px;color:var(--dimmer);white-space:nowrap;min-width:0}
+.cd-row b{
+  font-size:12.5px;font-weight:600;color:var(--dim);font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+  overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ================= 01 示波器 ================= */
+.w-scope{
+  --w:320px;--h:180px;--r:12px;--ck:36px;
+  --bg:#111318;--fg:#E9EDF3;--dim:#8B94A5;--dimmer:#5A6272;
+  --tag-bg:rgba(255,255,255,.09);--tag-bd:rgba(255,255,255,.15);--tag-fg:#D6DEEA;
+  --stale-fg:#94A0B2;--stale-bd:rgba(255,255,255,.24);
+  --sh:0 16px 34px -14px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.sc-mesh{
+  position:absolute;inset:0;z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:16px 16px;
+}
+.w-scope .content{padding:13px 15px 12px}
+.sc-wave{position:relative;flex:none;height:46px;margin:2px -1px 0}
+.sc-wave svg{display:block;width:100%;height:100%}
+.sc-foot{flex:none;margin-top:7px}
+
+/* ================= 02 地形 ================= */
+.w-ridge{
+  --w:316px;--h:180px;--r:14px;--ck:38px;
+  --bg:#FBF9F4;--fg:#16181C;--dim:#6E6A5E;--dimmer:#9A9384;
+  --tag-bg:rgba(22,24,28,.06);--tag-bd:rgba(22,24,28,.16);--tag-fg:#4A463C;
+  --stale-fg:rgba(22,24,28,.42);--stale-bd:rgba(22,24,28,.24);
+  --sh:0 16px 34px -16px rgba(60,52,36,.34);
+}
+.w-ridge .content{padding:14px 16px 0}
+.rd-sp{flex:1;min-height:4px}
+.rd-terrain{position:relative;flex:none;height:58px;margin:0 -16px}
+.rd-terrain svg{display:block;width:100%;height:100%}
+.rd-foot{
+  position:relative;z-index:3;flex:none;padding:7px 16px 11px;margin:0 -16px;
+  font-size:11px;color:var(--dimmer);
+}
+
+/* ================= 03 K线 ================= */
+.w-candle{
+  --w:316px;--h:180px;--r:10px;--ck:34px;
+  --bg:#14161C;--fg:#E9EDF3;--dim:#8B94A5;--dimmer:#5A6272;
+  --tag-bg:rgba(255,255,255,.09);--tag-bd:rgba(255,255,255,.15);--tag-fg:#D6DEEA;
+  --stale-fg:#94A0B2;--stale-bd:rgba(255,255,255,.24);
+  --sh:0 14px 30px -12px rgba(0,0,0,.6);
+}
+.w-candle .content{padding:13px 15px 11px}
+.cd-chart{position:relative;flex:none;height:44px;display:flex;align-items:flex-end;gap:2px;margin-top:4px}
+.cd-bar{flex:1;border-radius:1px 1px 0 0;position:relative;min-width:0}
+.cd-bar.pk{background:#E85D3D;height:100%}
+.cd-bar.fw{background:rgba(47,184,154,.45);height:50%}
+.cd-bar.now{box-shadow:0 0 0 1.5px #fff,0 0 8px rgba(255,255,255,.5)}
+.cd-base{position:absolute;left:0;right:0;bottom:0;height:1px;background:rgba(255,255,255,.14)}
+
+/* ================= 04 环波 ================= */
+.w-loop{
+  --w:300px;--h:300px;--r:50%;--ck:34px;
+  --bg:#13151B;--fg:#E9EDF3;--dim:#8B94A5;--dimmer:#5A6272;
+  --tag-bg:rgba(255,255,255,.09);--tag-bd:rgba(255,255,255,.15);--tag-fg:#D6DEEA;
+  --stale-fg:#94A0B2;--stale-bd:rgba(255,255,255,.24);
+  --sh:0 20px 46px -16px rgba(0,0,0,.66),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.w-loop .ring{position:absolute;inset:0;z-index:1;pointer-events:none}
+.w-loop .ring svg{width:100%;height:100%;display:block}
+.w-loop .content{align-items:center;justify-content:center;text-align:center;padding:0}
+.lp-body{display:flex;flex-direction:column;align-items:center;position:relative;z-index:3;width:176px}
+.lp-name{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--st);letter-spacing:.02em;white-space:nowrap}
+.lp-body .clock{margin-top:10px}
+.lp-mult{
+  font-size:21px;font-weight:700;color:var(--st);margin-top:7px;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
+}
+.lp-mult em{font-style:normal;font-size:13px;opacity:.65}
+.lp-body .d-row{margin-top:13px;max-width:200px;justify-content:center}
+.lp-body .cd-row{margin-top:5px;max-width:200px;justify-content:center}
+
+/* ================= 05 双峰 ================= */
+.w-twin{
+  --w:460px;--h:112px;--r:12px;--ck:34px;
+  --bg:#12141A;--fg:#E9EDF3;--dim:#8B94A5;--dimmer:#5A6272;
+  --tag-bg:rgba(255,255,255,.09);--tag-bd:rgba(255,255,255,.15);--tag-fg:#D6DEEA;
+  --stale-fg:#94A0B2;--stale-bd:rgba(255,255,255,.24);
+  --sh:0 14px 32px -14px rgba(0,0,0,.62);
+}
+.w-twin .content{flex-direction:row;align-items:center;padding:0;gap:0}
+.tw-left{flex:none;padding:10px 0 10px 18px;width:238px;min-width:0}
+.tw-left .clock{margin-top:4px;font-size:32px}
+.tw-left .d-row{margin-top:2px}
+.tw-left .cd-row{margin-top:3px}
+.tw-peaks{position:relative;flex:1;align-self:stretch;min-width:0}
+.tw-peaks svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tw-cd{
+  position:absolute;right:16px;top:14px;text-align:right;z-index:3;
+}
+.tw-cd .k{font-size:10px;color:var(--dimmer);letter-spacing:.04em}
+.tw-cd .v{font-size:13px;font-weight:600;color:var(--fg);margin-top:2px;font-variant-numeric:tabular-nums}
+
+/* ================= 06 半谷 ================= */
+.w-split{
+  --w:300px;--h:170px;--r:16px;--ck:38px;
+  --fg:#fff;--dim:rgba(255,255,255,.72);--dimmer:rgba(255,255,255,.54);
+  --tag-bg:rgba(0,0,0,.22);--tag-bd:rgba(255,255,255,.28);--tag-fg:#fff;
+  --stale-fg:rgba(255,255,255,.7);--stale-bd:rgba(255,255,255,.4);
+  --sh:0 18px 38px -14px rgba(0,0,0,.5);
+  background:var(--sp-bg);
+}
+.w-split[data-m="peak"]{--st:#FFD9C9;--sp-bg:linear-gradient(104deg,#E85D3D 0%,#E85D3D 64%,#2FB89A 64%,#2FB89A 100%)}
+.w-split[data-m="free"]{--st:#CFF3E9;--sp-bg:linear-gradient(104deg,#E85D3D 0%,#E85D3D 36%,#2FB89A 36%,#2FB89A 100%)}
+.w-split .content{padding:15px 17px 13px}
+.w-split .clock,.w-split .mult,.w-split .st-name{color:#fff}
+.w-split .st-name{font-weight:700}
+.sp-sp{flex:1;min-height:6px}
+.sp-legend{display:flex;align-items:center;gap:10px;font-size:10px;color:rgba(255,255,255,.62);margin-top:7px}
+.sp-legend i{display:block;width:16px;height:2px;background:rgba(255,255,255,.5)}
+
+/* ================= 优缺点 / WPF ================= */
+.pc{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #EFEADE}
+.pc-box{padding:16px 24px 18px;font-size:12.8px;color:#3E3B34;line-height:1.75}
+.pc-box + .pc-box{border-left:1px solid #EFEADE}
+.pc-box h4{margin:0 0 7px;font-size:10.5px;letter-spacing:.14em;color:#A8A192;font-weight:600}
+.pc-box ul{margin:0;padding-left:16px}
+.pc-box li{margin:3px 0}
+.pc-box li::marker{color:#CFC8B8}
+.wpf{padding:16px 24px 18px;background:#14161B;color:#B6BFCC;font-size:12.5px;line-height:1.85}
+.wpf h4{margin:0 0 6px;font-size:10.5px;letter-spacing:.14em;color:#6B7484;font-weight:600}
+.wpf b{color:#7FE0C6;font-weight:600}
+.wpf code{
+  font-family:"Cascadia Mono","Consolas",monospace;font-size:11.5px;
+  background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;color:#F0B48E;
+}
+
+/* ================= 对比表 ================= */
+.compare{background:#fff;border:1px solid #DED8C9;border-radius:6px;overflow:hidden;margin-bottom:28px}
+.cmp-head{padding:24px 26px 18px;border-bottom:1px solid #EFEADE}
+.cmp-head h2{margin:0 0 5px;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.cmp-head p{margin:0;font-size:13px;color:#4E4B44}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:900px}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid #F4F0E6;vertical-align:top}
+th{font-size:10.5px;letter-spacing:.08em;color:#9A9384;font-weight:600;background:#FBF9F5;white-space:nowrap;border-bottom:1px solid #EFEADE}
+td{color:#2E2B25}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#FDFCF8}
+td.nm{font-weight:600;color:#14161B;white-space:nowrap}
+td.nm i{font-style:normal;color:#BDB6A6;font-weight:400;margin-right:7px;font-family:"Cascadia Mono","Consolas",monospace}
+.lv{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:4px;font-weight:700;white-space:nowrap}
+.lv-1{background:#DFF3EA;color:#0A6B54}
+.lv-2{background:#FCEFDB;color:#8A5A0C}
+.lv-3{background:#FBE4E4;color:#9E2B2B}
+.rec{padding:24px 26px 26px;background:#14161B;color:#B6BFCC}
+.rec h3{margin:0 0 11px;font-size:15px;color:#fff;font-weight:700;display:flex;align-items:center;gap:10px}
+.rec h3 em{font-style:normal;font-size:10px;letter-spacing:.12em;background:#7FE0C6;color:#08231C;padding:3px 8px;border-radius:4px;font-weight:700}
+.rec p{margin:8px 0;font-size:13px;line-height:1.8}
+.rec b{color:#7FE0C6}
+.rec .alt{color:#868F9E;font-size:12.5px;border-top:1px solid rgba(255,255,255,.09);padding-top:12px;margin-top:14px}
+
+/* ================= 页脚 ================= */
+.foot{border-top:1px solid #DED8C9;padding-top:20px;font-size:12.5px;color:#9A9384;line-height:1.9}
+.foot b{color:#4E4B44}
+.foot code{font-family:"Cascadia Mono","Consolas",monospace;font-size:11.5px;background:#EFEBE0;padding:1px 5px;border-radius:3px;color:#4A4438}
+
+@media (max-width:880px){
+  .page{padding:34px 16px 60px}
+  .hero h1{font-size:30px}
+  .hero h1 em{font-size:20px}
+  .joke{grid-template-columns:1fr}
+  .joke-card + .joke-card{border-left:none;border-top:1px solid #EDE8DB}
+  .grid4,.grid2{grid-template-columns:1fr}
+  .pc{grid-template-columns:1fr}
+  .pc-box + .pc-box{border-left:none;border-top:1px solid #EFEADE}
+  .plan-head{grid-template-columns:auto 1fr}
+  .plan-tags{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="hero">
+  <div class="kicker">V4 · 梁文峰 / 梁文谷</div>
+  <h1><span class="p">梁文峰</span> · <span class="v">梁文谷</span> <em>/ 六个方案</em></h1>
+  <p class="hero-sub">网友给 DeepSeek 创始人梁文锋起了两个新名字：<b>峰时叫「梁文峰」，谷时叫「梁文谷」</b>。这一版把这个梗直接做成视觉——一天 24 小时画成一条<b>波形曲线</b>，两个高峰窗口是两座峰，其余时间是谷。状态名、颜色、图形三处同时呼应，不用读数字也能知道现在是谁在值班。</p>
+  <div class="hero-meta">
+    <span>316 × 180 DIP</span>
+    <span>展示 1.15×</span>
+    <span>Win11 · 125%</span>
+    <span>单文件 · 离线可用</span>
+  </div>
+</header>
+
+<section class="joke">
+  <div class="joke-card jc-peak">
+    <svg class="mini" viewBox="0 0 64 34" aria-hidden="true">
+      <path d="M2 30 L20 6 L32 30" fill="none" stroke="#E85D3D" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M30 30 L46 10 L62 30" fill="none" stroke="#E85D3D" stroke-width="2.5" stroke-linejoin="round" opacity=".45"/>
+    </svg>
+    <h3>梁文峰时段<small>PEAK</small></h3>
+    <div class="sub">周一至周五 09:00–12:00 / 14:00–18:00</div>
+    <p>大家都在调，算力顶着天花板——所以叫「峰」。价格 <b>1.0×</b>，是谷时的两倍。这时候的梁文锋，正在峰上。</p>
+  </div>
+  <div class="joke-card jc-free">
+    <svg class="mini" viewBox="0 0 64 34" aria-hidden="true">
+      <path d="M2 6 L20 30 L32 6" fill="none" stroke="#2FB89A" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M30 6 L46 26 L62 6" fill="none" stroke="#2FB89A" stroke-width="2.5" stroke-linejoin="round" opacity=".45"/>
+    </svg>
+    <h3>梁文谷时段<small>VALLEY</small></h3>
+    <div class="sub">其余全部时间 · 含周末与法定节假日</div>
+    <p>算力压力下来了，价格直接腰斩到 <b>0.5×</b>。这时候的梁文锋，在山谷里。周末和节假日全天谷价，调休上班日也按周末算。</p>
+  </div>
+</section>
+
+<section class="panel">
+  <h2 class="panel-title">这一版在做什么</h2>
+  <div class="notice">
+    <div><b>梗要落在图形上</b>不是把「梁文峰」三个字贴在角落，而是让一天的形状就是两个峰。看曲线的起伏，比读「高峰/空闲」快得多。</div>
+    <div><b>六种峰谷表达</b>示波器波形、地形剖面、K 线蜡烛、环形波、双峰图、斜切双色——同一个隐喻，六种画法。</div>
+    <div><b>状态名仍是正经的</b>「梁文峰时段 / 梁文谷时段」是主标签，下面小字保留官方口径「高峰 1.0× / 空闲 0.5×」，梗归梗，信息不能错。</div>
+    <div><b>四态 + 极端文案</b>高峰、工作日夜晚、周末、法定节假日各一，浅色场景再压一次「10月1日 · 国庆节 · 数据待更新」和「6天 23:00:00」。</div>
+    <div><b>悬停无浮层</b>只上浮 3px，没有任何 tooltip。所有信息常驻。</div>
+  </div>
+  <div class="legend">
+    <span class="lg lg-peak">梁文峰时段 · 高峰 1.0× · 工作日 09:00–12:00 / 14:00–18:00</span>
+    <span class="lg lg-free">梁文谷时段 · 空闲 0.5× · 其余全部时间</span>
+    <span class="lg lg-tag">周末 / 法定节假日 → 全天谷价（调休上班日也算）</span>
+    <span class="lg lg-stale">数据待更新 · 节假日数据缺失时的兜底</span>
+  </div>
+</section>
+
+<main id="app"></main>
+
+<section class="compare">
+  <div class="cmp-head">
+    <h2>方案对比</h2>
+    <p>同一个「峰谷」隐喻，六种画法。难度按 WPF 原生能力复现评估。</p>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>方案</th><th>形态 / 尺寸</th><th>峰谷画法</th><th>梗的强度</th><th>信息密度</th><th>桌面适配</th><th>WPF 难度</th><th>最适合</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="nm"><i>01</i>示波器</td><td>320×180</td><td>连续波形曲线</td><td>中</td><td>中</td><td>任何壁纸</td><td><span class="lv lv-2">中</span></td><td>默认主推</td></tr>
+        <tr><td class="nm"><i>02</i>地形</td><td>316×180</td><td>山体填充 + 等高线</td><td>中高</td><td>中</td><td>浅色桌面最佳</td><td><span class="lv lv-1">低</span></td><td>喜欢纸感 / 安静</td></tr>
+        <tr><td class="nm"><i>03</i>K 线</td><td>316×180</td><td>24 根蜡烛，高度=倍率</td><td>高</td><td>中高</td><td>任何壁纸</td><td><span class="lv lv-1">低</span></td><td>金融从业 / 股民</td></tr>
+        <tr><td class="nm"><i>04</i>环波</td><td>Ø300</td><td>环形波形起伏</td><td>中</td><td>低</td><td>桌面摆件</td><td><span class="lv lv-3">高</span></td><td>当摆件、不贴边</td></tr>
+        <tr><td class="nm"><i>05</i>双峰</td><td>460×112</td><td>两座尖峰 + 谷底标注</td><td>最高</td><td>中</td><td>贴任务栏</td><td><span class="lv lv-2">中</span></td><td>要一眼看到"双峰"</td></tr>
+        <tr><td class="nm"><i>06</i>半谷</td><td>300×170</td><td>斜切双色，面积=时长比</td><td>高</td><td>低</td><td>存在感最强</td><td><span class="lv lv-1">低</span></td><td>要海报感</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="rec">
+    <h3>推荐 <em>PICK</em></h3>
+    <p><b>01 示波器</b> —— 它是这一版里唯一把「峰谷」做成<b>连续函数</b>的方案。别的方案都是离散的块或柱，只有它画出了真正的波：上升、平台、下降、回落。你甚至能从曲线的坡度判断「离切换还有多久」。深色屏 + 网格 + 一条发光曲线，是六者中最像"仪器读数"的一台。</p>
+    <p><b>落地成本可控</b>：曲线用 <code>Path</code> + <code>PolyLineSegment</code>（96 个采样点，代码生成一次即可，不用手写）。当前时刻的圆点按 <code>t/24</code> 取同一组采样点定位。<b>不用动画</b>，只有秒位每秒刷新一次文字。</p>
+    <p class="alt"><b>备选：</b>想让人一眼笑出来就选 <b>05 双峰</b>——两座尖峰摆在横条右侧，峰顶标「峰」、谷底标「谷」，是最直白的一张梗图；<b>03 K 线</b>则是把"倍率"这个金融语义吃透的做法，红涨绿跌，股民一看就懂。</p>
+  </div>
+</section>
+
+<footer class="foot">
+  <p><b>关于梗：</b>「梁文峰 / 梁文谷」是网友对 DeepSeek 创始人<b>梁文锋</b>的戏称，取自高峰/低谷的谐音双关，非官方叫法。本页仅作设计练习，不涉及任何官方立场。</p>
+  <p><b>关于规则：</b>高峰 = 周一至周五（不含中国法定节假日）09:00–12:00、14:00–18:00，1.0×；其余全部时间 0.5×。周末即使遇调休上班日也按官网字面规则算空闲。只有两种价格状态。</p>
+  <p><b>关于数据：</b>所有时间为静态 mock 数据，时钟按各自基准时间实时走动（秒位每秒 +1），倒计时保持静态以对齐 mock 值。真实实现中倒计时按北京时间计算，与系统时区无关。</p>
+  <p><b>三个版本：</b>v2 液态玻璃 / v3 仪器面板 / v4 峰谷梗。三个文件平行存在，可并排比对。</p>
+</footer>
+
+<script>
+/* ==== 数据 ==== */
+const S = {
+  peak: {
+    mode:'peak', name:'梁文峰时段', price:'1.0', time:'10:30:24',
+    date:'10月28日 周三', tag:null, stale:false,
+    cdLabel:'距梁文谷', cd:'01:29:36', nowPct:43.78, allDay:false,
+    caption:'① 梁文峰 · 周三 10:30:24 · 1.0×'
+  },
+  night: {
+    mode:'free', name:'梁文谷时段', price:'0.5', time:'20:15:03',
+    date:'10月28日 周三', tag:null, stale:false,
+    cdLabel:'距梁文峰', cd:'12:44:57', nowPct:84.38, allDay:false,
+    caption:'② 梁文谷 · 周三 20:15:03 · 0.5×'
+  },
+  weekend: {
+    mode:'free', name:'梁文谷时段', price:'0.5', time:'10:30:24',
+    date:'10月31日 周六', tag:'周末', stale:false,
+    cdLabel:'距梁文峰', cd:'1天 22:30:00', nowPct:43.78, allDay:true,
+    caption:'③ 梁文谷 · 周六 10:30:24 · 全天 0.5×'
+  },
+  holiday: {
+    mode:'free', name:'梁文谷时段', price:'0.5', time:'10:00:05',
+    date:'10月1日 周四', tag:'国庆节', stale:false,
+    cdLabel:'距梁文峰', cd:'6天 23:00:00', nowPct:41.67, allDay:true,
+    caption:'④ 梁文谷 · 国庆 10:00:05 · 全天 0.5×'
+  },
+  extreme: {
+    mode:'free', name:'梁文谷时段', price:'0.5', time:'10:00:05',
+    date:'10月1日', tag:'国庆节', stale:true,
+    cdLabel:'距梁文峰', cd:'6天 23:00:00', nowPct:41.67, allDay:true,
+    caption:'⑤ 极端文案 · 日期三段 + 6天 23:00:00'
+  }
+};
+
+/* ==== 峰谷函数：把 24 小时映射成一条有峰的曲线 ==== */
+/* 09–12 与 14–18 是平台，边缘用 smoothstep 过渡，所以中间会自然出现午间谷 */
+function waveVal(h){
+  const bump = (x, a, b, k) => {
+    if (x < a - k || x > b + k) return 0;
+    if (x >= a && x <= b) return 1;
+    const t = x < a ? (x - (a - k)) / k : ((b + k) - x) / k;
+    return t * t * (3 - 2 * t);
+  };
+  return 0.07 + 0.93 * Math.max(bump(h, 9, 12, 0.85), bump(h, 14, 18, 1.0));
+}
+/* 全天空闲时整条压平到谷底 */
+function valOf(st, h){ return st.allDay ? 0.10 : waveVal(h); }
+
+/* ==== 片段 ==== */
+const peakIcon = `<svg class="ic" viewBox="0 0 12 12" aria-hidden="true">
+  <path d="M1 10 L4.2 3 L7 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M6 10 L8.6 5 L11 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity=".5"/></svg>`;
+const freeIcon = `<svg class="ic" viewBox="0 0 12 12" aria-hidden="true">
+  <path d="M1 3 L4.2 9 L7 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M6 3 L8.6 7.5 L11 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" opacity=".5"/></svg>`;
+
+const stRow = st => `<div class="st-row">
+  <div class="st-name">${st.mode === 'peak' ? peakIcon : freeIcon}${st.name}</div>
+  <div class="mult">${st.price}<em>×</em></div></div>`;
+const clockEl = st => `<div class="clock" data-t="${st.time}">${st.time}</div>`;
+const dRow = st => `<div class="d-row"><span class="d">${st.date}</span>` +
+  (st.tag ? `<span class="tag">${st.tag}</span>` : '') +
+  (st.stale ? `<span class="stale">数据待更新</span>` : '') + `</div>`;
+const cdRow = st => `<div class="cd-row"><span>${st.cdLabel}</span><b>${st.cd}</b></div>`;
+
+/* 波形路径：96 段采样，够平滑且不吃性能 */
+function wavePath(st, W, H, pad, scale){
+  const N = 96; let d = '';
+  for (let i = 0; i <= N; i++){
+    const h = i / N * 24;
+    const x = i / N * W;
+    const y = H - pad - valOf(st, h) * (H - pad * 2) * (scale === undefined ? 1 : scale);
+    d += (i ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1);
+  }
+  return d;
+}
+function wavePt(st, W, H, pad, pct){
+  const x = pct / 100 * W;
+  const y = H - pad - valOf(st, pct / 100 * 24) * (H - pad * 2);
+  return [x, y];
+}
+
+/* ==== 01 示波器 ==== */
+function scopeSVG(st){
+  const W = 292, H = 46, PAD = 7;
+  const line = wavePath(st, W, H, PAD);
+  const area = `${line} L ${W},${H} L 0,${H} Z`;
+  const [px, py] = wavePt(st, W, H, PAD, st.nowPct);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <path d="${area}" fill="var(--st)" opacity=".18"/>
+    <path d="${line}" fill="none" stroke="var(--st)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+    <line x1="${px.toFixed(1)}" y1="0" x2="${px.toFixed(1)}" y2="${H}" stroke="var(--st2)" stroke-width="1" stroke-dasharray="2 2" opacity=".55"/>
+    <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4.6" fill="var(--st)" opacity=".22"/>
+    <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="2.4" fill="#fff"/>
+  </svg>`;
+}
+
+/* ==== 02 地形：三层等高叠片 ==== */
+function ridgeSVG(st){
+  const W = 316, H = 46, PAD = 5;
+  const layers = [
+    { s: 1.00, o: .20 },
+    { s: 0.72, o: .16 },
+    { s: 0.46, o: .13 }
+  ];
+  let out = '';
+  layers.forEach((L, i) => {
+    const d = wavePath(st, W, H, PAD, L.s);
+    out += `<path d="${d} L ${W},${H} L 0,${H} Z" fill="var(--st)" opacity="${L.o}"/>`;
+    out += `<path d="${d}" fill="none" stroke="var(--st)" stroke-width="1.3" opacity="${.55 - i * .1}" stroke-linejoin="round"/>`;
+  });
+  const [px, py] = wavePt(st, W, H, PAD, st.nowPct);
+  out += `<line x1="0" y1="${H - 0.5}" x2="${W}" y2="${H - 0.5}" stroke="var(--st)" stroke-width="1" opacity=".28"/>`;
+  out += `<line x1="${px.toFixed(1)}" y1="${(py - 6).toFixed(1)}" x2="${px.toFixed(1)}" y2="${H}" stroke="var(--st)" stroke-width="1" stroke-dasharray="2 2" opacity=".6"/>`;
+  out += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="var(--bg)" stroke="var(--st)" stroke-width="1.6"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${out}</svg>`;
+}
+
+/* ==== 04 环形波 ==== */
+function loopSVG(st){
+  const cx = 150, cy = 150, N = 180;
+  const baseR = 94, amp = 27;
+  let d = '';
+  for (let i = 0; i <= N; i++){
+    const h = i / N * 24;
+    const deg = h / 24 * 360;
+    const r = baseR + valOf(st, h) * amp;
+    const a = (deg - 90) * Math.PI / 180;
+    const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+    d += (i ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1);
+  }
+  const ring = d + 'Z';
+  const nowDeg = st.nowPct / 100 * 360;
+  const nowR = baseR + valOf(st, st.nowPct / 100 * 24) * amp;
+  const na = (nowDeg - 90) * Math.PI / 180;
+  const nx = cx + nowR * Math.cos(na), ny = cy + nowR * Math.sin(na);
+  return `<svg viewBox="0 0 300 300" aria-hidden="true">
+    <circle cx="150" cy="150" r="149" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+    <path d="${ring}" fill="var(--st)" opacity=".10"/>
+    <circle cx="${cx}" cy="${cy}" r="76" fill="var(--bg)"/>
+    <circle cx="${cx}" cy="${cy}" r="${baseR}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="1 3"/>
+    <path d="${d}" fill="none" stroke="var(--st)" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="5.5" fill="var(--st)" opacity=".25"/>
+    <circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="2.8" fill="#fff"/>
+  </svg>`;
+}
+
+/* ==== 05 双峰：两座尖峰 + 峰谷标注 ==== */
+function twinSVG(st){
+  const W = 224, H = 112, BASE = 96, TOP = 26;
+  /* 手绘两座尖峰：位置对应 09–12 与 14–18，但峰形夸张，为了一眼能读 */
+  const peaks = st.allDay
+    ? `M 8 ${BASE} L 70 ${BASE - 10} L 112 ${BASE} L 154 ${BASE - 10} L 216 ${BASE}`
+    : `M 8 ${BASE} L 40 ${BASE - 8} L 62 ${TOP + 14} L 84 ${BASE} L 112 ${BASE - 6} L 136 ${TOP} L 160 ${BASE} L 216 ${BASE}`;
+  const [px, py] = wavePt(st, W, H, 12, st.nowPct);
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">
+    <path d="${peaks} L 216 ${H} L 8 ${H} Z" fill="var(--st)" opacity=".13"/>
+    <path d="${peaks}" fill="none" stroke="var(--st)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+    <line x1="8" y1="${BASE}" x2="216" y2="${BASE}" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
+    <line x1="${px.toFixed(1)}" y1="${(py - 8).toFixed(1)}" x2="${px.toFixed(1)}" y2="${BASE}" stroke="var(--st2)" stroke-width="1" stroke-dasharray="2 2" opacity=".6"/>
+    <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3.4" fill="#fff"/>
+    ${st.allDay ? '' : `
+      <text x="73" y="${TOP + 4}" fill="var(--st2)" font-size="9" font-family="Microsoft YaHei UI,sans-serif" text-anchor="middle">峰</text>
+      <text x="136" y="${TOP - 10}" fill="var(--st2)" font-size="9" font-family="Microsoft YaHei UI,sans-serif" text-anchor="middle">峰</text>
+      <text x="98" y="${BASE + 9}" fill="var(--dim)" font-size="9" font-family="Microsoft YaHei UI,sans-serif" text-anchor="middle">谷</text>`}
+  </svg>`;
+}
+
+/* ==== 六种形态 ==== */
+function widget(plan, st){
+  const o = `<div class="w w-${plan.type}" data-d="${plan.id}" data-m="${st.mode}">`;
+
+  if (plan.type === 'scope') return `${o}
+    <div class="sc-mesh"></div>
+    <div class="content">
+      ${stRow(st)}
+      <div style="margin-top:7px">${clockEl(st)}</div>
+      <div style="margin-top:3px">${dRow(st)}</div>
+      <div class="sc-wave">${scopeSVG(st)}</div>
+      <div class="sc-foot">${cdRow(st)}</div>
+    </div></div>`;
+
+  if (plan.type === 'ridge') return `${o}
+    <div class="content">
+      ${stRow(st)}
+      <div style="margin-top:6px">${clockEl(st)}</div>
+      <div style="margin-top:3px">${dRow(st)}</div>
+      <div style="margin-top:5px">${cdRow(st)}</div>
+      <div class="rd-sp"></div>
+      <div class="rd-terrain">${ridgeSVG(st)}</div>
+    </div></div>`;
+
+  if (plan.type === 'candle') return `${o}
+    <div class="content">
+      ${stRow(st)}
+      <div style="margin-top:6px">${clockEl(st)}</div>
+      <div style="margin-top:3px">${dRow(st)}</div>
+      <div class="cd-chart">${candleBars(st)}</div>
+      <div class="sc-foot">${cdRow(st)}</div>
+    </div></div>`;
+
+  if (plan.type === 'loop') return `${o}
+    <div class="ring">${loopSVG(st)}</div>
+    <div class="content"><div class="lp-body">
+      <div class="lp-name">${st.mode === 'peak' ? peakIcon : freeIcon}${st.name}</div>
+      <div class="clock" data-t="${st.time}" style="margin-top:10px">${st.time}</div>
+      <div class="lp-mult">${st.price}<em>×</em></div>
+      ${dRow(st)}
+      ${cdRow(st)}
+    </div></div></div>`;
+
+  if (plan.type === 'twin') return `${o}
+    <div class="content">
+      <div class="tw-left">
+        ${stRow(st)}
+        <div class="clock" data-t="${st.time}" style="margin-top:4px">${st.time}</div>
+        ${dRow(st)}
+        ${cdRow(st)}
+      </div>
+      <div class="tw-peaks">${twinSVG(st)}</div>
+    </div></div>`;
+
+  /* split：全天空闲时把红色压到 12%，视觉上就是"今天没有峰" */
+  const splitStyle = st.allDay
+    ? ` style="--sp-bg:linear-gradient(104deg,#E85D3D 0%,#E85D3D 12%,#2FB89A 12%,#2FB89A 100%)"`
+    : '';
+  return `<div class="w w-split" data-d="${plan.id}" data-m="${st.mode}"${splitStyle}>
+    <div class="content">
+      ${stRow(st)}
+      <div style="margin-top:10px">${clockEl(st)}</div>
+      <div style="margin-top:4px">${dRow(st)}</div>
+      <div class="sp-sp"></div>
+      ${cdRow(st)}
+      <div class="sp-legend"><i></i>今日 峰 7h · 谷 17h${st.allDay ? ' · 全天在谷' : ''}</div>
+    </div></div>`;
+}
+
+/* K 线：24 根柱，高度 = 倍率（峰 100%，谷 50%） */
+function candleBars(st){
+  let out = `<i class="cd-base"></i>`;
+  const nowH = Math.floor(st.nowPct / 100 * 24);
+  for (let i = 0; i < 24; i++){
+    const isPeak = !st.allDay && ((i >= 9 && i < 12) || (i >= 14 && i < 18));
+    const cls = `cd-bar ${isPeak ? 'pk' : 'fw'}${i === nowH ? ' now' : ''}`;
+    out += `<i class="${cls}" style="height:${isPeak ? 100 : 50}%"></i>`;
+  }
+  return out;
+}
+
+function cell(plan, key){
+  const st = S[key];
+  return `<div class="cell">${widget(plan, st)}<div class="cell-cap">${st.caption}</div></div>`;
+}
+
+/* ==== 方案 ==== */
+const PLANS = [
+{
+  id:'01', name:'示波器', en:'Scope', type:'scope', diff:'难度 中',
+  tagline:'一整天的计费画成一条连续波形：两个平台是峰，中间凹陷是午间谷。当前时刻是波形上的一个亮点。',
+  tags:['深色 320×180','连续波形','WPF 难度：中'],
+  tokens:[
+    ['底色','#111318','#111318'],
+    ['峰色','#E85D3D','#E85D3D'],
+    ['谷色','#2FB89A','#2FB89A'],
+    ['圆角','12px'],
+    ['时钟','Segoe UI 36px · tnum'],
+    ['波形','96 段采样 · 1.8px'],
+    ['填充','峰色 13% 透明度'],
+    ['网格','16px · 3.5% 白'],
+    ['动效','悬停上浮 3px'],
+    ['信息','状态 / 倍率 / 时钟 / 日期 / 倒计时']
+  ],
+  pros:[
+    '唯一画出「连续函数」的方案，能看出离切换还有多远（看坡度）',
+    '波形本身承载时间轴，不需要额外的进度条',
+    '深色屏 + 网格，最像一台仪器读数',
+    '状态色只在曲线和文字上出现，克制'
+  ],
+  cons:[
+    '波形是抽象表达，第一次看需要 1 秒理解"高处=贵"',
+    '96 段路径在 WPF 里要代码生成，不能手写 XAML',
+    '深色底在亮色桌面上是一块明显深色矩形'
+  ],
+  wpf:'波形用 <code>Path</code> + <code>PolyLineSegment</code>，96 个采样点由代码按 <code>waveVal(h)</code> 生成一次即可。<b>不要在 XAML 里手写</b>——写个 <code>BuildWave()</code> 在 Loaded 里跑一次。当前点 = 同一函数在 <code>t/24</code> 处取值定位。填充用同一 Path 闭合后 <code>Fill=状态色 Opacity 0.13</code>。全程零动画。'
+},
+{
+  id:'02', name:'地形', en:'Ridge', type:'ridge', diff:'难度 低',
+  tagline:'浅色地形剖面：三层等高叠片堆出两座山，当前时刻插一面小旗。纸感、安静、不打扰。',
+  tags:['浅色 316×180','地形剖面','WPF 难度：低'],
+  tokens:[
+    ['底色','#FBF9F4','#FBF9F4'],
+    ['峰色','#E85D3D','#E85D3D'],
+    ['谷色','#2FB89A','#2FB89A'],
+    ['圆角','14px'],
+    ['时钟','Segoe UI 38px'],
+    ['地形','3 层 · 100/72/46%'],
+    ['填充','20% / 16% / 13%'],
+    ['描边','1.3px · 55/45/35%'],
+    ['动效','悬停上浮 3px'],
+    ['信息','状态 / 倍率 / 时钟 / 日期 / 倒计时']
+  ],
+  pros:[
+    '浅色桌面上几乎隐形，最不打扰',
+    '三层叠片有插画感，比纯色块耐看',
+    '峰值位置严格对应 09–12 / 14–18，不是示意',
+    'WPF 只需 3 条 Path，成本极低'
+  ],
+  cons:[
+    '浅色底在深色壁纸上是一块明显白板',
+    '三层叠片在 125% 缩放下边缘容易糊，需按 DPI 取整',
+    '峰的高度不代表价格，只代表"是否高峰"，可能被误读'
+  ],
+  wpf:'三层 <code>Path</code>，每层是同一个 <code>BuildWave()</code> 结果乘以 1.0 / 0.72 / 0.46 的纵向缩放，分别填 <code>#E85D3D</code> 的 20% / 16% / 13%。描边单独一条 Path。当前时刻的小旗 = <code>Ellipse</code> + 一条虚线 <code>Line</code>。无 Effect。'
+},
+{
+  id:'03', name:'K 线', en:'Candle', type:'candle', diff:'难度 低',
+  tagline:'24 根蜡烛，柱子越高越贵。高峰是红烛（涨），空闲是绿烛——股民不用解释就懂。',
+  tags:['深色 316×180','蜡烛图','WPF 难度：低'],
+  tokens:[
+    ['底色','#14161C','#14161C'],
+    ['峰色','#E85D3D','#E85D3D'],
+    ['谷色','#2FB89A 45%','#2FB89A'],
+    ['圆角','10px'],
+    ['时钟','Segoe UI 34px'],
+    ['柱数','24 根 · 间距 2px'],
+    ['柱高','峰 100% / 谷 50%'],
+    ['当前柱','白描边 + 外发光'],
+    ['动效','悬停上浮 3px'],
+    ['信息','状态 / 倍率 / 时钟 / 日期 / 倒计时']
+  ],
+  pros:[
+    '红涨绿跌是中文金融语境的本能，零学习成本',
+    '柱高 = 倍率，一眼看出"哪几个小时贵"',
+    '24 根柱就是 24 小时，时间轴隐含在结构里',
+    '纯 Rectangle，WPF 里最好落地'
+  ],
+  cons:[
+    '红绿配色在色盲用户眼里可能难分辨，需要柱高做冗余',
+    '蜡烛图的"涨跌"语义会被误读为价格在波动（其实是固定两档）',
+    '24 根柱在 316px 宽下每根仅 9px，125% 缩放下易糊'
+  ],
+  wpf:'24 个 <code>Rectangle</code> 放进 <code>UniformGrid Columns="24"</code>，高度用 <code>Height="44"</code> / <code>"22"</code> 两档，<code>VerticalAlignment=Bottom</code>。当前柱加 <code>Border</code> 白描边。<b>不需要画布计算</b>，这是六个方案里最容易落地的一个。'
+},
+{
+  id:'04', name:'环波', en:'Loop', type:'loop', diff:'难度 高',
+  tagline:'把波形卷成一圈：24 小时绕圆盘起伏，两个峰在环上鼓出来。中心留白给数字。',
+  tags:['圆盘 Ø300','环形波形','WPF 难度：高'],
+  tokens:[
+    ['底色','#13151B','#13151B'],
+    ['峰色','#E85D3D','#E85D3D'],
+    ['谷色','#2FB89A','#2FB89A'],
+    ['圆角','50%（正圆）'],
+    ['时钟','Segoe UI 34px'],
+    ['基半径','94px · 振幅 27px'],
+    ['采样','180 段'],
+    ['填充','峰色 14%'],
+    ['动效','悬停上浮 3px'],
+    ['信息','状态 / 倍率 / 时钟 / 日期 / 倒计时']
+  ],
+  pros:[
+    '最像桌面摆件，圆形天然避开四角',
+    '环形波形比线性波形更"耐看"，因为首尾相接',
+    '中心区域干净，数字没有被装饰干扰',
+    '峰在环上鼓出的位置对应真实时段'
+  ],
+  cons:[
+    'Ø300 占桌面面积约为常规型的 2.4 倍',
+    '极坐标采样在 WPF 里要自己算 sin/cos，代码量最大',
+    '环形波形在 12 点位置有接缝，需处理首尾闭合',
+    '信息密度最低'
+  ],
+  wpf:'180 个采样点按 <code>r = 94 + waveVal(h)*27</code> 算极坐标，转成 <code>Point</code> 后塞进 <code>PolyLineSegment</code>。<b>首尾必须闭合</b>（第 180 点与第 0 点重合），否则 12 点方向会有缺口。当前点用 <code>Ellipse</code> 定位。刻度环用 <code>Ellipse.Stroke</code> 即可。'
+},
+{
+  id:'05', name:'双峰', en:'Twin', type:'twin', diff:'难度 中',
+  tagline:'横条右侧画两座尖峰，峰顶标「峰」、谷底标「谷」——最直白的一张梗图。',
+  tags:['横条 460×112','双峰 + 标注','WPF 难度：中'],
+  tokens:[
+    ['底色','#12141A','#12141A'],
+    ['峰色','#E85D3D','#E85D3D'],
+    ['谷色','#2FB89A','#2FB89A'],
+    ['圆角','12px'],
+    ['时钟','Segoe UI 34px'],
+    ['峰顶','y=26 / 峰底 y=96'],
+    ['标注','峰 / 谷 · 9px'],
+    ['左栏','236px 固定'],
+    ['动效','悬停上浮 3px'],
+    ['信息','状态 / 倍率 / 时钟 / 日期 / 倒计时']
+  ],
+  pros:[
+    '「峰」「谷」两个汉字直接标在图上，零解释成本',
+    '横条形态贴合任务栏，不占桌面工作区',
+    '两座尖峰造型比曲线更有记忆点，适合截图传播',
+    '460px 宽度让倒计时和日期文案都很宽松'
+  ],
+  cons:[
+    '峰形是夸张化的，不严格对应时间比例（已注明）',
+    '460px 比常规型宽 45%，窄屏靠右会顶边',
+    '「峰 / 谷」标注在浅色场景下需要换色，否则看不清'
+  ],
+  wpf:'两座峰是一条 <code>PolyLine</code>，7 个顶点写死即可（因为形状是示意，不需要按时间计算）。标注用 <code>TextBlock</code> 定位在峰顶。<b>这是六个方案里唯一可以完全手写 XAML 的。</b>左栏 236px 固定宽，右侧 <code>Viewbox</code> 自适应。'
+},
+{
+  id:'06', name:'半谷', en:'Split', type:'split', diff:'难度 低',
+  tagline:'整块斜切成两半：红的是峰、绿的是谷，面积比就是今天的时长比。现在是谁，谁的面积就大。',
+  tags:['双色斜切 300×170','海报感','WPF 难度：低'],
+  tokens:[
+    ['峰色','#E85D3D','#E85D3D'],
+    ['谷色','#2FB89A','#2FB89A'],
+    ['峰态分割','64% / 36%'],
+    ['谷态分割','36% / 64%'],
+    ['圆角','16px'],
+    ['时钟','Segoe UI 38px · 白'],
+    ['文字','#FFFFFF + 描边'],
+    ['标注','峰 7h · 谷 17h'],
+    ['动效','悬停上浮 3px'],
+    ['信息','状态 / 倍率 / 时钟 / 日期 / 倒计时']
+  ],
+  pros:[
+    '视觉冲击最强，像一张海报',
+    '面积比 = 今日峰谷时长比，信息藏在构图里',
+    '状态切换时整块配色比例翻转，变化非常明显',
+    '两个矩形 + 一个渐变，WPF 里几乎零成本'
+  ],
+  cons:[
+    '高饱和双色在桌面上非常跳，长时间注视会累',
+    '文字跨在两种底色交界处，可读性依赖描边',
+    '信息密度最低，且没有时间轴',
+    '斜切角度在缩放时需要按 DPI 重算，否则锯齿明显'
+  ],
+  wpf:'<code>Border</code> + <code>LinearGradientBrush</code>，两个 <code>GradientStop</code> 在同一 offset 上硬切换（如 <code>0.64</code> 与 <code>0.6401</code>）就得到斜切效果，<b>不需要 Clip</b>。文字加 <code>DropShadowEffect</code>（BlurRadius 6、Opacity 0.5）保证跨色可读。比例切换用 <code>ColorAnimation</code> 或直接换 Brush。'
+}
+];
+
+/* ==== 渲染 ==== */
+document.getElementById('app').innerHTML = PLANS.map(p => `
+<section class="plan" id="p${p.id}">
+  <div class="plan-head">
+    <div class="plan-num">${p.id}</div>
+    <div>
+      <h2 class="plan-name">${p.name}<small>${p.en}</small></h2>
+      <p class="plan-tagline">${p.tagline}</p>
+    </div>
+    <div class="plan-tags">${p.tags.map(t => `<span>${t}</span>`).join('')}</div>
+  </div>
+  <div class="tokens">
+    ${p.tokens.map(([k,v,c]) => `<div class="token"><b>${k}</b>${c ? `<i class="sw" style="background:${c}"></i>` : ''}<span>${v}</span></div>`).join('')}
+  </div>
+  <div class="scene wall-dark">
+    <div class="scene-cap"><b>场景 A</b> 深色桌面 · 四态并排 · 1.15×</div>
+    <div class="grid4">${['peak','night','weekend','holiday'].map(k => cell(p,k)).join('')}</div>
+  </div>
+  <div class="scene wall-light">
+    <div class="scene-cap"><b>场景 B</b> 浅色桌面 · 极端文案压力测试</div>
+    <div class="grid2">${cell(p,'extreme')}${cell(p,'peak')}</div>
+  </div>
+  <div class="pc">
+    <div class="pc-box"><h4>优点</h4><ul>${p.pros.map(x => `<li>${x}</li>`).join('')}</ul></div>
+    <div class="pc-box"><h4>取舍</h4><ul>${p.cons.map(x => `<li>${x}</li>`).join('')}</ul></div>
+  </div>
+  <div class="wpf"><h4>WPF 还原 · ${p.diff}</h4>${p.wpf}</div>
+</section>
+`).join('');
+
+/* ==== 时钟：秒位真实走动 ==== */
+(function tick(){
+  const els = Array.from(document.querySelectorAll('[data-t]'));
+  if (!els.length) return;
+  const base = els.map(el => {
+    const [h,m,s] = el.dataset.t.split(':').map(Number);
+    return h*3600 + m*60 + s;
+  });
+  const t0 = Date.now();
+  const pad = n => String(n).padStart(2,'0');
+  const run = () => {
+    const d = Math.floor((Date.now() - t0) / 1000);
+    for (let i = 0; i < els.length; i++){
+      const t = (base[i] + d) % 86400;
+      els[i].textContent = pad(Math.floor(t/3600)) + ':' + pad(Math.floor(t%3600/60)) + ':' + pad(t%60);
+    }
+  };
+  run();
+  setInterval(run, 1000);
+})();
+</script>
+</div>
+</body>
+</html>

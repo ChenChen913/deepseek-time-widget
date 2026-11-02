@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-state="peak">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>C6 → F1 · 方案优化实验</title>
+<style>
+/* ============ 页面基底 ============ */
+:root{
+  --page:#08090B;
+  --panel:#101216;
+  --line:#23262C;
+  --line-soft:#1A1D22;
+  --ink:#E9ECEF;
+  --muted:#8B919B;
+  --dim:#5A616B;
+  --amber:#F5A524;
+  --accent:#F5A524;
+  --accent-soft:#FCD34D;
+  --on-accent:#0B0C0E;
+  --sans:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",sans-serif;
+  --mono:"Cascadia Mono","Consolas","Microsoft YaHei UI",monospace;
+  --serif:"Songti SC","SimSun","STSong",serif;
+}
+body[data-state="idle"]{ --accent:#34D399; --accent-soft:#6EE7B7; --on-accent:#04140F; }
+body[data-state="weekend"]{ --accent:#38BDF8; --accent-soft:#7DD3FC; --on-accent:#04121C; }
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ color-scheme:dark; }
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(900px 480px at 8% -8%, rgba(245,165,36,.10), transparent 60%),
+    radial-gradient(760px 520px at 96% 8%, rgba(45,212,191,.07), transparent 60%),
+    radial-gradient(900px 620px at 50% 120%, rgba(56,189,248,.05), transparent 65%),
+    var(--page);
+  color:var(--ink);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size:28px 28px;
+  mask-image:radial-gradient(circle at 50% 0%, #000 0%, transparent 78%);
+}
+body::after{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.16;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='n' opacity='.35'/></svg>");
+}
+.wrap{ position:relative; z-index:2; max-width:1540px; margin:0 auto; padding:0 34px 80px; }
+
+/* ============ 页头 ============ */
+.masthead{ display:flex; justify-content:space-between; align-items:flex-end; gap:40px; padding:54px 0 30px; border-bottom:1px solid var(--line); }
+.kicker{ display:flex; align-items:center; gap:10px; font:600 10.5px/1 var(--mono); letter-spacing:.22em; color:var(--amber); text-transform:uppercase; }
+.kicker i{ width:22px; height:1px; background:var(--amber); }
+h1{ margin:18px 0 10px; font:400 clamp(34px,4.2vw,58px)/1.04 var(--serif); letter-spacing:-.02em; }
+h1 em{ font-style:italic; color:var(--amber); }
+.sub{ max-width:560px; font:400 13px/1.75 var(--sans); color:var(--muted); }
+.mast-right{ display:flex; flex-direction:column; align-items:flex-end; gap:14px; flex:0 0 auto; }
+.range-label{ font:500 10px/1 var(--mono); letter-spacing:.18em; color:var(--dim); }
+.code-list{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.code-list span{ display:inline-flex; align-items:center; justify-content:center; min-width:38px; height:26px; border:1px solid var(--line); border-radius:4px; font:500 10.5px/1 var(--mono); color:var(--muted); background:#0B0D10; }
+.code-list span.on{ border-color:rgba(245,165,36,.55); color:var(--amber); background:rgba(245,165,36,.08); }
+
+/* ============ 控制条 ============ */
+.toolbar{
+  position:sticky; top:0; z-index:20;
+  display:flex; align-items:center; gap:26px; flex-wrap:wrap;
+  padding:14px 18px; margin:22px 0 34px;
+  background:rgba(10,11,14,.82);
+  border:1px solid var(--line); border-radius:12px;
+  backdrop-filter:blur(18px) saturate(1.2);
+  box-shadow:0 18px 40px rgba(0,0,0,.35);
+}
+.tool-group{ display:flex; align-items:center; gap:10px; }
+.tool-label{ font:500 9.5px/1 var(--mono); letter-spacing:.16em; color:var(--dim); text-transform:uppercase; }
+.seg{ display:flex; padding:3px; background:#0A0C0F; border:1px solid var(--line); border-radius:8px; }
+.seg button{ border:0; background:transparent; color:var(--muted); font:500 11.5px/1 var(--sans); padding:7px 13px; border-radius:5px; cursor:pointer; transition:.18s; }
+.seg button.on{ background:var(--accent); color:var(--on-accent); font-weight:700; }
+.time-box{ display:flex; align-items:center; gap:14px; flex:1 1 420px; min-width:320px; }
+.time-read{ font:600 21px/1 var(--mono); letter-spacing:.04em; color:var(--ink); min-width:92px; }
+.time-read small{ font-size:11px; color:var(--dim); margin-left:6px; letter-spacing:.1em; }
+input[type=range]{ -webkit-appearance:none; appearance:none; flex:1; height:26px; background:transparent; cursor:pointer; }
+input[type=range]::-webkit-slider-runnable-track{ height:3px; border-radius:2px; background:linear-gradient(90deg, var(--accent) 0 var(--p,44%), #23262C var(--p,44%) 100%); }
+input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:15px; height:15px; margin-top:-6px; border-radius:50%; background:#0A0C0F; border:2px solid var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+input[type=range]::-moz-range-track{ height:3px; border-radius:2px; background:#23262C; }
+input[type=range]::-moz-range-thumb{ width:13px; height:13px; border-radius:50%; background:#0A0C0F; border:2px solid var(--accent); }
+.mode-chip{ display:flex; align-items:center; gap:7px; font:600 10.5px/1 var(--mono); letter-spacing:.12em; padding:7px 10px; border:1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius:6px; color:var(--accent); background:color-mix(in srgb, var(--accent) 9%, transparent); }
+.mode-chip b{ width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); animation:pulse 2s infinite; }
+.tool-right{ margin-left:auto; display:flex; align-items:center; gap:18px; }
+.switch{ display:flex; align-items:center; gap:9px; cursor:pointer; user-select:none; }
+.switch input{ position:absolute; opacity:0; pointer-events:none; }
+.switch .tr{ width:34px; height:18px; border-radius:9px; background:#23262C; border:1px solid #2E323A; position:relative; transition:.18s; }
+.switch .tr::after{ content:""; position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:#8B919B; transition:.18s; }
+.switch input:checked + .tr{ background:color-mix(in srgb, var(--accent) 28%, #0A0C0F); border-color:color-mix(in srgb, var(--accent) 55%, transparent); }
+.switch input:checked + .tr::after{ left:18px; background:var(--accent); }
+.switch span{ font:500 10.5px/1 var(--mono); letter-spacing:.08em; color:var(--muted); }
+
+/* ============ 网格与画框 ============ */
+.grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(410px,1fr)); gap:26px; align-items:start; }
+.frame{
+  position:relative; padding:18px 18px 16px;
+  background:linear-gradient(180deg,#121418 0%,#0C0E11 100%);
+  border:1px solid var(--line); border-radius:16px;
+  transition:border-color .25s, transform .25s, box-shadow .25s;
+}
+.frame:hover{ border-color:#33383F; transform:translateY(-3px); box-shadow:0 22px 46px rgba(0,0,0,.36); }
+.frame-head{ display:flex; align-items:baseline; gap:11px; margin-bottom:14px; }
+.frame-head .idx{ font:500 10px/1 var(--mono); letter-spacing:.16em; color:var(--dim); }
+.frame-head h3{ font:600 14px/1 var(--sans); letter-spacing:.01em; }
+.frame-head .tag{ margin-left:auto; font:500 9.5px/1 var(--mono); letter-spacing:.14em; color:var(--dim); text-transform:uppercase; white-space:nowrap; }
+.stage{
+  position:relative; border-radius:12px; padding:22px 18px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.028), transparent 66%),
+    radial-gradient(rgba(255,255,255,.055) .6px, transparent .7px) 0 0/11px 11px,
+    #070809;
+  border:1px solid #171A1F;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.stage::before, .stage::after{
+  content:""; position:absolute; width:10px; height:10px; border-color:#2A2E35; border-style:solid; opacity:.9;
+}
+.stage::before{ left:7px; top:7px; border-width:1px 0 0 1px; }
+.stage::after{ right:7px; bottom:7px; border-width:0 1px 1px 0; }
+.notes{ display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:13px; padding-top:12px; border-top:1px solid var(--line-soft); }
+.notes span{ font:400 10.5px/1.5 var(--mono); color:#7C828C; }
+.notes span::before{ content:"+ "; color:var(--amber); }
+.page-foot{ display:flex; justify-content:space-between; gap:20px; margin-top:52px; padding-top:20px; border-top:1px solid var(--line); font:400 10.5px/1.7 var(--mono); color:var(--dim); }
+
+@keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+body.motion-off *{ animation-play-state:paused !important; }
+@media (prefers-reduced-motion:reduce){ *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; } }
+@media (max-width:760px){
+  .wrap{ padding:0 16px 60px; }
+  .masthead{ flex-direction:column; align-items:flex-start; padding-top:34px; }
+  .mast-right{ align-items:flex-start; }
+  .grid{ grid-template-columns:1fr; }
+}
+
+/* ---------- C6 · 色块 ---------- */
+.c6{
+  --block:#E8A33A; --ink:#1A1206;
+  position:relative; width:100%; max-width:392px; aspect-ratio:1.68/1;
+  display:flex; flex-direction:column; padding:20px 22px 18px;
+  border-radius:16px; overflow:hidden;
+  background:var(--block); color:var(--ink);
+  box-shadow:0 20px 40px rgba(0,0,0,.38), inset 0 0 0 1px rgba(26,18,6,.16);
+  transition:background .35s;
+}
+body[data-state="idle"] .c6{ --block:#2FAE93; }
+body[data-state="weekend"] .c6{ --block:#46B7CF; }
+.c6::before{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background:
+    radial-gradient(circle at 84% 0%, rgba(255,255,255,.22), transparent 44%),
+    repeating-linear-gradient(0deg, rgba(26,18,6,.035) 0 1px, transparent 1px 5px);
+}
+.c6-ring{ position:absolute; border:1px solid rgba(26,18,6,.18); border-radius:50%; pointer-events:none; }
+.c6-ring.a{ width:230px; height:230px; right:-84px; top:-96px; }
+.c6-ring.b{ width:126px; height:126px; right:-26px; top:-18px; }
+.c6-top{ display:flex; align-items:flex-start; justify-content:space-between; position:relative; }
+.c6-status{ display:flex; align-items:baseline; gap:8px; font:800 12.5px/1 var(--sans); letter-spacing:.01em; }
+.c6-status .sq{ width:7px; height:7px; background:var(--ink); align-self:center; transform:translateY(-1px); }
+.c6-status em{ font:600 8.5px/1 var(--mono); letter-spacing:.18em; opacity:.62; font-style:normal; }
+.c6-rate{
+  display:flex; align-items:baseline; gap:2px; padding:5px 9px 4px;
+  border:1.5px solid var(--ink); border-radius:3px; transform:rotate(-2deg);
+  font:800 17px/1 var(--mono); letter-spacing:-.02em;
+}
+.c6-rate span{ font-size:11px; opacity:.7; }
+.c6-rate em{ font:600 8px/1 var(--mono); letter-spacing:.12em; opacity:.55; margin-left:4px; font-style:normal; }
+.c6-clock{ position:relative; margin-top:10px; display:flex; align-items:flex-end; font:800 47px/1 var(--sans); letter-spacing:-.045em; font-variant-numeric:tabular-nums; }
+.c6-clock .js-sec{ font:600 17px/1 var(--mono); letter-spacing:0; opacity:.62; margin:0 0 5px 4px; }
+.c6-meta{ display:flex; align-items:center; gap:7px; margin-top:5px; font:500 10.5px/1 var(--mono); letter-spacing:.04em; opacity:.72; }
+.c6-meta .dot{ width:3px; height:3px; border-radius:50%; background:var(--ink); opacity:.5; }
+.c6-meta b{ margin-left:auto; font-weight:600; letter-spacing:.1em; opacity:.9; }
+.c6-timeline{ position:relative; margin-top:auto; padding-top:16px; }
+.c6-bars{ display:flex; gap:1.5px; height:24px; align-items:stretch; }
+.c6-bars i{ flex:1; background:rgba(26,18,6,.14); border-radius:1px; }
+.c6-bars i.pk{ background:rgba(26,18,6,.68); }
+.c6-bars i.now{ box-shadow:0 0 0 1.5px var(--ink); background:rgba(26,18,6,.86); }
+.c6-now{ position:absolute; top:9px; bottom:14px; width:2px; background:var(--ink); transform:translateX(-1px); }
+.c6-now::before{ content:""; position:absolute; top:-4px; left:-3px; width:8px; height:8px; border-radius:50%; background:var(--ink); }
+.c6-axis{ display:flex; justify-content:space-between; margin-top:5px; font:500 8px/1 var(--mono); letter-spacing:.08em; opacity:.5; }
+.c6-foot{ display:flex; align-items:baseline; gap:12px; margin-top:9px; padding-top:8px; border-top:1px solid rgba(26,18,6,.18); }
+.c6-foot .cd{ display:flex; align-items:baseline; gap:7px; font:600 9px/1 var(--mono); letter-spacing:.12em; opacity:.75; }
+.c6-foot .cd b{ font:700 13px/1 var(--mono); letter-spacing:.02em; opacity:1; }
+.c6-foot .st{ margin-left:auto; font:500 9px/1 var(--mono); letter-spacing:.1em; opacity:.6; }
+
+/* ---------- D1 · 峰谷波形 ---------- */
+.d1{
+  position:relative; width:100%; max-width:392px;
+  padding:18px 20px 15px; border-radius:15px; overflow:hidden;
+  background:
+    radial-gradient(180px 130px at 0% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    linear-gradient(rgba(255,255,255,.032) 1px, transparent 1px) 0 0/20px 20px,
+    linear-gradient(90deg, rgba(255,255,255,.032) 1px, transparent 1px) 0 0/20px 20px,
+    #101114;
+  border:1px solid #232823;
+  box-shadow:0 22px 44px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.03);
+  transition:background .35s;
+}
+.d1-head{ display:flex; align-items:center; justify-content:space-between; }
+.d1-status{ display:flex; align-items:center; gap:7px; font:700 12.5px/1 var(--sans); color:var(--accent); transition:color .3s; }
+.d1-status svg{ width:15px; height:15px; }
+.d1-rate{ display:flex; align-items:baseline; gap:2px; font:800 19px/1 var(--mono); color:var(--accent); transition:color .3s; }
+.d1-rate span{ font-size:11px; opacity:.65; }
+.d1-rate em{ font:500 9px/1 var(--mono); letter-spacing:.1em; color:var(--dim); margin-left:5px; font-style:normal; }
+.d1-hero{ display:flex; align-items:flex-end; justify-content:space-between; margin-top:12px; }
+.d1-clock{ display:flex; align-items:flex-end; font:500 40px/1 var(--sans); letter-spacing:-.02em; color:#F3F5F7; font-variant-numeric:tabular-nums; }
+.d1-clock .js-sec{ font:500 14px/1 var(--mono); color:#9AA1AA; margin:0 0 4px 3px; }
+.d1-meta{ text-align:right; font:500 9.5px/1.65 var(--mono); letter-spacing:.08em; color:#818892; }
+.d1-meta b{ display:block; color:#AEB5BE; font-weight:600; }
+.d1-scope{ position:relative; margin-top:8px; height:104px; }
+.d1-scope svg, .f1-scope svg{ color:var(--accent); }
+.d1-scope svg{ position:absolute; inset:0; width:100%; height:100%; }
+.d1-ylab{ position:absolute; left:0; font:500 7.5px/1 var(--mono); letter-spacing:.1em; color:rgba(255,255,255,.38); }
+.d1-ylab.hi{ top:2px; } .d1-ylab.lo{ bottom:12px; }
+.d1-xrow{ display:flex; justify-content:space-between; padding:0 2px; font:500 7.5px/1 var(--mono); letter-spacing:.1em; color:rgba(255,255,255,.32); }
+.d1-foot{ display:flex; align-items:baseline; justify-content:space-between; margin-top:9px; padding-top:9px; border-top:1px solid rgba(255,255,255,.08); }
+.d1-cd{ display:flex; align-items:baseline; gap:7px; font:500 10px/1 var(--mono); letter-spacing:.08em; color:#9AA1AA; }
+.d1-cd b{ font:700 13px/1 var(--mono); color:var(--accent); letter-spacing:.02em; }
+.d1-st{ font:500 9px/1 var(--mono); letter-spacing:.1em; color:#666E78; }
+.d1-line{ stroke:var(--accent); stroke-width:2.2; fill:none; filter:drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 55%, transparent)); }
+.d1-area{ fill:var(--accent); fill-opacity:.12; }
+.d1-grid{ stroke:rgba(255,255,255,.10); stroke-width:1; stroke-dasharray:2 4; }
+.d1-nowline{ stroke:rgba(255,255,255,.5); stroke-width:1; stroke-dasharray:2 3; }
+.d1-dot{ fill:#FFFFFF; filter:drop-shadow(0 0 6px rgba(255,255,255,.8)); }
+.d1-pill{ font:600 8.5px/1 var(--mono); fill:#FFFFFF; }
+
+/* ---------- D3 · K 线 ---------- */
+.d3{
+  position:relative; width:100%; max-width:392px;
+  padding:18px 20px 15px; border-radius:15px; overflow:hidden;
+  background:
+    radial-gradient(200px 120px at 90% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    linear-gradient(rgba(255,255,255,.033) 1px, transparent 1px) 0 0/20px 20px,
+    linear-gradient(90deg, rgba(255,255,255,.033) 1px, transparent 1px) 0 0/20px 20px,
+    #0D0F12;
+  border:1px solid #23262C;
+  box-shadow:0 22px 44px rgba(0,0,0,.4);
+}
+.d3{ --up:#F0603A; --down:#2C6E5E; }
+body[data-state="weekend"] .d3{ --up:#38BDF8; --down:#1E5A72; }
+.d3-head{ display:flex; align-items:center; justify-content:space-between; }
+.d3-status{ display:flex; align-items:center; gap:7px; font:700 12.5px/1 var(--sans); color:var(--accent); }
+.d3-status svg{ width:15px; height:15px; }
+.d3-rate{ font:800 19px/1 var(--mono); color:var(--accent); }
+.d3-rate span{ font-size:11px; opacity:.6; }
+.d3-hero{ display:flex; align-items:flex-end; justify-content:space-between; margin-top:11px; }
+.d3-clock{ display:flex; align-items:flex-end; font:500 40px/1 var(--sans); letter-spacing:-.02em; color:#F3F5F7; font-variant-numeric:tabular-nums; }
+.d3-clock .js-sec{ font:500 14px/1 var(--mono); color:#9AA1AA; margin:0 0 4px 3px; }
+.d3-meta{ text-align:right; font:500 9.5px/1.65 var(--mono); letter-spacing:.08em; color:#818892; }
+.d3-meta b{ display:block; color:#AEB5BE; font-weight:600; }
+.d3-chart{ position:relative; margin-top:10px; height:112px; }
+.d3-chart svg{ position:absolute; inset:0; width:100%; height:100%; }
+.d3-base{ stroke:rgba(255,255,255,.13); stroke-width:1; }
+.d3-level{ stroke:rgba(255,255,255,.09); stroke-width:1; stroke-dasharray:2 5; }
+.d3-bar{ rx:1; }
+.d3-bar.up{ fill:var(--up); }
+.d3-bar.down{ fill:var(--down); }
+.d3-bar.now{ stroke:#FFFFFF; stroke-width:1.5; filter:drop-shadow(0 0 7px rgba(255,255,255,.55)); }
+.d3-xrow{ display:flex; justify-content:space-between; font:500 7.5px/1 var(--mono); letter-spacing:.1em; color:rgba(255,255,255,.32); margin-top:3px; }
+.d3-foot{ display:flex; align-items:baseline; justify-content:space-between; margin-top:8px; padding-top:9px; border-top:1px solid rgba(255,255,255,.08); }
+.d3-cd{ display:flex; align-items:baseline; gap:7px; font:500 10px/1 var(--mono); letter-spacing:.08em; color:#9AA1AA; }
+.d3-cd b{ font:700 13px/1 var(--mono); color:var(--accent); }
+.d3-st{ font:500 9px/1 var(--mono); letter-spacing:.1em; color:#666E78; }
+/* ---------- D6 · 半谷 ---------- */
+.d6{
+  position:relative; width:100%; max-width:392px; aspect-ratio:1.68/1;
+  border-radius:16px; overflow:hidden; background:#0C0F11;
+  box-shadow:0 22px 44px rgba(0,0,0,.4);
+}
+.d6-a{ position:absolute; inset:0; background:#E4572E; clip-path:polygon(0 0, 66% 0, 46% 100%, 0 100%); transition:background .35s; }
+.d6-b{ position:absolute; inset:0; background:#129C8B; clip-path:polygon(66% 0, 100% 0, 100% 100%, 46% 100%); transition:background .35s; }
+body[data-state="idle"] .d6-a{ background:#0F766E; }
+body[data-state="idle"] .d6-b{ background:#C77A16; }
+body[data-state="weekend"] .d6-a{ background:#0E7490; }
+body[data-state="weekend"] .d6-b{ background:#3E6B85; }
+.d6-seam{ position:absolute; inset:0; background:rgba(8,10,12,.55); clip-path:polygon(66% 0, 67.2% 0, 47.2% 100%, 46% 100%); }
+.d6-grain{ position:absolute; inset:0; opacity:.28; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/></filter><rect width='120' height='120' filter='g' opacity='.35'/></svg>"); mix-blend-mode:overlay; }
+.d6-glyph{ position:absolute; left:14px; bottom:-18px; font:900 104px/1 var(--sans); color:rgba(255,255,255,.15); letter-spacing:-.08em; pointer-events:none; }
+.d6-body{ position:relative; z-index:2; height:100%; padding:18px 20px 16px; display:flex; flex-direction:column; color:#FFFFFF; }
+.d6-top{ display:flex; align-items:flex-start; justify-content:space-between; }
+.d6-status{ display:flex; flex-direction:column; gap:4px; }
+.d6-status b{ font:800 13px/1 var(--sans); }
+.d6-status em{ font:600 8.5px/1 var(--mono); letter-spacing:.2em; opacity:.68; font-style:normal; }
+.d6-right{ text-align:right; }
+.d6-right b{ font:800 16px/1 var(--mono); letter-spacing:-.02em; }
+.d6-right em{ display:block; margin-top:5px; font:500 8.5px/1 var(--mono); letter-spacing:.12em; opacity:.68; font-style:normal; }
+.d6-rate{ position:absolute; right:20px; bottom:58px; text-align:right; }
+.d6-rate b{ font:800 30px/1 var(--mono); letter-spacing:-.04em; }
+.d6-rate span{ font:600 12px/1 var(--mono); opacity:.65; margin-left:2px; }
+.d6-rate em{ display:block; margin-top:4px; font:500 8.5px/1 var(--mono); letter-spacing:.14em; opacity:.6; font-style:normal; }
+.d6-clock{ margin-top:auto; display:flex; align-items:flex-end; font:500 42px/1 var(--sans); letter-spacing:-.02em; }
+.d6-clock .js-sec{ font:500 14px/1 var(--mono); opacity:.7; margin:0 0 4px 4px; }
+.d6-bottom{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-top:9px; padding-top:8px; border-top:1px solid rgba(255,255,255,.28); }
+.d6-meta{ display:flex; gap:7px; align-items:baseline; font:500 9.5px/1 var(--mono); letter-spacing:.08em; opacity:.78; }
+.d6-meta .dot{ width:3px; height:3px; border-radius:50%; background:#fff; opacity:.5; }
+.d6-cd{ display:flex; align-items:baseline; gap:6px; font:500 8.5px/1 var(--mono); letter-spacing:.1em; opacity:.8; }
+.d6-cd b{ font:700 12px/1 var(--mono); letter-spacing:.02em; opacity:1; }
+.d6-st{ font:500 8.5px/1 var(--mono); letter-spacing:.1em; opacity:.62; }
+
+/* ---------- E2 · 工业 HUD ---------- */
+.e2{
+  position:relative; width:100%; max-width:392px; aspect-ratio:1.68/1;
+  padding:16px 18px 14px; border-radius:6px; overflow:hidden;
+  background:
+    radial-gradient(220px 150px at 15% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%),
+    linear-gradient(180deg,#0C1118,#080B10);
+  border:1px solid #223040; color:#DDE4EC;
+  box-shadow:0 24px 48px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.e2-scan{ position:absolute; inset:0; pointer-events:none; opacity:.35; background:repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 1px, transparent 1px 3px); animation:scan 12s linear infinite; }
+@keyframes scan{ from{ transform:translateY(0); } to{ transform:translateY(6px); } }
+.e2-c{ position:absolute; width:9px; height:9px; border-color:color-mix(in srgb, var(--accent) 55%, transparent); border-style:solid; opacity:.85; }
+.e2-c.tl{ left:6px; top:6px; border-width:1px 0 0 1px; } .e2-c.tr{ right:6px; top:6px; border-width:1px 1px 0 0; }
+.e2-c.bl{ left:6px; bottom:6px; border-width:0 0 1px 1px; } .e2-c.br{ right:6px; bottom:6px; border-width:0 1px 1px 0; }
+.e2-top{ display:flex; align-items:center; justify-content:space-between; }
+.e2-title{ display:flex; align-items:center; gap:7px; font:700 10.5px/1 var(--mono); letter-spacing:.18em; color:var(--accent); }
+.e2-title .tri{ width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent; border-bottom:7px solid var(--accent); }
+.e2-rate{ display:flex; align-items:center; gap:7px; font:600 9px/1 var(--mono); letter-spacing:.16em; color:#7E8894; }
+.e2-rate b{ padding:4px 8px 3px; border:1px solid color-mix(in srgb, var(--accent) 58%, transparent); color:var(--accent); font:700 10px/1 var(--mono); letter-spacing:.1em; }
+.e2-mid{ display:flex; align-items:flex-end; justify-content:space-between; margin-top:14px; }
+.e2-clock{ display:flex; align-items:flex-end; font:700 40px/1 var(--mono); letter-spacing:.05em; color:#E9EFF6; font-variant-numeric:tabular-nums; }
+.e2-clock .js-sec{ font:600 15px/1 var(--mono); margin:0 0 3px 2px; color:#8E99A6; }
+.e2-side{ text-align:right; font:500 9px/1.7 var(--mono); letter-spacing:.12em; color:#77828F; }
+.e2-side b{ display:block; color:#B9C4D1; font-weight:600; }
+.e2-prog{ margin-top:12px; }
+.e2-plab{ display:flex; align-items:baseline; justify-content:space-between; font:500 8px/1 var(--mono); letter-spacing:.12em; color:#6C7784; margin-bottom:6px; }
+.e2-plab b{ color:var(--accent); font-weight:600; }
+.e2-seg{ display:flex; gap:2px; height:8px; }
+.e2-seg i{ flex:1; background:#1B2430; border-radius:1px; }
+.e2-seg i.pk{ background:var(--accent); opacity:.85; }
+.e2-seg i.past{ opacity:1; }
+.e2-seg i.now{ background:#FFFFFF; box-shadow:0 0 8px rgba(255,255,255,.55); animation:pulse 1.6s infinite; }
+.e2-axis{ display:flex; justify-content:space-between; margin-top:5px; font:500 7.5px/1 var(--mono); letter-spacing:.1em; color:#4F5A67; }
+.e2-foot{ display:flex; align-items:baseline; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid #1B2531; }
+.e2-foot span{ font:500 9px/1 var(--mono); letter-spacing:.16em; color:#6C7784; }
+.e2-foot b{ font:700 15px/1 var(--mono); letter-spacing:.06em; color:var(--accent); }
+
+/* ---------- E3 · 新野兽派 ---------- */
+.e3{
+  position:relative; width:100%; max-width:392px; aspect-ratio:1.68/1;
+  padding:16px 18px 14px; border-radius:2px;
+  border:3px solid #0D0C0A; background:#F4EFE3;
+  box-shadow:9px 9px 0 #0D0C0A;
+  color:#0D0C0A; overflow:hidden;
+}
+.e3-dots{ position:absolute; right:-6px; top:-6px; width:96px; height:96px; opacity:.5; background:radial-gradient(#0D0C0A 1px, transparent 1.1px) 0 0/8px 8px; mask-image:radial-gradient(circle at 100% 0%, #000, transparent 74%); }
+.e3-top{ display:flex; align-items:flex-start; justify-content:space-between; position:relative; }
+.e3-sticker{ display:flex; align-items:baseline; gap:7px; padding:5px 9px 4px; background:var(--accent); border:2px solid #0D0C0A; box-shadow:3px 3px 0 #0D0C0A; transform:rotate(-1.6deg); transition:background .3s; }
+.e3-sticker b{ font:900 13px/1 var(--sans); }
+.e3-sticker em{ font:800 7.5px/1 var(--mono); letter-spacing:.14em; font-style:normal; }
+.e3-rate{ border:2px solid #0D0C0A; padding:4px 8px 3px; font:900 15px/1 var(--mono); background:#FBF7EE; }
+.e3-rate span{ font-size:9px; }
+.e3-clock{ margin-top:10px; display:flex; align-items:flex-end; font:900 46px/1 var(--sans); letter-spacing:-.055em; font-variant-numeric:tabular-nums; }
+.e3-clock .js-sec{ font:800 15px/1 var(--mono); letter-spacing:0; margin:0 0 5px 4px; }
+.e3-meta{ display:flex; align-items:baseline; gap:8px; margin-top:7px; }
+.e3-meta b{ font:800 12px/1 var(--sans); }
+.e3-meta em{ font:700 8.5px/1 var(--mono); letter-spacing:.12em; font-style:normal; color:#57524A; }
+.e3-meta .tz{ margin-left:auto; font:700 9px/1 var(--mono); letter-spacing:.1em; }
+.e3-rule{ height:3px; background:#0D0C0A; margin-top:8px; }
+.e3-cd{ display:flex; align-items:baseline; gap:8px; margin-top:8px; padding:7px 10px 6px; background:#0D0C0A; color:#F4EFE3; }
+.e3-cd span{ font:800 11px/1 var(--sans); }
+.e3-cd b{ margin-left:auto; font:800 15px/1 var(--mono); letter-spacing:.03em; color:var(--accent); }
+.e3-tape{ position:absolute; left:0; right:0; bottom:0; height:7px; background:repeating-linear-gradient(45deg, #0D0C0A 0 7px, var(--accent) 7px 14px); }
+.e3-star{ position:absolute; right:18px; top:64px; font:900 14px/1 var(--sans); transform:rotate(9deg); color:#C4301B; }
+/* ---------- E4 · 双色瑞士分屏 ---------- */
+.e4{
+  position:relative; width:100%; max-width:392px; aspect-ratio:1.68/1;
+  display:grid; grid-template-columns:34% 1fr; overflow:hidden;
+  border-radius:12px; background:#0B0C0E;
+  border:1px solid #26292F; box-shadow:0 22px 44px rgba(0,0,0,.42);
+}
+.e4-left{ position:relative; padding:16px 14px 13px; color:#FFFFFF; background:var(--accent); transition:background .35s; display:flex; flex-direction:column; overflow:hidden; }
+.e4-left::after{ content:""; position:absolute; right:0; top:10%; bottom:10%; width:1px; background:rgba(0,0,0,.28); }
+.e4-state b{ font:800 15px/1 var(--sans); }
+.e4-state em{ display:block; margin-top:4px; font:700 8px/1 var(--mono); letter-spacing:.22em; opacity:.72; font-style:normal; }
+.e4-rate{ margin-top:14px; display:flex; align-items:baseline; font:800 33px/1 var(--mono); letter-spacing:-.04em; }
+.e4-rate span{ font-size:12px; opacity:.65; margin-left:2px; }
+.e4-rate em{ display:block; font:500 8px/1 var(--mono); letter-spacing:.14em; opacity:.65; margin-left:6px; font-style:normal; align-self:flex-end; margin-bottom:3px; }
+.e4-day{ margin-top:auto; font:600 9px/1 var(--mono); letter-spacing:.16em; opacity:.7; }
+.e4-glyph{ position:absolute; left:-6px; bottom:-16px; font:900 92px/1 var(--sans); color:rgba(255,255,255,.13); letter-spacing:-.06em; pointer-events:none; }
+.e4-right{ position:relative; padding:15px 18px 13px; display:flex; flex-direction:column; }
+.e4-top{ display:flex; align-items:baseline; gap:7px; font:500 9px/1 var(--mono); letter-spacing:.1em; color:#7D8490; }
+.e4-top b{ color:#C6CCD6; font-weight:600; }
+.e4-top .tz{ margin-left:auto; color:#5E6672; }
+.e4-clock{ margin-top:auto; display:flex; align-items:flex-end; font:500 36px/1 var(--sans); letter-spacing:-.02em; color:#F4F6F8; font-variant-numeric:tabular-nums; }
+.e4-clock .js-sec{ font:500 13px/1 var(--mono); color:#969DA7; margin:0 0 3px 3px; }
+.e4-rule{ height:1px; background:#2C2F36; margin:9px 0 8px; }
+.e4-foot{ display:flex; align-items:flex-end; justify-content:space-between; gap:10px; }
+.e4-cd em{ display:block; font:600 8px/1 var(--mono); letter-spacing:.18em; color:#6C7380; font-style:normal; }
+.e4-cd b{ display:block; margin-top:5px; font:700 16px/1 var(--mono); color:var(--accent); letter-spacing:.04em; transition:color .3s; }
+.e4-win{ text-align:right; font:500 8px/1.6 var(--mono); letter-spacing:.1em; color:#6C7380; }
+.e4-win b{ display:block; color:#AEB5BE; font-weight:600; }
+.e4-cross{ position:absolute; width:9px; height:9px; opacity:.5; }
+.e4-cross::before, .e4-cross::after{ content:""; position:absolute; background:#4A505B; }
+.e4-cross::before{ left:4px; top:0; width:1px; height:9px; }
+.e4-cross::after{ top:4px; left:0; height:1px; width:9px; }
+.e4-cross.tl{ left:7px; top:7px; } .e4-cross.br{ right:7px; bottom:7px; }
+
+/* ---------- E5 · 点阵液晶 ---------- */
+.e5{
+  --lcd:#EAB366; --lcd-hi:#FDE68A; --lcd-dim:#7A5F32;
+  position:relative; width:100%; max-width:392px; aspect-ratio:1.68/1;
+  padding:9px; border-radius:14px;
+  background:linear-gradient(180deg,#17140D,#100E09);
+  border:1px solid #352C1B;
+  box-shadow:0 22px 44px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.05);
+  transition:--lcd .3s;
+}
+body[data-state="idle"] .e5{ --lcd:#9FC6A8; --lcd-hi:#D7F3DC; --lcd-dim:#4F6B56; }
+body[data-state="weekend"] .e5{ --lcd:#7FB6CF; --lcd-hi:#C9EBF8; --lcd-dim:#3F5C6B; }
+.e5-screen{
+  position:relative; height:100%; padding:15px 16px 12px; border-radius:8px; overflow:hidden;
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(255,255,255,.05), transparent 60%),
+    linear-gradient(180deg,#262016,#1B1710);
+  box-shadow:inset 0 0 0 1px #43361F, inset 0 10px 26px rgba(0,0,0,.55), inset 0 -6px 18px rgba(0,0,0,.45);
+  display:flex; flex-direction:column;
+  font-family:var(--mono); color:var(--lcd);
+  text-shadow:0 0 10px color-mix(in srgb, var(--lcd) 40%, transparent);
+  transition:color .3s;
+}
+.e5-dot{ position:absolute; inset:0; pointer-events:none; opacity:.5; background:radial-gradient(color-mix(in srgb, var(--lcd) 14%, transparent) .6px, transparent .8px) 0 0/3px 3px; }
+.e5-scan{ position:absolute; inset:0; pointer-events:none; opacity:.5; background:repeating-linear-gradient(0deg, rgba(0,0,0,.32) 0 1px, transparent 1px 3px); animation:lcdscan 9s linear infinite; }
+@keyframes lcdscan{ 0%,100%{ opacity:.42; } 50%{ opacity:.6; } }
+.e5-top{ position:relative; display:flex; align-items:center; justify-content:space-between; }
+.e5-chip{ padding:3px 7px 2px; border:1px solid var(--lcd-dim); font:700 8.5px/1 var(--mono); letter-spacing:.16em; }
+.e5-rate{ font:600 9px/1 var(--mono); letter-spacing:.14em; color:var(--lcd-dim); }
+.e5-rate b{ color:var(--lcd); font-weight:700; }
+.e5-clock{ position:relative; margin-top:auto; text-align:center; display:flex; align-items:flex-end; justify-content:center; font:700 40px/1 var(--mono); letter-spacing:.06em; color:var(--lcd-hi); }
+.e5-clock .js-sec{ font:600 15px/1 var(--mono); margin:0 0 4px 2px; color:var(--lcd); letter-spacing:.04em; }
+.e5-meta{ display:flex; align-items:baseline; justify-content:space-between; margin-top:9px; font:600 8.5px/1 var(--mono); letter-spacing:.14em; }
+.e5-meta b{ font-weight:700; letter-spacing:.1em; }
+.e5-dash{ border-top:1px dashed var(--lcd-dim); opacity:.65; margin:8px 0 7px; }
+.e5-foot{ display:flex; align-items:baseline; justify-content:space-between; font:600 8.5px/1 var(--mono); letter-spacing:.12em; }
+.e5-foot b{ font:700 14px/1 var(--mono); letter-spacing:.06em; color:var(--lcd-hi); }
+.e5-pix{ position:absolute; right:14px; top:13px; display:flex; gap:2px; opacity:.55; }
+.e5-pix i{ width:3px; height:6px; background:var(--lcd); }
+.e5-pix i.off{ opacity:.18; }
+.e5-glare{ position:absolute; left:-20%; top:-40%; width:70%; height:130%; transform:rotate(18deg); background:linear-gradient(90deg, transparent, rgba(255,255,255,.045), transparent); pointer-events:none; }
+
+/* ---------- F1 · 峰谷示波器 ---------- */
+.f1{
+  position:relative; width:100%; max-width:418px; aspect-ratio:1.56/1;
+  padding:16px 18px 14px; border-radius:16px; overflow:hidden;
+  background:
+    radial-gradient(220px 150px at 6% 0%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 70%),
+    radial-gradient(180px 130px at 96% 100%, rgba(245,165,36,.05), transparent 70%),
+    linear-gradient(180deg,#0C111A,#080B11);
+  border:1px solid #233042;
+  box-shadow:0 24px 50px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.035);
+}
+.f1-top{ display:flex; align-items:center; justify-content:space-between; }
+.f1-pill{ display:flex; align-items:center; gap:7px; padding:5px 9px 4px; border:1px solid color-mix(in srgb, var(--accent) 46%, transparent); border-radius:6px; background:color-mix(in srgb, var(--accent) 8%, transparent); }
+.f1-pill svg{ width:15px; height:15px; }
+.f1-pill b{ font:700 11px/1 var(--sans); color:var(--accent-soft); }
+.f1-rate{ display:flex; align-items:baseline; gap:3px; font:700 17px/1 var(--mono); color:var(--accent); }
+.f1-rate span{ font-size:10px; opacity:.65; }
+.f1-rate em{ font:500 9px/1 var(--mono); letter-spacing:.1em; color:#6E7682; margin-left:4px; font-style:normal; }
+.f1-scope{ position:relative; margin-top:9px; height:120px; }
+.f1-scope svg{ position:absolute; inset:0; width:100%; height:100%; }
+.f1-ylab{ position:absolute; left:2px; font:500 7.5px/1 var(--mono); letter-spacing:.1em; color:rgba(255,255,255,.34); }
+.f1-ylab.hi{ top:4px; } .f1-ylab.lo{ bottom:8px; }
+.f1-tag{ position:absolute; left:57%; top:16%; padding:3px 6px 2px; border:1px solid color-mix(in srgb, var(--accent) 50%, transparent); background:rgba(8,11,17,.82); border-radius:3px; font:600 7.5px/1 var(--mono); letter-spacing:.1em; color:var(--accent-soft); }
+.f1-tag2{ position:absolute; left:20%; bottom:26%; padding:3px 6px 2px; border:1px solid rgba(255,255,255,.14); background:rgba(8,11,17,.82); border-radius:3px; font:600 7.5px/1 var(--mono); letter-spacing:.1em; color:#8A93A0; }
+.f1-xrow{ display:flex; justify-content:space-between; padding:0 2px 0 0; font:500 7.5px/1 var(--mono); letter-spacing:.1em; color:rgba(255,255,255,.3); }
+.f1-bottom{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-top:9px; }
+.f1-clock{ display:flex; align-items:flex-end; font:500 38px/1 var(--sans); letter-spacing:-.02em; color:#F2F5F8; font-variant-numeric:tabular-nums; }
+.f1-clock .js-sec{ font:500 13px/1 var(--mono); color:#98A0AB; margin:0 0 4px 3px; }
+.f1-meta{ margin-top:5px; font:500 9px/1 var(--mono); letter-spacing:.1em; color:#7A828E; }
+.f1-cd{ display:flex; flex-direction:column; align-items:flex-end; gap:3px; padding:6px 10px 5px; border:1px solid color-mix(in srgb, var(--accent) 32%, transparent); border-radius:6px; background:color-mix(in srgb, var(--accent) 6%, transparent); }
+.f1-cd em{ font:600 8px/1 var(--mono); letter-spacing:.16em; color:#7A828E; font-style:normal; }
+.f1-cd b{ font:700 14px/1 var(--mono); letter-spacing:.05em; color:var(--accent-soft); }
+.f1-line{ stroke:var(--accent); stroke-width:2; fill:none; filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 60%, transparent)); }
+.f1-area{ fill:var(--accent); fill-opacity:.10; }
+.f1-grid{ stroke:rgba(255,255,255,.075); stroke-width:1; stroke-dasharray:2 4; }
+.f1-now{ stroke:rgba(255,255,255,.45); stroke-width:1; stroke-dasharray:2 3; }
+.f1-dot{ fill:#FFFFFF; filter:drop-shadow(0 0 6px rgba(255,255,255,.85)); }
+</style>
+</head>
+<body data-state="peak">
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <div class="kicker"><i></i>Timewear Lab · 09/2026</div>
+      <h1>把 C6 到 F1<br /><em>再往前推一步</em></h1>
+      <p class="sub">九套偏爱的方案，统一重做一遍排版、刻度与状态语言。拖时间轴看整天的形态变化，切周末看退峰后的表情。</p>
+    </div>
+    <div class="mast-right">
+      <div class="range-label">C6 → F1 / 9 SCHEMES</div>
+      <div class="code-list">
+        <span class="on">C6</span><span class="on">D1</span><span class="on">D3</span><span class="on">D6</span><span class="on">E2</span><span class="on">E3</span><span class="on">E4</span><span class="on">E5</span><span class="on">F1</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <span class="tool-label">DAY</span>
+      <div class="seg" id="daySeg">
+        <button type="button" data-day="work" class="on">工作日</button>
+        <button type="button" data-day="weekend">周末</button>
+      </div>
+    </div>
+    <div class="time-box">
+      <div class="time-read" id="timeRead">10:30<small id="timeState">PEAK</small></div>
+      <input type="range" id="timeRange" min="0" max="1439" value="630" step="1" aria-label="一天中的时刻" />
+    </div>
+    <div class="mode-chip"><b></b><span id="modeText">PEAK ACTIVE</span></div>
+    <div class="tool-right">
+      <label class="switch"><input type="checkbox" id="motionToggle" checked /><span class="tr"></span><span>动效</span></label>
+    </div>
+  </div>
+
+  <main class="grid">
+    <article class="frame">
+      <header class="frame-head"><span class="idx">01</span><h3>C6 · 色块</h3><span class="tag">FULL BLOCK / RULER</span></header>
+      <div class="stage">
+        <div class="widget c6">
+          <div class="c6-ring a"></div><div class="c6-ring b"></div>
+          <div class="c6-top">
+            <div class="c6-status"><span class="sq"></span><span class="js-status">高峰时段</span><em>PEAK</em></div>
+            <div class="c6-rate"><b class="js-rate-num">1.0</b><span>×</span><em>RATE</em></div>
+          </div>
+          <div class="c6-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+          <div class="c6-meta"><span class="js-date">10月28日</span><span class="dot"></span><span class="js-week">周三</span><b id="c6MetaRight">PEAK 09–12 / 18–21</b></div>
+          <div class="c6-timeline">
+            <div class="c6-bars" id="c6Bars"></div>
+            <div class="c6-now js-cursor" style="left:44%"></div>
+            <div class="c6-axis"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+          </div>
+          <div class="c6-foot"><span class="cd"><span class="js-cdlab-en">NEXT IDLE</span> <b class="js-cd">01:29:36</b></span><span class="st">峰 7H · 谷 17H</span></div>
+        </div>
+      </div>
+      <div class="notes"><span>48 格半小时刻度直接压在色块上</span><span>倍率改成歪斜印章</span><span>补下一谷倒计时与全天统计</span></div>
+    </article>
+
+    <article class="frame">
+      <header class="frame-head"><span class="idx">02</span><h3>D1 · 峰谷波形</h3><span class="tag">SCOPE / LABELS</span></header>
+      <div class="stage">
+        <div class="widget d1">
+          <div class="d1-head">
+            <div class="d1-status">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 16h4l3-9 4 12 3-7h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="js-status">高峰时段</span>
+            </div>
+            <div class="d1-rate"><b class="js-rate-num">1.0</b><span>×</span><em>标准</em></div>
+          </div>
+          <div class="d1-hero">
+            <div class="d1-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+            <div class="d1-meta"><b class="js-date">10月28日</b><span class="js-week">周三</span><br /><span>UTC+8 · BJT</span></div>
+          </div>
+          <div class="d1-scope">
+            <span class="d1-ylab hi">1.0×</span><span class="d1-ylab lo">0.5×</span>
+            <svg id="d1Svg" viewBox="0 0 352 104" preserveAspectRatio="none"></svg>
+          </div>
+          <div class="d1-xrow"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+          <div class="d1-foot"><span class="d1-cd"><span class="js-cdlab">距空闲</span> <b class="js-cd">01:29:36</b></span><span class="d1-st">峰 7H · 谷 17H</span></div>
+        </div>
+      </div>
+      <div class="notes"><span>波形补 0.5×/1.0× 标尺与 24h 横轴</span><span>当前时刻改成亮线＋光点</span><span>倒计时与统计拆成两栏</span></div>
+    </article>
+
+    <article class="frame">
+      <header class="frame-head"><span class="idx">03</span><h3>D3 · K 线</h3><span class="tag">24 CANDLES / NOW</span></header>
+      <div class="stage">
+        <div class="widget d3">
+          <div class="d3-head">
+            <div class="d3-status">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V9M9 20V4M14 20v-7M19 20V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="js-status">高峰时段</span>
+            </div>
+            <div class="d3-rate"><b class="js-rate-num">1.0</b><span>×</span></div>
+          </div>
+          <div class="d3-hero">
+            <div class="d3-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+            <div class="d3-meta"><b class="js-date">10月28日</b><span class="js-week">周三</span><br /><span>24H RANGE</span></div>
+          </div>
+          <div class="d3-chart"><svg id="d3Svg" viewBox="0 0 352 112" preserveAspectRatio="none"></svg></div>
+          <div class="d3-xrow"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+          <div class="d3-foot"><span class="d3-cd"><span class="js-cdlab">距空闲</span> <b class="js-cd">01:29:36</b></span><span class="d3-st">峰 7H · 谷 17H</span></div>
+        </div>
+      </div>
+      <div class="notes"><span>补齐基线、1.0× 虚线与时刻轴</span><span>当前蜡烛改用白描边＋辉光</span><span>倍率与状态同色，底部加统计</span></div>
+    </article>
+    <article class="frame">
+      <header class="frame-head"><span class="idx">04</span><h3>D6 · 半谷</h3><span class="tag">DIAGONAL / TWO RATES</span></header>
+      <div class="stage">
+        <div class="widget d6">
+          <div class="d6-a"></div><div class="d6-b"></div><div class="d6-seam"></div><div class="d6-grain"></div>
+          <div class="d6-glyph js-glyph">峰</div>
+          <div class="d6-body">
+            <div class="d6-top">
+              <div class="d6-status"><b class="js-status">高峰时段</b><em>PEAK · 峰 7H / 谷 17H</em></div>
+              <div class="d6-right"><b id="d6Counter">谷 0.5×</b><em id="d6Next">NEXT 12:00</em></div>
+            </div>
+            <div class="d6-rate"><b class="js-rate-num">1.0</b><span>×</span><em>当前倍率</em></div>
+            <div class="d6-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+            <div class="d6-bottom">
+              <div class="d6-meta"><span class="js-date">10月28日</span><span class="dot"></span><span class="js-week">周三</span></div>
+              <div class="d6-cd"><span id="d6CdLabel">距空闲</span><b class="js-cd">01:29:36</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes"><span>斜切线上压一道暗缝，两色不再只是背景</span><span>右侧直接标出下一档倍率与时刻</span><span>巨字水印随状态换成峰 / 谷 / 休</span></div>
+    </article>
+
+    <article class="frame">
+      <header class="frame-head"><span class="idx">05</span><h3>E2 · 工业 HUD</h3><span class="tag">SEGMENTS / SCANLINE</span></header>
+      <div class="stage">
+        <div class="widget e2">
+          <div class="e2-scan"></div>
+          <div class="e2-c tl"></div><div class="e2-c tr"></div><div class="e2-c bl"></div><div class="e2-c br"></div>
+          <div class="e2-top">
+            <div class="e2-title"><span class="tri"></span><span id="e2Mode">PEAK ACTIVE</span></div>
+            <div class="e2-rate">RATE <b><span class="js-rate">1.0X</span></b></div>
+          </div>
+          <div class="e2-mid">
+            <div class="e2-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+            <div class="e2-side"><b class="js-date-en">OCT.28</b><span class="js-week-en">WED</span><br /><span>UTC+8 BJT</span></div>
+          </div>
+          <div class="e2-prog">
+            <div class="e2-plab"><span id="e2Start">09:00</span><b id="e2Win">PEAK WINDOW 1/2</b><span id="e2End">12:00</span></div>
+            <div class="e2-seg" id="e2Seg"></div>
+            <div class="e2-axis"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+          </div>
+          <div class="e2-foot"><span id="e2FootLabel">NEXT IDLE IN:</span><b class="js-cd">01:29:36</b></div>
+        </div>
+      </div>
+      <div class="notes"><span>24 段进度按小时点亮，当前段白色脉冲</span><span>补齐四角括号与扫描线，仪表感来自结构</span><span>峰值窗口编号与起止时刻联动</span></div>
+    </article>
+
+    <article class="frame">
+      <header class="frame-head"><span class="idx">06</span><h3>E3 · 新野兽派</h3><span class="tag">HARD SHADOW / STICKER</span></header>
+      <div class="stage">
+        <div class="widget e3">
+          <div class="e3-dots"></div><div class="e3-star">✳</div>
+          <div class="e3-top">
+            <div class="e3-sticker"><b class="js-status">高峰时段</b><em>PEAK</em></div>
+            <div class="e3-rate"><b class="js-rate-num">1.0</b><span>×</span></div>
+          </div>
+          <div class="e3-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+          <div class="e3-meta"><b class="js-date">10月28日</b><em class="js-week">周三</em><span class="tz">北京时间 · UTC+8</span></div>
+          <div class="e3-rule"></div>
+          <div class="e3-cd"><span id="e3CdLabel">距空闲倒计时</span><b class="js-cd">01:29:36</b></div>
+          <div class="e3-tape"></div>
+        </div>
+      </div>
+      <div class="notes"><span>硬投影加粗到 9px，贴纸歪得更自然</span><span>倒计时改成黑底琥珀数字的警示条</span><span>角上加半调网点与红 ✳，别只剩粗黑边</span></div>
+    </article>
+    <article class="frame">
+      <header class="frame-head"><span class="idx">07</span><h3>E4 · 双色瑞士分屏</h3><span class="tag">GRID / REGISTRATION</span></header>
+      <div class="stage">
+        <div class="widget e4">
+          <div class="e4-left">
+            <div class="e4-state"><b class="js-short">高峰</b><em>PEAK</em></div>
+            <div class="e4-rate"><b class="js-rate-num">1.0</b><span>×</span><em>RATE</em></div>
+            <div class="e4-day" id="e4Day">工作日</div>
+            <div class="e4-glyph js-glyph">峰</div>
+          </div>
+          <div class="e4-right">
+            <div class="e4-top"><b class="js-date">10月28日</b><span class="js-week">周三</span><span class="tz">北京 · UTC+8</span></div>
+            <div class="e4-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+            <div class="e4-rule"></div>
+            <div class="e4-foot">
+              <div class="e4-cd"><em id="e4CdLabel">NEXT IDLE</em><b class="js-cd">01:29:36</b></div>
+              <div class="e4-win"><b id="e4Win">09:00 – 12:00</b><span>PEAK WINDOW</span></div>
+            </div>
+            <div class="e4-cross tl"></div><div class="e4-cross br"></div>
+          </div>
+        </div>
+      </div>
+      <div class="notes"><span>左栏放大「峰 / 谷 / 休」巨字，色块变成版面</span><span>右栏加发丝线、套准十字与窗口信息</span><span>倒计时和峰值时段各占一角，不再挤一行</span></div>
+    </article>
+
+    <article class="frame">
+      <header class="frame-head"><span class="idx">08</span><h3>E5 · 点阵液晶</h3><span class="tag">CRT / MATRIX</span></header>
+      <div class="stage">
+        <div class="widget e5">
+          <div class="e5-screen">
+            <div class="e5-dot"></div><div class="e5-scan"></div><div class="e5-glare"></div>
+            <div class="e5-top">
+              <div class="e5-chip" id="e5Chip">[ PEAK MODE ]</div>
+              <div class="e5-rate">RATE: <b><span class="js-rate">1.0X</span></b></div>
+            </div>
+            <div class="e5-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+            <div class="e5-meta"><span class="js-date-num">10-28</span><b class="js-week-en">WED</b><span>BJT UTC+8</span></div>
+            <div class="e5-dash"></div>
+            <div class="e5-foot"><span id="e5FootLabel">NEXT IDLE:</span><b class="js-cd">01:29:36</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="notes"><span>屏槽加深、加像素网点与扫描线，像真的屏</span><span>时间居中放大，元信息压成三段等宽</span><span>空闲转墨绿、周末转冷蓝，整屏一起换色</span></div>
+    </article>
+
+    <article class="frame">
+      <header class="frame-head"><span class="idx">09</span><h3>F1 · 峰谷示波器</h3><span class="tag">CURVE / ANNOTATION</span></header>
+      <div class="stage">
+        <div class="widget f1">
+          <div class="f1-top">
+            <div class="f1-pill">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 16h4l3-9 4 12 3-7h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <b class="js-status">高峰时段</b>
+            </div>
+            <div class="f1-rate"><b class="js-rate-num">1.0</b><span>×</span><em>标准</em></div>
+          </div>
+          <div class="f1-scope">
+            <span class="f1-ylab hi">1.0×</span><span class="f1-ylab lo">0.5×</span>
+            <svg id="f1Svg" viewBox="0 0 382 120" preserveAspectRatio="none"></svg>
+            <div class="f1-tag" id="f1Tag">PEAK 1.0×</div>
+            <div class="f1-tag2" id="f1Tag2">VALLEY 0.5×</div>
+          </div>
+          <div class="f1-xrow"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+          <div class="f1-bottom">
+            <div>
+              <div class="f1-clock"><span class="js-hm">10:30</span><span class="js-sec">:24</span></div>
+              <div class="f1-meta"><span class="js-date">10月28日</span> · <span class="js-week">周三</span></div>
+            </div>
+            <div class="f1-cd"><em id="f1CdLabel">距空闲（0.5×）</em><b class="js-cd">01:29:36</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="notes"><span>波形升为画面主角，加 0.5×/1.0× 标尺与 24h 轴</span><span>峰 / 谷注释直接贴在曲线上，当前时刻带白点</span><span>时钟与倒计时收到下沿，信息只留两层</span></div>
+    </article>
+  </main>
+
+  <footer class="page-foot">
+    <span>设计稿 · 与运行中的 WPF 挂件尚未接线</span>
+    <span>SELECTED 09 / C6 · D1 · D3 · D6 · E2 · E3 · E4 · E5 · F1</span>
+  </footer>
+</div>
+
+<script>
+const WINDOWS = [[540, 720], [1080, 1260]];
+const DAY = 1440;
+const state = { minute: 630, weekend: false };
+const pad2 = n => String(n).padStart(2, '0');
+const pct = (m, axis) => ((m / DAY) * 100).toFixed(2) + '%';
+
+function isPeakMinute(m) {
+  return !state.weekend && WINDOWS.some(([a, b]) => m >= a && m < b);
+}
+function currentWindow(m) {
+  if (state.weekend) return null;
+  const found = WINDOWS.find(([a, b]) => m >= a && m < b);
+  if (found) return found;
+  return WINDOWS.find(([a]) => a > m) || null;
+}
+function nextWindow(m) {
+  const w = currentWindow(m);
+  if (w) return w;
+  return [540, 720];
+}
+function countdownText() {
+  const now = state.minute * 60 + 24;
+  let target;
+  if (state.weekend) {
+    target = (2 * DAY + 540) * 60;
+  } else if (isPeakMinute(state.minute)) {
+    target = currentWindow(state.minute)[1] * 60;
+  } else {
+    const nx = WINDOWS.find(([a]) => a > state.minute);
+    target = nx ? nx[0] * 60 : (DAY + 540) * 60;
+  }
+  let diff = Math.max(0, target - now);
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+}
+function hmText() {
+  const h = Math.floor(state.minute / 60);
+  const m = state.minute % 60;
+  return `${pad2(h)}:${pad2(m)}`;
+}
+
+/* ---------- 通用文案 ---------- */
+function updateText() {
+  const peak = isPeakMinute(state.minute);
+  const mode = state.weekend ? 'weekend' : (peak ? 'peak' : 'idle');
+  const status = mode === 'peak' ? '高峰时段' : mode === 'idle' ? '空闲时段' : '周末';
+  const short = mode === 'peak' ? '高峰' : mode === 'idle' ? '空闲' : '周末';
+  const glyph = mode === 'peak' ? '峰' : mode === 'idle' ? '谷' : '休';
+  const rate = peak ? '1.0' : '0.5';
+  const dateCN = state.weekend ? '10月31日' : '10月28日';
+  const weekCN = state.weekend ? '周六' : '周三';
+  const cd = countdownText();
+  const modeEN = mode === 'peak' ? 'PEAK' : mode === 'idle' ? 'IDLE' : 'WEEKEND';
+
+  document.body.dataset.state = mode;
+  document.querySelectorAll('.js-status').forEach(el => el.textContent = status);
+  document.querySelectorAll('.js-short').forEach(el => el.textContent = short);
+  document.querySelectorAll('.js-glyph').forEach(el => el.textContent = glyph);
+  document.querySelectorAll('.js-rate-num').forEach(el => el.textContent = rate);
+  document.querySelectorAll('.js-rate').forEach(el => el.textContent = rate + 'X');
+  document.querySelectorAll('.js-hm').forEach(el => el.textContent = hmText());
+  document.querySelectorAll('.js-sec').forEach(el => el.textContent = ':24');
+  document.querySelectorAll('.js-date').forEach(el => el.textContent = dateCN);
+  document.querySelectorAll('.js-week').forEach(el => el.textContent = weekCN);
+  document.querySelectorAll('.js-cd').forEach(el => el.textContent = cd);
+  document.querySelectorAll('.js-cdlab').forEach(el => {
+    el.textContent = mode === 'peak' ? '距空闲' : mode === 'idle' ? '距高峰' : '距周一';
+  });
+  document.querySelectorAll('.c6-status em, .e4-state em, .e3-sticker em').forEach(el => el.textContent = modeEN);
+
+  const read = document.getElementById('timeRead');
+  if (read && read.firstChild) read.firstChild.textContent = hmText();
+  const ts = document.getElementById('timeState');
+  if (ts) ts.textContent = mode === 'peak' ? 'PEAK' : mode === 'idle' ? 'IDLE' : 'WEEKEND';
+  const modeText = document.getElementById('modeText');
+  if (modeText) modeText.textContent = mode === 'peak' ? 'PEAK ACTIVE' : mode === 'idle' ? 'IDLE ACTIVE' : 'WEEKEND MODE';
+
+  document.querySelectorAll('.js-cursor').forEach(el => el.style.left = pct(state.minute));
+  document.documentElement.style.setProperty('--p', (state.minute / 1439 * 100).toFixed(1) + '%');
+
+  updateC6();
+  drawD1();
+  drawD3();
+  drawF1();
+  updateSpecial(mode, peak, cd);
+}
+
+/* ---------- C6 色块 ---------- */
+let c6Cells = [];
+function buildC6() {
+  const host = document.getElementById('c6Bars');
+  if (!host) return;
+  for (let i = 0; i < 48; i++) {
+    const cell = document.createElement('i');
+    host.appendChild(cell);
+    c6Cells.push(cell);
+  }
+}
+function updateC6() {
+  if (!c6Cells.length) return;
+  const now = Math.floor(state.minute / 30);
+  c6Cells.forEach((cell, i) => {
+    const start = i * 30;
+    const pk = !state.weekend && WINDOWS.some(([a, b]) => start >= a && start < b);
+    cell.className = pk ? 'pk' : '';
+    if (i === now) cell.classList.add('now');
+  });
+}
+
+/* ---------- 波形基础 ---------- */
+function levelAt(m) {
+  if (state.weekend) return 0.5;
+  let lv = 0.5;
+  for (const [a, b] of WINDOWS) {
+    if (m >= a && m <= b) lv = Math.max(lv, 1);
+    else if (m >= a - 120 && m < a) lv = Math.max(lv, 0.5 + 0.5 * smooth((m - (a - 120)) / 120));
+    else if (m > b && m <= b + 120) lv = Math.max(lv, 1 - 0.5 * smooth((m - b) / 120));
+  }
+  return lv;
+}
+function smooth(t) {
+  t = Math.max(0, Math.min(1, t));
+  return t * t * (3 - 2 * t);
+}
+function svgGrid(W, H, l, r, t, b) {
+  let out = '';
+  [6, 12, 18].forEach(h => {
+    const x = l + (h / 24) * (W - l - r);
+    out += `<line class="f1-grid" x1="${x}" y1="${t}" x2="${x}" y2="${H - b}"/>`;
+  });
+  return out;
+}
+
+/* ---------- D1 ---------- */
+function drawD1() {
+  const svg = document.getElementById('d1Svg');
+  if (!svg) return;
+  const W = 352, H = 104, l = 26, r = 6, t = 10, b = 14;
+  const x = m => l + (m / DAY) * (W - l - r);
+  const y = lv => (H - b) - ((lv - 0.5) / 0.5) * ((H - b) - (t + 6));
+  const pts = [];
+  for (let m = 0; m <= DAY; m += 6) pts.push([x(m), y(levelAt(m))]);
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+  let bands = '';
+  if (!state.weekend) WINDOWS.forEach(([a, b2]) => {
+    bands += `<rect x="${x(a)}" y="${t}" width="${x(b2) - x(a)}" height="${H - b - t}" fill="currentColor" opacity="0.045"/>`;
+  });
+  const cx = x(state.minute);
+  const cy = y(levelAt(state.minute));
+  svg.innerHTML =
+    `${bands}${svgGrid(W, H, l, r, t, b)}
+     <line class="d1-grid" x1="${l}" y1="${y(0.5)}" x2="${W - r}" y2="${y(0.5)}"/>
+     <line class="d1-grid" x1="${l}" y1="${y(1)}" x2="${W - r}" y2="${y(1)}"/>
+     <path class="d1-area" d="${d} L${x(DAY).toFixed(1)} ${H - b} L${l} ${H - b} Z"/>
+     <path class="d1-line" d="${d}"/>
+     <line class="d1-nowline" x1="${cx}" y1="${t}" x2="${cx}" y2="${H - b}"/>
+     <circle class="d1-dot" cx="${cx}" cy="${cy}" r="3"/>`;
+}
+
+/* ---------- D3 ---------- */
+const D3PATTERN = [0.42, 0.55, 0.36, 0.62, 0.48, 0.58, 0.44, 0.52, 0.4, 0.6, 0.47, 0.56,
+                   0.38, 0.5, 0.44, 0.6, 0.51, 0.43, 0.57, 0.46, 0.61, 0.5, 0.41, 0.55];
+function drawD3() {
+  const svg = document.getElementById('d3Svg');
+  if (!svg) return;
+  const W = 352, H = 112, l = 10, r = 8, t = 10, b = 12;
+  const slot = (W - l - r) / 24;
+  const baseY = H - b;
+  const nowHour = Math.floor(state.minute / 60);
+  let bars = '';
+  for (let i = 0; i < 24; i++) {
+    const pk = !state.weekend && (i >= 9 && i <= 11 || i >= 18 && i <= 20);
+    const lv = pk ? 0.72 + D3PATTERN[i] * 0.28 : 0.32 + D3PATTERN[i] * 0.28;
+    const h = lv * (baseY - (t + 6));
+    const x = l + i * slot + 1;
+    const w = slot - 3;
+    const op = i > nowHour ? 0.5 : 1;
+    const cls = `d3-bar ${pk ? 'up' : 'down'}${i === nowHour ? ' now' : ''}`;
+    bars += `<rect class="${cls}" x="${x.toFixed(1)}" y="${(baseY - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" opacity="${op}" rx="1"/>`;
+  }
+  svg.innerHTML =
+    `${svgGrid(W, H, l, r, t, b)}
+     <line class="d3-base" x1="${l}" y1="${baseY}" x2="${W - r}" y2="${baseY}"/>
+     <line class="d3-level" x1="${l}" y1="${t + 6}" x2="${W - r}" y2="${t + 6}"/>
+     <line class="d3-level" x1="${l}" y1="${(baseY + t + 6) / 2}" x2="${W - r}" y2="${(baseY + t + 6) / 2}"/>
+     ${bars}`;
+}
+
+/* ---------- F1 ---------- */
+function drawF1() {
+  const svg = document.getElementById('f1Svg');
+  if (!svg) return;
+  const W = 382, H = 120, l = 24, r = 8, t = 8, b = 16;
+  const x = m => l + (m / DAY) * (W - l - r);
+  const y = lv => (H - b) - ((lv - 0.5) / 0.5) * ((H - b) - (t + 4));
+  const pts = [];
+  for (let m = 0; m <= DAY; m += 6) {
+    pts.push([x(m), y(levelAt(m))]);
+    }
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+  let bands = '';
+  if (!state.weekend) WINDOWS.forEach(([a, b2]) => {
+    bands += `<rect x="${x(a)}" y="${t}" width="${x(b2) - x(a)}" height="${H - b - t}" fill="currentColor" opacity="0.05"/>`;
+  });
+  const cx = x(state.minute);
+  const cy = y(levelAt(state.minute));
+  svg.innerHTML =
+    `${bands}${svgGrid(W, H, l, r, t, b)}
+     <line class="f1-grid" x1="${l}" y1="${y(0.5)}" x2="${W - r}" y2="${y(0.5)}"/>
+     <line class="f1-grid" x1="${l}" y1="${y(1)}" x2="${W - r}" y2="${y(1)}"/>
+     <path class="f1-area" d="${d} L${x(DAY).toFixed(1)} ${H - b} L${l} ${H - b} Z"/>
+     <path class="f1-line" d="${d}"/>
+     <line class="f1-now" x1="${cx}" y1="${t}" x2="${cx}" y2="${H - b}"/>
+     <circle class="f1-dot" cx="${cx}" cy="${cy}" r="3"/>`;
+
+  const tag = document.getElementById('f1Tag');
+  const tag2 = document.getElementById('f1Tag2');
+  if (tag) {
+    tag.style.left = '37%';
+    tag.style.top = '11%';
+    tag.style.opacity = state.weekend ? '0' : '1';
+  }
+  if (tag2) {
+    tag2.style.left = '21%';
+    tag2.style.top = '63%';
+    tag2.style.opacity = state.weekend ? '0' : '1';
+  }
+}
+/* ---------- E2 分段进度 ---------- */
+let e2Cells = [];
+function buildE2() {
+  const host = document.getElementById('e2Seg');
+  if (!host) return;
+  for (let i = 0; i < 24; i++) {
+    const cell = document.createElement('i');
+    host.appendChild(cell);
+    e2Cells.push(cell);
+  }
+}
+function updateE2() {
+  if (!e2Cells.length) return;
+  const nowHour = Math.floor(state.minute / 60);
+  e2Cells.forEach((cell, i) => {
+    const pk = !state.weekend && (i >= 9 && i < 12 || i >= 18 && i < 21);
+    cell.className = pk ? 'pk' : '';
+    if (i === nowHour) cell.classList.add('now');
+    cell.style.opacity = i > nowHour ? '0.55' : '1';
+  });
+}
+
+/* ---------- 专属文案 ---------- */
+function fmtHour(mm) {
+  return `${pad2(Math.floor(mm / 60))}:00`;
+}
+function windowInfo() {
+  if (state.weekend) return { w: null, idx: 0, prefix: 'WEEKEND' };
+  const inPeak = isPeakMinute(state.minute);
+  if (inPeak) {
+    const w = currentWindow(state.minute);
+    return { w, idx: WINDOWS.indexOf(w) + 1, prefix: 'PEAK WINDOW' };
+  }
+  const nx = WINDOWS.find(([a]) => a > state.minute);
+  if (nx) return { w: nx, idx: WINDOWS.indexOf(nx) + 1, prefix: 'NEXT WINDOW' };
+  return { w: WINDOWS[0], idx: 1, prefix: 'NEXT WINDOW' };
+}
+function updateSpecial(mode, peak, cd) {
+  const info = windowInfo();
+  const e2Mode = document.getElementById('e2Mode');
+  if (e2Mode) e2Mode.textContent = mode === 'peak' ? 'PEAK ACTIVE' : mode === 'idle' ? 'IDLE ACTIVE' : 'WEEKEND MODE';
+  const e2Start = document.getElementById('e2Start');
+  const e2End = document.getElementById('e2End');
+  const e2Win = document.getElementById('e2Win');
+  if (e2Start) e2Start.textContent = info.w ? fmtHour(info.w[0]) : '—';
+  if (e2End) e2End.textContent = info.w ? fmtHour(info.w[1]) : '—';
+  if (e2Win) e2Win.textContent = info.w ? `${info.prefix} ${info.idx}/2` : 'NO PEAK WINDOW';
+  const e2Foot = document.getElementById('e2FootLabel');
+  if (e2Foot) e2Foot.textContent = mode === 'peak' ? 'NEXT IDLE IN:' : mode === 'weekend' ? 'NEXT MON IN:' : 'NEXT PEAK IN:';
+
+  const e4Day = document.getElementById('e4Day');
+  if (e4Day) e4Day.textContent = mode === 'weekend' ? '周末' : '工作日';
+  const e4Cd = document.getElementById('e4CdLabel');
+  if (e4Cd) e4Cd.textContent = mode === 'peak' ? 'NEXT IDLE' : mode === 'weekend' ? 'NEXT MON' : 'NEXT PEAK';
+  const e4Win = document.getElementById('e4Win');
+  if (e4Win) e4Win.textContent = info.w ? `${fmtHour(info.w[0])} – ${fmtHour(info.w[1])}` : '—';
+  const e4WinLab = document.querySelector('.e4-win span');
+  if (e4WinLab) e4WinLab.textContent = info.prefix;
+
+  const e5Chip = document.getElementById('e5Chip');
+  if (e5Chip) e5Chip.textContent = mode === 'peak' ? '[ PEAK MODE ]' : mode === 'idle' ? '[ IDLE MODE ]' : '[ WEEKEND ]';
+  const e5Foot = document.getElementById('e5FootLabel');
+  if (e5Foot) e5Foot.textContent = mode === 'peak' ? 'NEXT IDLE:' : mode === 'idle' ? 'NEXT PEAK:' : 'NEXT MON:';
+
+  const d6Counter = document.getElementById('d6Counter');
+  if (d6Counter) d6Counter.textContent = mode === 'peak' ? '谷 0.5×' : mode === 'idle' ? '峰 1.0×' : '周一 1.0×';
+  const d6Next = document.getElementById('d6Next');
+  if (d6Next) {
+    const nx = mode === 'peak' ? fmtHour(currentWindow(state.minute)[1]) : mode === 'weekend' ? 'MON 09:00' : fmtHour(info.w[0]);
+    d6Next.textContent = 'NEXT ' + nx;
+  }
+  const d6Lab = document.getElementById('d6CdLabel');
+  if (d6Lab) d6Lab.textContent = mode === 'peak' ? '距空闲' : mode === 'idle' ? '距高峰' : '距周一';
+  const d6Status = document.querySelector('.d6-status em');
+  if (d6Status) d6Status.textContent = mode === 'peak' ? 'PEAK · 峰 7H / 谷 17H' : mode === 'idle' ? 'IDLE · 峰 7H / 谷 17H' : 'WEEKEND · 全天 0.5×';
+  const c6Meta = document.getElementById('c6MetaRight');
+  if (c6Meta) c6Meta.textContent = mode === 'weekend' ? 'WEEKEND · 全天 0.5×' : 'PEAK 09–12 / 18–21';
+
+  const e3Lab = document.getElementById('e3CdLabel');
+  if (e3Lab) e3Lab.textContent = mode === 'peak' ? '距空闲倒计时' : mode === 'idle' ? '距高峰倒计时' : '距周一倒计时';
+  const f1Lab = document.getElementById('f1CdLabel');
+  if (f1Lab) f1Lab.textContent = mode === 'peak' ? '距空闲（0.5×）' : mode === 'idle' ? '距高峰（1.0×）' : '距周一（1.0×）';
+
+  document.querySelectorAll('.js-date-en').forEach(el => el.textContent = state.weekend ? 'OCT.31' : 'OCT.28');
+  document.querySelectorAll('.js-week-en').forEach(el => el.textContent = state.weekend ? 'SAT' : 'WED');
+  document.querySelectorAll('.js-date-num').forEach(el => el.textContent = state.weekend ? '10-31' : '10-28');
+  document.querySelectorAll('.js-cdlab-en').forEach(el => {
+    el.textContent = mode === 'peak' ? 'NEXT IDLE' : mode === 'idle' ? 'NEXT PEAK' : 'NEXT MON';
+  });
+}
+
+/* ---------- 初始化 ---------- */
+buildC6();
+buildE2();
+const params = new URLSearchParams(location.search);
+if (params.has('t')) {
+  const t = parseInt(params.get('t'), 10);
+  if (!Number.isNaN(t)) state.minute = Math.max(0, Math.min(1439, t));
+}
+if (params.get('day') === 'weekend') state.weekend = true;
+updateE2();
+updateText();
+
+const range = document.getElementById('timeRange');
+if (range) {
+  range.value = state.minute;
+  range.addEventListener('input', () => {
+    state.minute = parseInt(range.value, 10);
+    updateText();
+    updateE2();
+  });
+}
+const daySeg = document.getElementById('daySeg');
+if (daySeg) {
+  daySeg.querySelectorAll('button').forEach(btn => {
+    btn.classList.toggle('on', (btn.dataset.day === 'weekend') === state.weekend);
+    btn.addEventListener('click', () => {
+      state.weekend = btn.dataset.day === 'weekend';
+      daySeg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn));
+      updateText();
+      updateE2();
+    });
+  });
+}
+const motion = document.getElementById('motionToggle');
+if (motion) {
+  motion.addEventListener('change', () => {
+    document.body.classList.toggle('motion-off', !motion.checked);
+  });
+}
+</script>
+</body>
+</html>

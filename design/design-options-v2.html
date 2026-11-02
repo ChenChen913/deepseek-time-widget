@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeepSeek 时段挂件 · UI 设计方案 v2</title>
+<style>
+/* ================= 页面基础 ================= */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:#EDF0F5;color:#101725;font-size:14px;line-height:1.62;
+  font-family:"Microsoft YaHei UI","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(120% 60% at 50% 0%,#F6F8FC 0%,rgba(246,248,252,0) 60%);
+}
+.page{max-width:1380px;margin:0 auto;padding:56px 32px 80px}
+
+/* ================= 页头 ================= */
+.hero{margin-bottom:34px}
+.kicker{
+  font-family:"Segoe UI Variable Display","Segoe UI",sans-serif;
+  font-size:11.5px;letter-spacing:.22em;font-weight:600;color:#8C99B0;
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.kicker::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,#D6DEE9,transparent)}
+.hero h1{
+  margin:0;font-size:40px;line-height:1.15;font-weight:600;letter-spacing:-.015em;color:#0B1220;
+  font-family:"Microsoft YaHei UI","Segoe UI Variable Display","Segoe UI",sans-serif;
+}
+.hero h1 em{font-style:normal;color:#9AA7BC;font-weight:300}
+.hero-sub{margin:12px 0 0;font-size:15px;color:#55617A;max-width:760px}
+.hero-sub b{color:#0B1220;font-weight:600}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.hero-meta span{
+  font-size:12px;color:#5B6880;background:#fff;border:1px solid #E1E7EF;
+  padding:5px 11px;border-radius:999px;
+}
+.hero-meta span b{color:#0B1220;font-weight:600}
+
+/* ================= 说明 / 图例 ================= */
+.panel{
+  background:#fff;border:1px solid #E1E7EF;border-radius:16px;padding:22px 24px;margin-bottom:26px;
+  box-shadow:0 1px 2px rgba(16,23,37,.04),0 10px 28px -22px rgba(16,23,37,.3);
+}
+.panel-title{font-size:12px;letter-spacing:.1em;font-weight:600;color:#8C99B0;margin:0 0 14px}
+.notice{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px 26px}
+.notice div{font-size:13px;color:#4A566E;line-height:1.7}
+.notice b{display:block;color:#0B1220;font-weight:600;font-size:12.5px;margin-bottom:3px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;padding-top:18px;border-top:1px dashed #E1E7EF}
+.lg{
+  display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:#3A4559;
+  background:#F6F8FB;border:1px solid #E5EAF1;border-radius:999px;padding:5px 12px 5px 9px;
+}
+.lg::before{content:'';width:8px;height:8px;border-radius:50%;flex:none}
+.lg-peak::before{background:#FFB443;box-shadow:0 0 0 3px rgba(255,180,67,.18)}
+.lg-free::before{background:#2EC7A4;box-shadow:0 0 0 3px rgba(46,199,164,.16)}
+.lg-tag::before{background:#7C89A3;border-radius:2px}
+.lg-stale::before{background:#fff;border:1.5px solid #B9C3D3}
+
+/* ================= 方案卡 ================= */
+.plan{
+  background:#fff;border:1px solid #E1E7EF;border-radius:22px;padding:30px 30px 26px;margin-bottom:30px;
+  box-shadow:0 1px 2px rgba(16,23,37,.04),0 18px 44px -26px rgba(16,23,37,.28);
+}
+.plan-head{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:start}
+.plan-num{
+  font-family:"Segoe UI Variable Display","Segoe UI",sans-serif;
+  font-size:46px;line-height:.9;font-weight:250;color:#C7D0DE;
+  font-variant-numeric:tabular-nums;letter-spacing:-.03em;padding-top:2px;
+}
+.plan-name{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em;color:#0B1220;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.plan-name small{font-size:12px;font-weight:400;letter-spacing:.06em;color:#9AA7BC;text-transform:uppercase}
+.plan-tagline{margin:7px 0 0;font-size:13.5px;color:#55617A;max-width:720px}
+.plan-tags{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.plan-tags span{
+  font-size:11.5px;color:#55617A;background:#F4F7FA;border:1px solid #E5EAF1;
+  padding:4px 10px;border-radius:7px;white-space:nowrap;
+}
+.plan-tags span.hot{background:#FFF6E8;border-color:#F6E0BD;color:#8A5A0C}
+
+/* ================= Token 表 ================= */
+.tokens{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
+  gap:1px;background:#E8EDF3;border:1px solid #E8EDF3;border-radius:12px;overflow:hidden;margin:22px 0 24px;
+}
+.token{background:#fff;padding:9px 12px;display:flex;align-items:flex-start;gap:8px;font-size:12.5px;min-width:0}
+.token b{font-weight:500;color:#8C99B0;flex:none;min-width:46px;font-size:12px;padding-top:1px}
+.token span{color:#1B2536;line-height:1.45;font-variant-numeric:tabular-nums;word-break:break-word}
+.sw{display:block;width:13px;height:13px;border-radius:3.5px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.09)}
+
+/* ================= 场景 ================= */
+.scene{
+  position:relative;border-radius:16px;padding:52px 26px 26px;overflow:hidden;margin-bottom:16px;
+  border:1px solid rgba(0,0,0,.06);
+}
+.scene + .scene{margin-top:16px}
+.wall-dark{
+  background:
+    radial-gradient(120% 95% at 16% 10%,#2C3E70 0%,rgba(44,62,112,0) 58%),
+    radial-gradient(95% 85% at 84% 80%,#6B3557 0%,rgba(107,53,87,0) 62%),
+    radial-gradient(75% 65% at 62% 20%,#17515E 0%,rgba(23,81,94,0) 55%),
+    linear-gradient(155deg,#0B1020 0%,#141B30 48%,#090D18 100%);
+}
+.wall-light{
+  background:
+    radial-gradient(115% 95% at 14% 16%,#CFE3F5 0%,rgba(207,227,245,0) 60%),
+    radial-gradient(95% 85% at 86% 76%,#F6DCC8 0%,rgba(246,220,200,0) 62%),
+    radial-gradient(80% 70% at 55% 8%,#E6EBF8 0%,rgba(230,235,248,0) 55%),
+    linear-gradient(150deg,#E9EFF9 0%,#F4F1ED 50%,#E3E9F5 100%);
+}
+.scene::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(85% 85% at 50% 45%,#000 20%,transparent 100%);
+  mask-image:radial-gradient(85% 85% at 50% 45%,#000 20%,transparent 100%);
+}
+.wall-light::after{
+  background-image:
+    linear-gradient(rgba(20,30,55,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(20,30,55,.055) 1px,transparent 1px);
+}
+.scene-cap{
+  position:absolute;top:0;left:0;right:0;height:38px;display:flex;align-items:center;gap:10px;
+  padding:0 20px;font-size:11.5px;letter-spacing:.06em;z-index:5;
+}
+.wall-dark .scene-cap{color:rgba(226,236,252,.5);border-bottom:1px solid rgba(255,255,255,.07)}
+.wall-light .scene-cap{color:rgba(24,36,58,.5);border-bottom:1px solid rgba(20,30,55,.07)}
+.scene-cap b{font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:10.5px}
+.wall-dark .scene-cap b{color:rgba(226,236,252,.78)}
+.wall-light .scene-cap b{color:rgba(24,36,58,.78)}
+
+.grid4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 26px;justify-items:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 26px;justify-items:center}
+.cell{display:flex;flex-direction:column;align-items:center;gap:11px;min-width:0}
+.cell-cap{font-size:11px;letter-spacing:.04em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wall-dark .cell-cap{color:rgba(226,236,252,.46)}
+.wall-light .cell-cap{color:rgba(24,36,58,.46)}
+
+/* ================= 挂件通用 ================= */
+.w{
+  position:relative;
+  width:var(--w);height:var(--h);
+  border-radius:var(--radius);
+  background:var(--surface);
+  color:var(--text);
+  box-shadow:var(--shadow),var(--inset);
+  overflow:hidden;
+  isolation:isolate;
+  zoom:1.15;
+  font-family:"Microsoft YaHei UI","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  -webkit-backdrop-filter:blur(var(--blur)) saturate(var(--sat,150%)) brightness(var(--bright,1));
+  backdrop-filter:blur(var(--blur)) saturate(var(--sat,150%)) brightness(var(--bright,1));
+  transition:transform .38s cubic-bezier(.22,1,.36,1),box-shadow .38s cubic-bezier(.22,1,.36,1);
+  will-change:transform;
+}
+.w:hover{transform:translateY(-3px)}
+/* 折射边：1px 渐变描边 */
+.w::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;z-index:6;pointer-events:none;
+  background:linear-gradient(158deg,var(--bd-hi) 0%,var(--bd-lo) 38%,transparent 62%,var(--bd-lo) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+}
+/* 状态光晕 */
+.glow{
+  position:absolute;inset:-25%;z-index:0;pointer-events:none;
+  background:radial-gradient(circle at var(--gx,72%) var(--gy,6%),var(--state) 0%,transparent var(--gr,48%));
+  opacity:var(--glow-op,.45);
+  animation:breathe var(--br,9s) ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{opacity:calc(var(--glow-op,.45) * .72)}50%{opacity:var(--glow-op,.45)}}
+/* 流光 */
+.sheen{
+  position:absolute;top:-70%;left:-50%;width:48%;height:240%;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.13) 42%,rgba(255,255,255,.02) 72%,transparent);
+  transform:rotate(14deg);
+  animation:sweep var(--sw,15s) cubic-bezier(.45,0,.55,1) infinite;
+}
+@keyframes sweep{
+  0%{transform:translateX(0) rotate(14deg);opacity:0}
+  12%{opacity:1}
+  62%{opacity:.7}
+  78%,100%{transform:translateX(420%) rotate(14deg);opacity:0}
+}
+/* 颗粒 */
+.grain{
+  position:absolute;inset:0;z-index:2;pointer-events:none;opacity:var(--grain,.05);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.content{position:relative;z-index:4;height:100%;display:flex;flex-direction:column}
+
+/* 状态色绑定 */
+.w[data-m="peak"]{--state:var(--peak)}
+.w[data-m="free"]{--state:var(--free)}
+
+/* 状态行 */
+.row-top{display:flex;align-items:center;justify-content:space-between;gap:10px;line-height:1}
+.status{display:flex;align-items:center;gap:7px;font-size:12px;letter-spacing:.04em;color:var(--state);white-space:nowrap;min-width:0;line-height:1}
+.status .dot{
+  display:block;width:6px;height:6px;border-radius:50%;background:var(--state);flex:none;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--state) 16%,transparent),0 0 9px var(--state);
+  animation:pulse 3.6s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.status span{overflow:hidden;text-overflow:ellipsis}
+.price{
+  font-family:"Segoe UI Variable Display","Segoe UI",sans-serif;
+  font-size:16px;font-weight:600;color:var(--state);letter-spacing:.01em;
+  font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;
+  text-shadow:0 0 14px color-mix(in srgb,var(--state) 45%,transparent);
+}
+.price i{font-style:normal;font-size:12.5px;opacity:.85;margin-left:2px;letter-spacing:0}
+
+/* 时钟 */
+.clock{
+  font-family:"Segoe UI Variable Display","Segoe UI","Microsoft YaHei UI",sans-serif;
+  font-size:var(--clock-size,44px);line-height:1;font-weight:300;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  color:var(--text);white-space:nowrap;
+  text-shadow:0 1px 0 rgba(255,255,255,.04);
+}
+.clock b{font-weight:300}
+
+/* 日期行 */
+.row-date{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-dim);min-width:0;white-space:nowrap}
+.row-date .d{overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+.tag{
+  flex:none;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:5px;
+  color:var(--tag-fg);background:var(--tag-bg);border:1px solid var(--tag-bd);
+  letter-spacing:.02em;font-weight:500;
+}
+.stale{
+  flex:none;font-size:10.5px;line-height:1;padding:3px 6px;border-radius:5px;
+  color:var(--stale-fg);border:1px dashed var(--stale-bd);letter-spacing:.02em;
+}
+.sep{flex:none;opacity:.4;font-size:10px}
+
+/* 时间轴 */
+.axis{position:relative;height:6px;border-radius:3px;background:var(--axis-bg);overflow:hidden}
+.axis .seg{position:absolute;top:0;height:100%}
+.seg-p{background:var(--axis-peak)}
+.seg-f{background:var(--axis-free)}
+.axis-now{
+  position:absolute;top:50%;width:2px;height:13px;border-radius:2px;transform:translate(-50%,-50%);
+  background:var(--now-color);box-shadow:0 0 7px var(--now-glow);z-index:2;
+}
+.axis-full{position:absolute;inset:0;background:var(--axis-free)}
+
+/* 倒计时行 */
+.row-cd{display:flex;align-items:baseline;gap:6px;font-size:11.5px;color:var(--text-mute);white-space:nowrap;min-width:0;line-height:1.25}
+.row-cd .cdl{flex:none;letter-spacing:.04em}
+.row-cd .cdv{
+  font-family:"Segoe UI Variable Display","Segoe UI",sans-serif;
+  font-size:13px;font-weight:500;color:var(--text-dim);font-variant-numeric:tabular-nums;
+  letter-spacing:.01em;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ================= 形态：常规卡 ================= */
+.w-card .content{padding:14px 16px 13px;gap:0}
+.w-card .clock{margin-top:6px}
+.w-card .row-date{margin-top:3px}
+.w-card .spacer{flex:1;min-height:6px}
+.w-card .axis{margin-bottom:8px}
+
+/* ================= 形态：胶囊 ================= */
+.w-cap{border-radius:999px}
+.w-cap .content{flex-direction:row;align-items:center;padding:0 26px 0 18px;gap:16px}
+.w-cap .orb{
+  position:relative;flex:none;width:48px;height:48px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,color-mix(in srgb,var(--state) 62%,#fff) 0%,var(--state) 42%,color-mix(in srgb,var(--state) 55%,#000) 100%);
+  box-shadow:0 0 22px color-mix(in srgb,var(--state) 42%,transparent),inset 0 -4px 10px rgba(0,0,0,.22),inset 0 3px 6px rgba(255,255,255,.4);
+}
+.w-cap .orb::after{
+  content:'';position:absolute;left:22%;top:16%;width:34%;height:26%;border-radius:50%;
+  background:rgba(255,255,255,.55);filter:blur(3px);
+}
+.w-cap .orb::before{
+  content:'';position:absolute;inset:-9px;border-radius:50%;
+  border:1px solid color-mix(in srgb,var(--state) 26%,transparent);
+  animation:ringPulse 4.2s ease-out infinite;
+}
+@keyframes ringPulse{0%{transform:scale(.92);opacity:.9}70%{transform:scale(1.16);opacity:0}100%{opacity:0}}
+.w-cap .cap-main{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.w-cap .cap-main .row-top{justify-content:flex-start;gap:12px}
+.w-cap .clock{font-size:32px;letter-spacing:-.015em;margin-top:1px}
+.w-cap .row-date{font-size:11.5px;margin-top:2px}
+.w-cap .cap-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex:none;min-width:130px}
+.w-cap .row-cd{justify-content:flex-end}
+.w-cap .cap-right .axis{width:130px;height:5px}
+.w-cap .price{font-size:18px}
+
+/* ================= 形态：圆表盘 ================= */
+.w-dial{border-radius:50%}
+.w-dial .content{align-items:center;justify-content:center;text-align:center;padding:0}
+.w-dial .ring{position:absolute;inset:0;z-index:3;pointer-events:none}
+.w-dial .ring svg{width:100%;height:100%;display:block}
+/* 外圈折射高光：一圈偏冷的环状反光 */
+.w-dial::after{
+  content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:5;
+  background:conic-gradient(from 205deg,
+    rgba(255,255,255,.20) 0deg, rgba(255,255,255,.03) 48deg,
+    transparent 88deg, transparent 252deg,
+    rgba(255,255,255,.09) 318deg, rgba(255,255,255,.20) 360deg);
+  -webkit-mask:radial-gradient(circle at 50% 50%,transparent 0 91.5%,#000 92.5%);
+  mask:radial-gradient(circle at 50% 50%,transparent 0 91.5%,#000 92.5%);
+}
+.w-dial .dial-body{display:flex;flex-direction:column;align-items:center;gap:0;padding-top:6px}
+.w-dial .status{font-size:11.5px}
+.w-dial .clock{font-size:36px;margin-top:9px;letter-spacing:-.02em}
+.w-dial .price{font-size:19px;margin-top:5px}
+.w-dial .row-date{font-size:11px;margin-top:12px;justify-content:center;max-width:200px}
+.w-dial .row-cd{font-size:10.5px;margin-top:5px;justify-content:center;max-width:200px}
+.w-dial .row-cd .cdv{font-size:11.5px}
+.w-dial .glow{--gx:50%;--gy:22%;--gr:56%}
+
+/* ================= 方案 01 · 深空琥珀 ================= */
+.w[data-d="01"]{
+  --w:316px;--h:180px;--radius:18px;--blur:24px;--sat:150%;
+  --surface:linear-gradient(158deg,rgba(40,49,68,.80) 0%,rgba(17,22,33,.84) 52%,rgba(10,13,20,.88) 100%);
+  --bd-hi:rgba(255,255,255,.26);--bd-lo:rgba(255,255,255,.07);
+  --text:#EEF3FC;--text-dim:rgba(226,236,251,.60);--text-mute:rgba(226,236,251,.34);
+  --peak:#FFB443;--free:#48E0BE;
+  --shadow:0 20px 44px -14px rgba(0,0,0,.62),0 3px 10px rgba(0,0,0,.32);
+  --inset:inset 0 1px 0 rgba(255,255,255,.15),inset 0 -22px 34px -24px rgba(0,0,0,.55);
+  --glow-op:.36;--gx:76%;--gy:0%;--gr:46%;--br:9s;--sw:15s;--grain:.05;
+  --tag-bg:rgba(255,255,255,.09);--tag-bd:rgba(255,255,255,.14);--tag-fg:rgba(238,243,252,.82);
+  --stale-fg:rgba(226,236,251,.46);--stale-bd:rgba(226,236,251,.26);
+  --axis-bg:rgba(255,255,255,.07);--axis-peak:rgba(255,180,67,.62);--axis-free:rgba(72,224,190,.30);
+  --now-color:#fff;--now-glow:rgba(255,255,255,.85);
+}
+/* ================= 方案 02 · 霜白棱镜 ================= */
+.w[data-d="02"]{
+  --w:316px;--h:180px;--radius:20px;--blur:28px;--sat:180%;--bright:1.08;
+  --surface:linear-gradient(158deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.68) 46%,rgba(246,250,255,.76) 100%);
+  --bd-hi:rgba(255,255,255,.95);--bd-lo:rgba(255,255,255,.42);
+  --text:#131B2B;--text-dim:rgba(28,40,62,.62);--text-mute:rgba(28,40,62,.40);
+  --peak:#B8720E;--free:#0B8A72;
+  --shadow:0 22px 46px -18px rgba(31,45,71,.38),0 3px 10px rgba(31,45,71,.10);
+  --inset:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -20px 32px -26px rgba(31,45,71,.22);
+  --glow-op:.11;--gx:22%;--gy:0%;--gr:46%;--br:11s;--sw:17s;--grain:.035;
+  --tag-bg:rgba(19,27,43,.06);--tag-bd:rgba(19,27,43,.10);--tag-fg:rgba(19,27,43,.72);
+  --stale-fg:rgba(28,40,62,.48);--stale-bd:rgba(28,40,62,.26);
+  --axis-bg:rgba(19,27,43,.09);--axis-peak:rgba(184,114,14,.52);--axis-free:rgba(11,138,114,.30);
+  --now-color:#131B2B;--now-glow:rgba(19,27,43,.35);
+}
+/* ================= 方案 03 · 流光胶囊 ================= */
+.w[data-d="03"]{
+  --w:480px;--h:110px;--radius:999px;--blur:26px;--sat:160%;
+  --surface:linear-gradient(120deg,rgba(46,56,78,.78) 0%,rgba(20,26,40,.82) 46%,rgba(12,16,26,.86) 100%);
+  --bd-hi:rgba(255,255,255,.30);--bd-lo:rgba(255,255,255,.08);
+  --text:#F0F5FE;--text-dim:rgba(228,238,253,.62);--text-mute:rgba(228,238,253,.36);
+  --peak:#FFC05A;--free:#54E8C6;
+  --shadow:0 22px 48px -16px rgba(0,0,0,.60),0 3px 10px rgba(0,0,0,.30);
+  --inset:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -18px 30px -22px rgba(0,0,0,.5);
+  --glow-op:.30;--gx:10%;--gy:50%;--gr:44%;--br:8s;--sw:13s;--grain:.045;
+  --tag-bg:rgba(255,255,255,.10);--tag-bd:rgba(255,255,255,.16);--tag-fg:rgba(240,245,254,.85);
+  --stale-fg:rgba(228,238,253,.48);--stale-bd:rgba(228,238,253,.26);
+  --axis-bg:rgba(255,255,255,.08);--axis-peak:rgba(255,192,90,.62);--axis-free:rgba(84,232,198,.30);
+  --now-color:#fff;--now-glow:rgba(255,255,255,.85);
+}
+/* ================= 方案 04 · 石英表盘 ================= */
+.w[data-d="04"]{
+  --w:300px;--h:300px;--radius:50%;--blur:26px;--sat:150%;
+  --surface:linear-gradient(160deg,rgba(42,51,70,.84) 0%,rgba(18,23,35,.88) 50%,rgba(11,15,23,.93) 100%);
+  --bd-hi:rgba(255,255,255,.28);--bd-lo:rgba(255,255,255,.06);
+  --text:#EFF4FD;--text-dim:rgba(228,238,253,.58);--text-mute:rgba(228,238,253,.32);
+  --peak:#FFB443;--free:#4ADFC0;
+  --shadow:0 26px 56px -18px rgba(0,0,0,.66),0 4px 12px rgba(0,0,0,.34);
+  --inset:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -30px 50px -34px rgba(0,0,0,.6);
+  --glow-op:.28;--gx:50%;--gy:16%;--gr:50%;--br:10s;--sw:19s;--grain:.05;
+  --tag-bg:rgba(255,255,255,.09);--tag-bd:rgba(255,255,255,.14);--tag-fg:rgba(239,244,253,.82);
+  --stale-fg:rgba(228,238,253,.46);--stale-bd:rgba(228,238,253,.26);
+  --axis-bg:rgba(255,255,255,.07);--axis-peak:rgba(255,180,67,.62);--axis-free:rgba(74,223,192,.30);
+  --now-color:#fff;--now-glow:rgba(255,255,255,.85);
+}
+/* ================= 方案 05 · 熔岩边缘 ================= */
+.w[data-d="05"]{
+  --w:316px;--h:180px;--radius:14px;--blur:20px;--sat:135%;
+  --surface:linear-gradient(105deg,rgba(30,32,40,.84) 0%,rgba(15,16,22,.88) 40%,rgba(9,10,14,.92) 100%);
+  --bd-hi:rgba(255,255,255,.18);--bd-lo:rgba(255,255,255,.05);
+  --text:#F4F5F8;--text-dim:rgba(232,236,245,.56);--text-mute:rgba(232,236,245,.32);
+  --peak:#FFAE3D;--free:#3FE0BC;
+  --shadow:0 18px 40px -14px rgba(0,0,0,.68),0 2px 8px rgba(0,0,0,.36);
+  --inset:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -20px 32px -24px rgba(0,0,0,.6);
+  --glow-op:.30;--gx:-6%;--gy:50%;--gr:52%;--br:7s;--sw:0s;--grain:.04;
+  --tag-bg:rgba(255,255,255,.07);--tag-bd:rgba(255,255,255,.13);--tag-fg:rgba(244,245,248,.78);
+  --stale-fg:rgba(232,236,245,.44);--stale-bd:rgba(232,236,245,.24);
+  --axis-bg:rgba(255,255,255,.06);--axis-peak:rgba(255,174,61,.66);--axis-free:rgba(63,224,188,.26);
+  --now-color:#fff;--now-glow:rgba(255,255,255,.8);
+  --clock-size:48px;
+}
+.w[data-d="05"] .sheen{display:none}
+.w[data-d="05"]::after{
+  content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;z-index:5;
+  background:linear-gradient(180deg,transparent,var(--state) 22%,var(--state) 78%,transparent);
+  box-shadow:0 0 12px color-mix(in srgb,var(--state) 68%,transparent),0 0 26px color-mix(in srgb,var(--state) 32%,transparent);
+  opacity:.92;
+}
+/* ================= 方案 06 · 极简薄片 ================= */
+.w[data-d="06"]{
+  --w:300px;--h:150px;--radius:10px;--blur:18px;--sat:115%;--bright:1.06;
+  --surface:linear-gradient(170deg,rgba(255,255,255,.76) 0%,rgba(253,254,255,.64) 100%);
+  --bd-hi:rgba(255,255,255,.85);--bd-lo:rgba(255,255,255,.30);
+  --text:#141C2A;--text-dim:rgba(26,38,58,.58);--text-mute:rgba(26,38,58,.36);
+  --peak:#A9630B;--free:#0A7F69;
+  --shadow:0 14px 34px -16px rgba(28,42,64,.30),0 1px 3px rgba(28,42,64,.08);
+  --inset:inset 0 1px 0 rgba(255,255,255,.9);
+  --glow-op:.09;--gx:80%;--gy:8%;--gr:50%;--br:13s;--sw:21s;--grain:.028;
+  --tag-bg:transparent;--tag-bd:rgba(20,28,42,.16);--tag-fg:rgba(20,28,42,.62);
+  --stale-fg:rgba(26,38,58,.42);--stale-bd:rgba(26,38,58,.22);
+  --axis-bg:rgba(20,28,42,.07);--axis-peak:rgba(169,99,11,.50);--axis-free:rgba(10,127,105,.26);
+  --now-color:#141C2A;--now-glow:rgba(20,28,42,.28);
+}
+.w[data-d="06"] .sheen{display:none}
+.w[data-d="06"] .content{padding:13px 15px 12px}
+.w[data-d="06"] .clock{font-size:38px;margin-top:7px;font-weight:300}
+.w[data-d="06"] .row-top{padding-bottom:9px;border-bottom:1px solid rgba(20,28,42,.14)}
+.w[data-d="06"] .row-date{margin-top:2px}
+.w[data-d="06"] .spacer{flex:1;min-height:4px}
+.w[data-d="06"] .axis{height:4px;border-radius:2px;margin-bottom:7px}
+.w[data-d="06"] .axis .seg{border-radius:0}
+.w[data-d="06"] .price{font-weight:500}
+.w[data-d="06"] .row-cd .cdv{font-size:12px}
+
+/* ================= 优缺点 / WPF ================= */
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+.pc-box{background:#F7F9FC;border:1px solid #EBEFF5;border-radius:12px;padding:14px 16px;font-size:12.8px;color:#48556D;line-height:1.72}
+.pc-box h4{margin:0 0 7px;font-size:11px;letter-spacing:.12em;color:#8C99B0;font-weight:600}
+.pc-box ul{margin:0;padding-left:15px}
+.pc-box li{margin:3px 0}
+.pc-box li::marker{color:#C3CCDB}
+.wpf{
+  margin-top:14px;background:#0F1622;color:#C6D3E8;border-radius:12px;padding:15px 18px;
+  font-size:12.5px;line-height:1.85;
+}
+.wpf h4{margin:0 0 6px;font-size:11px;letter-spacing:.12em;color:#6E8099;font-weight:600}
+.wpf b{color:#6FE0C2;font-weight:600}
+.wpf code,.rec code{
+  font-family:"Cascadia Mono","Consolas",monospace;font-size:11.5px;
+  background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;color:#E4C48A;
+  white-space:nowrap;
+}
+
+/* ================= 对比表 ================= */
+.compare{background:#fff;border:1px solid #E1E7EF;border-radius:22px;padding:30px;margin-bottom:30px;box-shadow:0 1px 2px rgba(16,23,37,.04),0 18px 44px -26px rgba(16,23,37,.28)}
+.compare h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.01em}
+.compare p.lead{margin:0 0 22px;font-size:13.5px;color:#55617A}
+.tbl-wrap{overflow-x:auto;border:1px solid #E8EDF3;border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:12.8px;min-width:880px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid #EDF1F6;vertical-align:top}
+th{font-size:11px;letter-spacing:.08em;color:#8C99B0;font-weight:600;background:#F8FAFC;white-space:nowrap}
+td{color:#2C3749}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#FAFBFD}
+td.nm{font-weight:600;color:#0B1220;white-space:nowrap}
+td.nm i{font-style:normal;color:#B7C1D0;font-weight:400;margin-right:7px;font-variant-numeric:tabular-nums}
+.lv{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.lv-1{background:#E6F6F0;color:#0A7A5F}
+.lv-2{background:#FFF4E2;color:#8A5A0C}
+.lv-3{background:#FDE9E9;color:#A32B2B}
+.rec{margin-top:22px;background:linear-gradient(135deg,#0F1622,#182236);border-radius:14px;padding:22px 24px;color:#C6D3E8}
+.rec h3{margin:0 0 10px;font-size:15px;color:#fff;font-weight:600;display:flex;align-items:center;gap:9px}
+.rec h3 em{font-style:normal;font-size:10.5px;letter-spacing:.1em;background:#6FE0C2;color:#0B2A22;padding:3px 8px;border-radius:5px;font-weight:700}
+.rec p{margin:8px 0;font-size:13px;line-height:1.8}
+.rec b{color:#6FE0C2}
+.rec .alt{color:#8C9CB5;font-size:12.5px;border-top:1px solid rgba(255,255,255,.09);padding-top:12px;margin-top:14px}
+
+/* ================= 页脚 ================= */
+.foot{border-top:1px solid #E1E7EF;padding-top:24px;font-size:12.5px;color:#8C99B0;line-height:1.9}
+.foot b{color:#55617A}
+.foot code{
+  font-family:"Cascadia Mono","Consolas",monospace;font-size:11.5px;
+  background:#E9EEF5;padding:1px 5px;border-radius:4px;color:#2C3749;
+}
+
+@media (max-width:860px){
+  .page{padding:36px 16px 60px}
+  .hero h1{font-size:30px}
+  .grid4,.grid2{grid-template-columns:1fr}
+  .pc{grid-template-columns:1fr}
+  .plan-head{grid-template-columns:auto 1fr}
+  .plan-tags{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="hero">
+  <div class="kicker">DESIGN OPTIONS · V2 · GLASSMORPHISM</div>
+  <h1>DeepSeek 时段挂件 <em>/ 6 个 UI 方案</em></h1>
+  <p class="hero-sub">常驻 Windows 桌面右下角的计费时段提示小挂件。视觉全部围绕一个判断：<b>现在是高峰还是空闲</b>。其余信息一律压低对比度，让状态色成为唯一焦点。</p>
+  <div class="hero-meta">
+    <span>实际尺寸 <b>316 × 180 DIP</b></span>
+    <span>展示放大 <b>1.15×</b></span>
+    <span>目标 <b>Windows 11 · 125% 缩放</b></span>
+    <span>单文件 · 离线可用</span>
+    <span>字体 <b>Microsoft YaHei UI / Segoe UI Variable</b></span>
+  </div>
+</header>
+
+<section class="panel">
+  <h2 class="panel-title">使用说明</h2>
+  <div class="notice">
+    <div><b>四种状态全覆盖</b>每个方案都并排给出高峰、工作日空闲、周末、法定节假日四态，全部使用同一套 mock 数据，可直接横向比对。</div>
+    <div><b>极端文案压力测试</b>场景 B 专门放「10月1日 · 国庆节 · 数据待更新」+「6天 23:00:00」，验证日期行不溢出、倒计时不挤压时钟。</div>
+    <div><b>两种壁纸</b>场景 A 深色壁纸、场景 B 浅色壁纸，玻璃的模糊、折射边、内高光、状态光晕都必须在这两种底色下同时成立。</div>
+    <div><b>悬停无浮层</b>鼠标移上去只有 3px 上浮和流光扫过，<b>没有任何 tooltip 或文字浮层</b>——所有信息常驻，进度条纯装饰。</div>
+    <div><b>边缘留白</b>挂件四周预留 10px 无交互区，供拖动、右键与置顶按钮避让，避免贴边时误触；内容区不做任何弹出式交互。</div>
+  </div>
+  <div class="legend">
+    <span class="lg lg-peak">高峰时段 · 1.0× · 周一至周五 09:00–12:00 / 14:00–18:00</span>
+    <span class="lg lg-free">空闲时段 · 0.5× · 其余全部时间</span>
+    <span class="lg lg-tag">周末 / 法定节假日 → 全天 0.5×（调休上班日也按周末算）</span>
+    <span class="lg lg-stale">数据待更新 · 节假日数据缺失时的兜底提示</span>
+  </div>
+</section>
+
+<main id="app"></main>
+
+<section class="compare">
+  <h2>方案对比</h2>
+  <p class="lead">同一套信息结构，六种表达方式。难度按「WPF 原生能力复现」评估，不是视觉复杂度。</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>方案</th><th>形态 / 尺寸</th><th>玻璃类型</th><th>信息密度</th><th>浅壁纸可读性</th><th>常驻性能</th><th>WPF 难度</th><th>最适合</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="nm"><i>01</i>深空琥珀</td><td>常规 316×180</td><td>深色厚玻璃</td><td>中</td><td>好（自带暗底）</td><td>优</td><td><span class="lv lv-2">中</span></td><td>默认主推，任何壁纸都稳</td>
+        </tr>
+        <tr>
+          <td class="nm"><i>02</i>霜白棱镜</td><td>常规 316×180</td><td>浅色霜白玻璃</td><td>中</td><td>一般（依赖壁纸亮度）</td><td>优</td><td><span class="lv lv-2">中偏高</span></td><td>浅色壁纸 / 亮色主题用户</td>
+        </tr>
+        <tr>
+          <td class="nm"><i>03</i>流光胶囊</td><td>胶囊 480×110</td><td>深色玻璃 + 光球</td><td>中高</td><td>好</td><td>良（光球脉冲）</td><td><span class="lv lv-2">中</span></td><td>贴任务栏横放，视觉最讨喜</td>
+        </tr>
+        <tr>
+          <td class="nm"><i>04</i>石英表盘</td><td>圆盘 Ø300</td><td>深色玻璃 + 环形轴</td><td>低</td><td>好</td><td>良（弧形动画）</td><td><span class="lv lv-3">高</span></td><td>桌面摆件，不占边角</td>
+        </tr>
+        <tr>
+          <td class="nm"><i>05</i>熔岩边缘</td><td>常规 316×180</td><td>近黑玻璃 + 光柱</td><td>中</td><td>好</td><td>优（无流光）</td><td><span class="lv lv-1">低</span></td><td>要最快落地、最省 CPU</td>
+        </tr>
+        <tr>
+          <td class="nm"><i>06</i>极简薄片</td><td>薄片 300×150</td><td>浅色薄玻璃</td><td>中低</td><td>好（对比最强）</td><td>优</td><td><span class="lv lv-1">低</span></td><td>讨厌"装饰感"的克制派</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="rec">
+    <h3>我的推荐 <em>PRIMARY</em></h3>
+    <p><b>01 深空琥珀</b> —— 唯一一个在深色壁纸、浅色壁纸、彩色壁纸下都不需要妥协的方案。深色半透明底自带一层"保底对比度"，所以状态色可以做到很低的饱和度也不糊；状态光晕从右上角渗出，是唯一让"玻璃"和"状态"发生关系的地方——光晕颜色即状态色，不看字也知道现在贵不贵。</p>
+    <p><b>落地成本也最合理</b>：Win11 的 <code>AcrylicBrush</code> 直接对应它的底，流光是一条 <code>LinearGradientBrush</code> 加 <code>TranslateTransform</code>，光晕是一条 <code>RadialGradientBrush</code> 加 <code>Opacity</code> 动画。三个动画都是 WPF 最便宜的属性动画，24 小时挂着也不烫。</p>
+    <p class="alt"><b>备选：</b>如果你更看重"一眼看清数字"而不是氛围，选 <b>06 极简薄片</b>——没有光晕、没有流光、没有颗粒，纯靠排版和 1px 细线，WPF 里几乎零成本，浅色壁纸上反而是六者中最清楚的。<b>03 流光胶囊</b>适合想贴任务栏横着放、且愿意接受 480px 宽度的场景。</p>
+  </div>
+</section>
+
+<footer class="foot">
+  <p><b>关于数据：</b>本页所有时间为静态 mock 数据，时钟按各自基准时间实时走动（秒位每秒 +1），倒计时保持静态以对齐 mock 值。真实实现中倒计时需按北京时间计算，与系统时区无关。</p>
+  <p><b>关于规则：</b>高峰 = 周一至周五（不含中国法定节假日）09:00–12:00、14:00–18:00，1.0×；其余全部时间 0.5×。周末即使遇调休上班日也按官网字面规则算空闲。只有两种价格状态，不引入第三种。</p>
+  <p><b>关于 WPF：</b>浏览器里的 <code>backdrop-filter</code> 在 WPF 中不存在。每个方案的降级路径 = 半透明渐变底 + 顶部 1px 内高光 + 底部内阴影 + 可选 <code>BlurEffect</code>。Win11 下优先用系统亚克力 / Mica，取不到再走降级，两条路径视觉差异控制在可接受范围内。</p>
+</footer>
+
+<script>
+/* ==== 数据 ==== */
+const S = {
+  peak: {
+    key:'peak', mode:'peak', status:'高峰时段', price:'1.0', time:'10:30:24',
+    date:'10月28日 周三', tag:null, stale:false,
+    cdLabel:'距空闲', cd:'01:29:36', nowPct:43.78, allDay:false,
+    caption:'① 高峰 · 周三 10:30:24 · 1.0×'
+  },
+  night: {
+    key:'night', mode:'free', status:'空闲时段', price:'0.5', time:'20:15:03',
+    date:'10月28日 周三', tag:null, stale:false,
+    cdLabel:'距高峰', cd:'12:44:57', nowPct:84.38, allDay:false,
+    caption:'② 空闲 · 周三 20:15:03 · 0.5×'
+  },
+  weekend: {
+    key:'weekend', mode:'free', status:'空闲时段', price:'0.5', time:'10:30:24',
+    date:'10月31日 周六', tag:'周末', stale:false,
+    cdLabel:'距高峰', cd:'1天 22:30:00', nowPct:43.78, allDay:true,
+    caption:'③ 周末 · 周六 10:30:24 · 全天 0.5×'
+  },
+  holiday: {
+    key:'holiday', mode:'free', status:'空闲时段', price:'0.5', time:'10:00:05',
+    date:'10月1日 周四', tag:'国庆节', stale:false,
+    cdLabel:'距高峰', cd:'6天 23:00:00', nowPct:41.67, allDay:true,
+    caption:'④ 法定节假日 · 周四 10:00:05 · 全天 0.5×'
+  },
+  extreme: {
+    key:'extreme', mode:'free', status:'空闲时段', price:'0.5', time:'10:00:05',
+    date:'10月1日', tag:'国庆节', stale:true,
+    cdLabel:'距高峰', cd:'6天 23:00:00', nowPct:41.67, allDay:true,
+    caption:'⑤ 极端文案 · 日期三段 + 6天 23:00:00'
+  }
+};
+
+/* ==== 片段 ==== */
+function statusHTML(st){
+  return `<div class="status"><i class="dot"></i><span>${st.status}</span></div>`;
+}
+function priceHTML(st){
+  return `<div class="price">${st.price}<i>×</i></div>`;
+}
+function dateHTML(st){
+  let s = `<span class="d">${st.date}</span>`;
+  if (st.tag) s += `<span class="tag">${st.tag}</span>`;
+  if (st.stale) s += `<span class="stale">数据待更新</span>`;
+  return `<div class="row-date">${s}</div>`;
+}
+function cdHTML(st){
+  return `<div class="row-cd"><span class="cdl">${st.cdLabel}</span><span class="cdv">${st.cd}</span></div>`;
+}
+function clockHTML(st){
+  return `<div class="clock" data-t="${st.time}">${st.time}</div>`;
+}
+function axisHTML(st){
+  if (st.allDay){
+    return `<div class="axis"><div class="axis-full"></div><span class="axis-now" style="left:${st.nowPct}%"></span></div>`;
+  }
+  const segs = [[0,37.5,'f'],[37.5,50,'p'],[50,58.33,'f'],[58.33,75,'p'],[75,100,'f']];
+  const inner = segs.map(([a,b,c]) =>
+    `<span class="seg seg-${c}" style="left:${a}%;width:${(b-a).toFixed(2)}%"></span>`).join('');
+  return `<div class="axis">${inner}<span class="axis-now" style="left:${st.nowPct}%"></span></div>`;
+}
+
+/* 圆表盘环形轴：24h → 360°，两个高峰窗口 = 两段弧 */
+function dialRing(st){
+  const R = 124, C = 2 * Math.PI * R, arc = d => C * d / 360;
+  const track = `<circle cx="150" cy="150" r="${R}" fill="none" stroke="var(--axis-bg)" stroke-width="3"/>`;
+  let body = '';
+  if (st.allDay){
+    body = `<circle cx="150" cy="150" r="${R}" fill="none" stroke="var(--axis-free)" stroke-width="3"/>`;
+  } else {
+    body =
+      `<circle cx="150" cy="150" r="${R}" fill="none" stroke="var(--axis-peak)" stroke-width="3" stroke-linecap="round"
+        stroke-dasharray="${arc(45).toFixed(1)} ${(C-arc(45)).toFixed(1)}" stroke-dashoffset="${(-arc(135)).toFixed(1)}"/>` +
+      `<circle cx="150" cy="150" r="${R}" fill="none" stroke="var(--axis-peak)" stroke-width="3" stroke-linecap="round"
+        stroke-dasharray="${arc(60).toFixed(1)} ${(C-arc(60)).toFixed(1)}" stroke-dashoffset="${(-arc(210)).toFixed(1)}"/>`;
+  }
+  const th = st.nowPct / 100 * Math.PI * 2;
+  const px = (150 + R * Math.sin(th)).toFixed(1);
+  const py = (150 - R * Math.cos(th)).toFixed(1);
+  const dot =
+    `<circle cx="${px}" cy="${py}" r="9" fill="var(--now-color)" opacity=".14"/>` +
+    `<circle cx="${px}" cy="${py}" r="3.4" fill="var(--now-color)"/>`;
+  return `<svg viewBox="0 0 300 300" aria-hidden="true">${track}${body}${dot}</svg>`;
+}
+
+/* ==== 三种形态 ==== */
+function widget(plan, st){
+  const base = `<div class="glow"></div><div class="sheen"></div><div class="grain"></div>`;
+  const open = `<div class="w w-${plan.type}" data-d="${plan.id}" data-m="${st.mode}">`;
+
+  if (plan.type === 'cap'){
+    return `${open}${base}
+      <div class="content">
+        <div class="orb"></div>
+        <div class="cap-main">
+          <div class="row-top">${statusHTML(st)}</div>
+          ${clockHTML(st)}
+          ${dateHTML(st)}
+        </div>
+        <div class="cap-right">
+          ${priceHTML(st)}
+          ${cdHTML(st)}
+          ${axisHTML(st)}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (plan.type === 'dial'){
+    return `${open}${base}
+      <div class="ring">${dialRing(st)}</div>
+      <div class="content">
+        <div class="dial-body">
+          ${statusHTML(st)}
+          ${clockHTML(st)}
+          ${priceHTML(st)}
+          ${dateHTML(st)}
+          ${cdHTML(st)}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `${open}${base}
+    <div class="content">
+      <div class="row-top">${statusHTML(st)}${priceHTML(st)}</div>
+      ${clockHTML(st)}
+      ${dateHTML(st)}
+      <div class="spacer"></div>
+      ${axisHTML(st)}
+      ${cdHTML(st)}
+    </div>
+  </div>`;
+}
+
+function cell(plan, key){
+  const st = S[key];
+  return `<div class="cell">${widget(plan, st)}<div class="cell-cap">${st.caption}</div></div>`;
+}
+
+/* ==== 方案数据 ==== */
+const PLANS = [
+{
+  id:'01', name:'深空琥珀', en:'Void Amber', type:'card', diff:'难度 中',
+  tagline:'深色厚玻璃打底，状态光晕从右上角渗出——不看字也能判断现在贵不贵。',
+  tags:['深色玻璃','常规型 316×180','WPF 难度：中'],
+  tokens:[
+    ['主色','#141A28 → #0A0D14','#141A28'],
+    ['高峰色','#FFB443','#FFB443'],
+    ['空闲色','#48E0BE','#48E0BE'],
+    ['圆角','18px'],
+    ['透明度','0.80 – 0.88'],
+    ['模糊','24px · saturate 150%'],
+    ['阴影','0 20 44 -14 · rgba(0,0,0,.62)'],
+    ['字号','时钟 44 / 状态 12 / 日期 12 / 倒计时 13'],
+    ['间距','内边距 14×16 · 行距 3–8'],
+    ['动效','呼吸 9s · 流光 15s · 悬停 380ms']
+  ],
+  pros:[
+    '深色底自带对比度保底，深/浅/彩色壁纸上都不糊',
+    '光晕颜色即状态色，余光可辨，不必盯数字',
+    '层级清晰：倍率最重、时钟次之、倒计时最轻'
+  ],
+  cons:[
+    '亮色桌面下存在感偏强，可能显得"沉"',
+    '流光 + 呼吸两个常驻动画，需限制刷新开销',
+    '颗粒层在 125% 缩放下要单独调不透明度，否则发脏'
+  ],
+  wpf:'底 = <code>AcrylicBrush</code>（TintColor <code>#141A28</code>、TintOpacity 0.62、BlurRadius 24），再叠一层 LinearGradientBrush 压暗底部。光晕 = 右上角 <code>RadialGradientBrush</code>，Opacity 0.30↔0.42 用 <code>DoubleAnimation</code> 9s 往返。流光 = 60px 宽白色 LinearGradientBrush 矩形，RotateTransform 14° + TranslateTransform 15s 循环，<b>务必开 CacheMode</b>。颗粒用 128×128 PNG 平铺，Opacity 0.05。CPU 目标 &lt; 1.5%。'
+},
+{
+  id:'02', name:'霜白棱镜', en:'Frost Prism', type:'card', diff:'难度 中偏高',
+  tagline:'把玻璃做成"磨砂亚克力板"而不是"半透明白块"，靠 1px 亮边和内阴影立住体积。',
+  tags:['浅色玻璃','常规型 316×180','WPF 难度：中偏高'],
+  tokens:[
+    ['主色','#FFFFFF 66% → 50%','#FFFFFF'],
+    ['高峰色','#B8720E','#B8720E'],
+    ['空闲色','#0B8A72','#0B8A72'],
+    ['圆角','20px'],
+    ['透明度','0.50 – 0.66'],
+    ['模糊','28px · saturate 190%'],
+    ['阴影','0 22 46 -18 · rgba(31,45,71,.38)'],
+    ['字号','时钟 44 / 状态 12 / 日期 12 / 倒计时 13'],
+    ['间距','内边距 14×16 · 行距 3–8'],
+    ['动效','呼吸 11s · 流光 17s']
+  ],
+  pros:[
+    '浅色壁纸下最自然，像真的贴在桌面上的玻璃',
+    '深色状态字（#B8720E / #0B8A72）在霜白底上对比度 > 4.5:1',
+    '高光边 + 冷投影，体积感远强于纯白色块'
+  ],
+  cons:[
+    '依赖壁纸亮度：大面积深色壁纸下白底会显脏',
+    'saturate 190% 在 WPF 里没有直接对应，只能用 tint 近似',
+    '状态光晕必须压到 0.2 以下，否则整块发黄/发绿'
+  ],
+  wpf:'难点是"浅色亚克力"。Win11 的 AcrylicBrush 在浅色 tint 下容易发灰，建议改用 <code>Mica</code> + 自绘 88% 白色覆盖层，再叠 1px 白色顶部内高光。模糊用 <code>BlurEffect Radius 22</code>，但 <b>只作用在背景 Border 上</b>，不要套文字外层（会整棵子树栅格化）。saturate 无法还原，用偏冷 TintColor <code>#F2F6FF</code> 补偿。'
+},
+{
+  id:'03', name:'流光胶囊', en:'Flow Capsule', type:'cap', diff:'难度 中',
+  tagline:'左侧一颗会呼吸的状态光球，右侧信息横排——最像"桌面小宠物"的一版。',
+  tags:['胶囊型 480×110','深色玻璃','WPF 难度：中'],
+  tokens:[
+    ['主色','#1A2133 → #0C1019','#1A2133'],
+    ['高峰色','#FFC05A','#FFC05A'],
+    ['空闲色','#54E8C6','#54E8C6'],
+    ['圆角','999px（全圆）'],
+    ['透明度','0.78 – 0.86'],
+    ['模糊','26px · saturate 160%'],
+    ['阴影','0 22 48 -16 · rgba(0,0,0,.60)'],
+    ['字号','时钟 32 / 状态 12 / 倍率 18 / 倒计时 13'],
+    ['间距','内边距 18×26 · 元素间距 16'],
+    ['动效','光球脉冲 4.2s · 光晕 8s · 流光 13s']
+  ],
+  pros:[
+    '光球把状态色面积做大，远距离也能看出贵不贵',
+    '横条形态贴合任务栏，不挡桌面图标',
+    '480px 宽度让"6天 23:00:00"与日期三段文案毫无压力'
+  ],
+  cons:[
+    '比常规型宽 52%，窄屏靠边时略显突兀',
+    '光球 + 脉冲环 + 流光三处动画，六方案里最耗电',
+    '全圆角使边缘可点击区变窄，右键要留 8px 内缩'
+  ],
+  wpf:'胶囊 = <code>Border CornerRadius 55</code> + ClipToBounds。光球 = Ellipse 填 <code>RadialGradientBrush</code>（GradientOrigin 0.34,0.30），外发光用 <code>DropShadowEffect</code>（BlurRadius 22、ShadowDepth 0、颜色=状态色）。脉冲环 = 无填充 Ellipse 做 ScaleTransform 0.92→1.16 + Opacity 1→0，4.2s 循环，<b>RenderTransformOrigin 必须设 0.5,0.5</b>。'
+},
+{
+  id:'04', name:'石英表盘', en:'Quartz Dial', type:'dial', diff:'难度 高',
+  tagline:'24 小时压成一圈，两个高峰窗口就是环上的两段琥珀弧——时间轴变成表盘刻度。',
+  tags:['圆形表盘 Ø300','深色玻璃','WPF 难度：高'],
+  tokens:[
+    ['主色','#121824 → #0B0F17','#121824'],
+    ['高峰色','#FFB443','#FFB443'],
+    ['空闲色','#4ADFC0','#4ADFC0'],
+    ['圆角','50%（正圆）'],
+    ['透明度','0.76 – 0.90'],
+    ['模糊','26px · saturate 155%'],
+    ['阴影','0 26 56 -18 · rgba(0,0,0,.66)'],
+    ['字号','时钟 36 / 状态 11.5 / 倍率 19 / 倒计时 11.5'],
+    ['间距','中心区 Ø190 · 垂直间距 5–12'],
+    ['动效','光晕 10s · 流光 19s · 指针随秒移动']
+  ],
+  pros:[
+    '时间轴信息量最大：一眼看到今天还剩几个高峰窗口',
+    '圆形天然避开桌面四角，摆放位置自由',
+    '最"物件化"，像桌上的小仪表而不是弹窗'
+  ],
+  cons:[
+    'Ø300 占桌面面积约是常规型的 2.4 倍',
+    '环形轴 2.5px 在 125% 缩放下偏细，需按 DPI 补偿',
+    'WPF 画弧要用 ArcSegment 或 StrokeDashArray，逻辑最重'
+  ],
+  wpf:'环 = <code>Path + ArcSegment</code>（或 Ellipse + StrokeDashArray 模拟，后者更省）。24h→360°，高峰窗口分别是 135°–180° 与 210°–270°。当前时刻 = 一个 Ellipse 按角度算坐标定位。外圈折射高光 WPF 无 ConicGradient，降级为两段半透明白弧（左上 120°、右下 60°）。<b>建议先做静态环，指针用 DispatcherTimer 1s 更新</b>，不要用连续动画。'
+},
+{
+  id:'05', name:'熔岩边缘', en:'Ember Edge', type:'card', diff:'难度 低',
+  tagline:'去掉流光和颗粒，只留左边缘一根 3px 状态光柱——最安静、也最省电的一版。',
+  tags:['深色玻璃','常规型 316×180','WPF 难度：低'],
+  tokens:[
+    ['主色','#1E2028 → #090A0E','#1E2028'],
+    ['高峰色','#FFAE3D','#FFAE3D'],
+    ['空闲色','#3FE0BC','#3FE0BC'],
+    ['圆角','14px'],
+    ['透明度','0.84 – 0.92'],
+    ['模糊','20px · saturate 135%'],
+    ['阴影','0 18 40 -14 · rgba(0,0,0,.68)'],
+    ['字号','时钟 48 / 状态 12 / 倍率 16 / 倒计时 13'],
+    ['间距','内边距 14×16（左侧 20 让开光柱）'],
+    ['动效','光晕 7s · 无流光']
+  ],
+  pros:[
+    '唯一"零持续位移动画"的方案，常驻功耗最低',
+    '3px 光柱 + 48px 大时钟，信息读取速度最快',
+    '落地最简单：基本是一个 Border 加两条 Brush'
+  ],
+  cons:[
+    '视觉最"硬"，缺少液态玻璃的流动感',
+    '近黑底在亮色壁纸上是一块明显的深色矩形',
+    '少了流光，"液态"感全靠光晕单独撑'
+  ],
+  wpf:'一根 3px <code>Rectangle</code> 填 LinearGradientBrush（透明→状态色→透明），外加 <code>DropShadowEffect</code>（BlurRadius 16、颜色=状态色）就是全部特效。底 = AcrylicBrush 或 <code>SolidColorBrush #0F1016</code> + Opacity 0.92。唯一动画是光晕 Opacity 7s 往返。<b>建议先用这个跑通框架，再往 01 加效果。</b>'
+},
+{
+  id:'06', name:'极简薄片', en:'Minimal Frost', type:'card', diff:'难度 低',
+  tagline:'几乎放弃"玻璃特效"，用 1px 细线和字重对比做层级——克制到极致的版本。',
+  tags:['薄片 300×150','浅色玻璃','WPF 难度：低'],
+  tokens:[
+    ['主色','#FFFFFF 58% → 44%','#FFFFFF'],
+    ['高峰色','#A9630B','#A9630B'],
+    ['空闲色','#0A7F69','#0A7F69'],
+    ['圆角','10px'],
+    ['透明度','0.44 – 0.58'],
+    ['模糊','18px · saturate 120%'],
+    ['阴影','0 14 34 -16 · rgba(28,42,64,.30)'],
+    ['字号','时钟 38 / 状态 12 / 倍率 16 / 倒计时 12'],
+    ['间距','内边距 13×15 · 状态行下 1px 分隔线'],
+    ['动效','呼吸 13s · 流光 21s（极弱）']
+  ],
+  pros:[
+    '浅色壁纸上可读性最好，对比度最高',
+    '元素最少，几乎没有视觉噪音，久看不烦',
+    'WPF 落地成本最低：一张半透明白底加几条 Line'
+  ],
+  cons:[
+    '玻璃感最弱，"液态"几乎只剩模糊底',
+    '时间轴压到 3px，高峰窗口辨识度下降',
+    '缺少光晕，状态切换的仪式感不足'
+  ],
+  wpf:'<code>Border</code>（CornerRadius 10、Background #FFFFFF 0.52）+ 顶部 1px 白色内高光 + 一条 1px 分隔线。不需要 DropShadowEffect。模糊可直接用 <code>Mica</code>，不必开 BlurEffect。全程只有一个 Opacity 动画，CPU 占用接近 0。'
+}
+];
+
+/* ==== 渲染 ==== */
+document.getElementById('app').innerHTML = PLANS.map(p => `
+<section class="plan" id="p${p.id}">
+  <div class="plan-head">
+    <div class="plan-num">${p.id}</div>
+    <div>
+      <h2 class="plan-name">${p.name}<small>${p.en}</small></h2>
+      <p class="plan-tagline">${p.tagline}</p>
+    </div>
+    <div class="plan-tags">${p.tags.map(t => `<span>${t}</span>`).join('')}</div>
+  </div>
+  <div class="tokens">
+    ${p.tokens.map(([k,v,c]) =>
+      `<div class="token"><b>${k}</b>${c ? `<i class="sw" style="background:${c}"></i>` : ''}<span>${v}</span></div>`
+    ).join('')}
+  </div>
+  <div class="scene wall-dark">
+    <div class="scene-cap"><b>场景 A</b> 深色壁纸 · 四态并排 · 实际 1.15× 展示</div>
+    <div class="grid4">
+      ${['peak','night','weekend','holiday'].map(k => cell(p,k)).join('')}
+    </div>
+  </div>
+  <div class="scene wall-light">
+    <div class="scene-cap"><b>场景 B</b> 浅色壁纸 · 极端文案压力测试</div>
+    <div class="grid2">
+      ${cell(p,'extreme')}
+      ${cell(p,'peak')}
+    </div>
+  </div>
+  <div class="pc">
+    <div class="pc-box"><h4>优点</h4><ul>${p.pros.map(x => `<li>${x}</li>`).join('')}</ul></div>
+    <div class="pc-box"><h4>取舍</h4><ul>${p.cons.map(x => `<li>${x}</li>`).join('')}</ul></div>
+  </div>
+  <div class="wpf"><h4>WPF 还原 · ${p.diff}</h4>${p.wpf}</div>
+</section>
+`).join('');
+
+/* ==== 时钟：秒位真实走动 ==== */
+(function tick(){
+  const els = Array.from(document.querySelectorAll('.clock[data-t]'));
+  const base = els.map(el => {
+    const [h,m,s] = el.dataset.t.split(':').map(Number);
+    return h*3600 + m*60 + s;
+  });
+  const t0 = Date.now();
+  const pad = n => String(n).padStart(2,'0');
+  const run = () => {
+    const d = Math.floor((Date.now() - t0) / 1000);
+    for (let i = 0; i < els.length; i++){
+      const t = (base[i] + d) % 86400;
+      els[i].textContent = pad(Math.floor(t/3600)) + ':' + pad(Math.floor(t%3600/60)) + ':' + pad(t%60);
+    }
+  };
+  run();
+  setInterval(run, 1000);
+})();
+</script>
+</div>
+</body>
+</html>

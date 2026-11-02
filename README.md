@@ -109,7 +109,7 @@
 - 内置 `holidays.json`：**2025 年 28 天、2026 年 33 天**放假日（来源：国务院办公厅节假日安排通知，并与 timor.tech、NateScarlet/holiday-cn 逐日交叉核对）；
 - 右键「联网更新节假日数据」会抓取当年 + 次年数据并合并（保留旧年份和 `makeupWorkdays` 等字段，自动备份 `.bak`）；日常运行不联网；
 - 更新结果写入 `%APPDATA%\DeepSeekClock\holidays.json`，启动时优先读取它，因此程序放在 `Program Files` 等只读目录也能正常更新；
-- 2027 年安排截至 2026-10-30 尚未发布；数据缺失时挂件自动降级为“只看星期几”，并在日期行提示「数据待更新」；
+- 2027 年安排截至 2026-11-02 尚未发布（已核对 timor.tech 与 NateScarlet/holiday-cn）；数据缺失时挂件自动降级为“只看星期几”，并在日期行提示「数据待更新」，通知发布后用右键「联网更新节假日数据」即可补全；
 - 也可手动编辑 `holidays.json`。
 
 ## 文件结构
@@ -125,7 +125,8 @@
 │  └─ SchemesPro.ps1       # 13 套专属布局（A3/B3 胶囊、A6/B4 表盘、C3 刻度带、示波器/液晶/瑞士分屏/野兽派/半谷/K线/色块/HUD/圆表）+ 9 个专属装饰器
 ├─ test/
 │  ├─ Test-Core.ps1        # 单元测试（79 项断言）
-│  └─ Test-Schemes.ps1     # 界面方案数据校验（872 项断言）
+│  ├─ Test-Schemes.ps1     # 界面方案数据校验（872 项断言）
+│  └─ Test-Render.ps1      # 23 套界面离屏渲染冒烟（93 项断言）
 ├─ tools/
 │  ├─ make-icon.ps1        # 重新生成图标
 │  ├─ capture-schemes.ps1  # 逐方案离屏截图
@@ -135,12 +136,12 @@
 ├─ docs/                   # 默认界面四态实际截图（README 使用）
 ├─ design/
 │  ├─ previews/            # 23 套方案实际截图（scheme-*.png）+ 早期方向稿 jpg
-│  ├─ _states/             # 开发过程的时间点调试图
+│  ├─ _states/             # 开发过程的时间点调试图（本地目录，不入库）
 │  └─ *.html               # 早期视觉评审稿存档，非实际界面
 ├─ research/
 │  ├─ notes.md             # 节假日数据来源与三方核验记录
 │  └─ dsh-plugin.md        # DSH（DeepSeek Harness）插件方案调研
-├─ .github/workflows/      # CI：推送后自动跑单元测试
+├─ .github/workflows/      # CI：推送后自动跑核心测试、方案校验、23 套界面渲染冒烟和 CLI 冒烟
 ├─ LICENSE                 # MIT
 └─ README.md
 ```
@@ -153,6 +154,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Core.ps1
 
 # 界面方案数据校验
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Schemes.ps1
+
+# 23 套界面渲染冒烟（会短暂弹出挂件窗口，约 15 秒）
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Render.ps1
 
 # 命令行查看当前状态（不弹界面）
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PrintStatus
