@@ -351,9 +351,9 @@ $script:LayoutScope = @'
 </Border>
 '@
 
-# ---------- E5 点阵液晶：屏槽 + 状态戳 + 大号 LCD 数字 + 虚线倒计时 ----------
-# 对齐 code02.html 方案 05：卡 295×160，圆角 6，2px 屏框；
-# 顶部一枚方框状态戳记 + 右侧 RATE；中间大钟；日期行；底部一条虚线切分的倒计时。
+# ---------- E5 点阵液晶：屏槽 + 无括号状态戳 + 5 段价格带 + 大号 LCD 数字 ----------
+# 对齐 02/03 扩展稿：卡 295×160，圆角 6，2px 屏框 + 1px 内槽；
+# 状态戳只留描边框（PEAK MODE，不再套方括号，文字垂直居中）；底部日期与下一段合并一行。
 $script:LayoutLcd = @'
 <Border xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="Card" CornerRadius="6" Margin="10" BorderThickness="2">
   <Border.Background><SolidColorBrush Color="#262016" /></Border.Background>
@@ -363,10 +363,10 @@ $script:LayoutLcd = @'
     <Rectangle x:Name="AccentBar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed">
       <Rectangle.Fill><SolidColorBrush Color="#EAB366" /></Rectangle.Fill>
     </Rectangle>
-    <Grid x:Name="Body" Margin="14,12,14,12">
+    <Border Margin="5" BorderThickness="1" BorderBrush="#1FEAB366" CornerRadius="3" IsHitTestVisible="False" />
+    <Grid x:Name="Body" Margin="14,8,14,12">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
-        <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
@@ -378,44 +378,38 @@ $script:LayoutLcd = @'
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <Border x:Name="StatusPill" Background="#00000000" BorderBrush="#EAB366" BorderThickness="1" CornerRadius="2" Padding="4,1" HorizontalAlignment="Left">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-              <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#EAB366" Visibility="Collapsed" />
-              <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#EAB366" Visibility="Collapsed" />
-              <TextBlock x:Name="StatusText" Text="[ PEAK MODE ]" FontSize="11" FontWeight="Bold" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" />
-            </StackPanel>
+          <Border x:Name="StatusPill" Background="#00000000" BorderBrush="#EAB366" BorderThickness="1" CornerRadius="2" Padding="6,0" MinHeight="20" HorizontalAlignment="Left" VerticalAlignment="Center">
+            <TextBlock x:Name="StatusText" Text="PEAK MODE" FontSize="10.5" FontWeight="Bold" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" VerticalAlignment="Center" />
           </Border>
           <Border x:Name="RateBadge" Grid.Column="1" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" VerticalAlignment="Center">
-            <TextBlock x:Name="RateText" Text="RATE: 1.0X" FontSize="11" FontWeight="Bold" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" />
+            <TextBlock x:Name="RateText" Text="1.0×" FontSize="12" FontWeight="Bold" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" VerticalAlignment="Center" />
           </Border>
         </Grid>
       </Border>
-      <TextBlock x:Name="ClockText" Grid.Row="2" Text="10:30:24" FontSize="34" FontWeight="Bold" Foreground="#FDE68A" FontFamily="Courier New, Consolas, Microsoft YaHei UI" Margin="0,6,0,6" HorizontalAlignment="Center" />
-      <Grid Grid.Row="3">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <TextBlock x:Name="DateText" Text="10-28 WED" FontSize="11" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" />
-        <TextBlock x:Name="WeekText" Text="" FontSize="11" Foreground="#EAB366" Visibility="Collapsed" />
-        <TextBlock x:Name="TzText" Grid.Column="1" Text="BJT UTC+8" FontSize="11" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" HorizontalAlignment="Right" />
-      </Grid>
-      <StackPanel Grid.Row="5" Margin="0,0,0,0">
+      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="38" FontWeight="Bold" Foreground="#FDE68A" FontFamily="Courier New, Consolas, Microsoft YaHei UI" Margin="0,6,0,2" HorizontalAlignment="Center" />
+      <Canvas x:Name="E5BandCanvas" Grid.Row="2" Height="25" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+      <StackPanel Grid.Row="4">
         <Canvas Height="1" ClipToBounds="True">
           <Line X1="0" Y1="0" X2="900" Y2="0" Stroke="#1AFFFFFF" StrokeThickness="1" StrokeDashArray="2 2" />
         </Canvas>
-        <Grid Margin="0,6,0,0">
+        <Grid Margin="0,5,0,0">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock x:Name="CountdownText" Text="NEXT IDLE:" FontSize="11" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" />
-            <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#8A6A2E" Margin="8,0,0,0" Visibility="Collapsed" />
+          <TextBlock x:Name="DateText" Text="10-28 WED" FontSize="10.5" Foreground="#EAB366" FontFamily="Courier New, Consolas, Microsoft YaHei UI" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock x:Name="CountdownText" Text="NEXT IDLE" FontSize="9" Foreground="#8A6A2E" FontFamily="Courier New, Consolas, Microsoft YaHei UI" VerticalAlignment="Center" />
+            <TextBlock x:Name="CountdownValue" Text="01:29:36" FontSize="13" FontWeight="Bold" Foreground="#FDE68A" FontFamily="Courier New, Consolas, Microsoft YaHei UI" Margin="6,0,0,0" VerticalAlignment="Center" />
           </StackPanel>
-          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="11" FontWeight="Bold" Foreground="#FDE68A" FontFamily="Courier New, Consolas, Microsoft YaHei UI" VerticalAlignment="Center" />
         </Grid>
       </StackPanel>
+      <Grid Visibility="Collapsed">
+        <Ellipse x:Name="StatusDot" Width="0" Height="0" Fill="#EAB366" />
+        <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#EAB366" />
+        <TextBlock x:Name="WeekText" Text="" FontSize="11" />
+        <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" />
+      </Grid>
     </Grid>
     <Grid Visibility="Collapsed">
       <Canvas x:Name="TimelineCanvas" Height="8">
@@ -1874,25 +1868,25 @@ function Update-SchemeCustomText {
         }
         'e5' {
             if ($null -ne $script:StatusText) {
-                $script:StatusText.Text = '[ IDLE MODE ]'
-                if ($isPeak) { $script:StatusText.Text = '[ PEAK MODE ]' }
-                if ($Status.IsWeekend) { $script:StatusText.Text = '[ WEEKEND ]' }
+                $script:StatusText.Text = 'IDLE MODE'
+                if ($isPeak) { $script:StatusText.Text = 'PEAK MODE' }
+                if ($Status.IsWeekend) { $script:StatusText.Text = 'WEEKEND' }
                 if ($Status.IsHoliday) {
                     $name = [string]$Status.HolidayName
                     if ([string]::IsNullOrWhiteSpace($name)) { $name = '节假日' }
-                    $script:StatusText.Text = '[ HOLIDAY:' + $name + ' ]'
+                    $script:StatusText.Text = 'HOLIDAY:' + $name
                 }
             }
             if ($null -ne $script:RateText) {
-                $rate = '0.5X'
-                if ($isPeak) { $rate = '1.0X' }
-                $script:RateText.Text = 'RATE: ' + $rate
+                $rate = '0.5×'
+                if ($isPeak) { $rate = '1.0×' }
+                $script:RateText.Text = $rate
             }
-            if ($null -ne $script:DateText) { $script:DateText.Text = $dayText + ' ' + $weekEn }
-            if ($null -ne $script:TzText) {
-                $script:TzText.Text = 'BJT UTC+8'
-                if ($Status.IsWeekend) { $script:TzText.Text = 'ALL-DAY IDLE' }
-                if ($Status.IsHoliday) { $script:TzText.Text = 'UPDATE PENDING' }
+            if ($null -ne $script:DateText) {
+                $line = $dayText + ' ' + $weekEn
+                if ($script:Data.Years.Count -eq 0) { $line = $line + ' · 数据缺失' }
+                elseif (-not [bool]$Status.YearCovered) { $line = $line + ' · 数据待更新' }
+                $script:DateText.Text = $line
             }
             if ($null -ne $script:CountdownValue) {
                 $cdText = [string]$script:CountdownValue.Text
@@ -1900,6 +1894,7 @@ function Update-SchemeCustomText {
                     $script:CountdownValue.Text = $matches[1] + 'D ' + $matches[2]
                 }
             }
+            Update-E5WindowBand -Spec $Spec -Status $Status
         }
         'e4' {
             if ($null -ne $script:PlateStatus) {
@@ -2487,5 +2482,107 @@ function Update-BrutalTimeline {
 
     $script:BrutalHour = $nowHour
     $script:BrutalState = $stateKey
+}
+
+# ============================ E5 5 段窗口带 ============================
+# 00-09 / 09-12 / 12-14 / 14-18 / 18-24 五段；峰段实色，当前时刻 2px 游标。
+$script:E5BandBuiltHost = $null
+$script:E5BandSegments = @()
+$script:E5BandLabels = @()
+$script:E5BandCursor = $null
+$script:E5BandWidth = 0.0
+
+function Initialize-E5WindowBand {
+    param([object]$Canvas, [double]$Width)
+
+    if (($null -eq $Canvas) -or ($Width -lt 20)) { return }
+    $Canvas.Children.Clear()
+    $script:E5BandSegments = @()
+    $script:E5BandLabels = @()
+
+    $hours = @(9, 3, 2, 4, 6)
+    $gap = 2.0
+    $usable = $Width - ($gap * 4.0)
+    $x = 0.0
+    foreach ($h in $hours) {
+        $rect = New-Object System.Windows.Shapes.Rectangle
+        $rect.Width = $usable * ([double]$h / 24.0)
+        $rect.Height = 12.0
+        $rect.Fill = ConvertTo-Brush '#3A2B19'
+        [System.Windows.Controls.Canvas]::SetLeft($rect, $x)
+        [System.Windows.Controls.Canvas]::SetTop($rect, 0.0)
+        [void]$Canvas.Children.Add($rect)
+        $script:E5BandSegments += $rect
+        $x += $rect.Width + $gap
+    }
+
+    $cursor = New-Object System.Windows.Shapes.Rectangle
+    $cursor.Width = 2.0
+    $cursor.Height = 16.0
+    $cursor.Fill = ConvertTo-Brush '#FDE68A'
+    [System.Windows.Controls.Canvas]::SetLeft($cursor, 0.0)
+    [System.Windows.Controls.Canvas]::SetTop($cursor, -2.0)
+    [void]$Canvas.Children.Add($cursor)
+    $script:E5BandCursor = $cursor
+
+    $texts = @('00', '09', '12', '14', '18', '24')
+    $positions = @(0.0, 0.375, 0.5, 0.5833, 0.75, 1.0)
+    for ($i = 0; $i -lt $texts.Count; $i++) {
+        $tb = New-Object System.Windows.Controls.TextBlock
+        $tb.Text = [string]$texts[$i]
+        $tb.FontSize = 8.0
+        $tb.FontFamily = New-Object System.Windows.Media.FontFamily('Courier New, Consolas, Microsoft YaHei UI')
+        $tb.Foreground = ConvertTo-Brush '#8A6A2E'
+        $tb.Measure([System.Windows.Size]::new([double]::PositiveInfinity, [double]::PositiveInfinity))
+        $labelW = [double]$tb.DesiredSize.Width
+        $lx = $Width * [double]$positions[$i]
+        if ($i -eq 0) { $lx = 0.0 }
+        elseif ($i -eq ($texts.Count - 1)) { $lx = $Width - $labelW }
+        else { $lx = $lx - ($labelW / 2.0) }
+        [System.Windows.Controls.Canvas]::SetLeft($tb, $lx)
+        [System.Windows.Controls.Canvas]::SetTop($tb, 15.0)
+        [void]$Canvas.Children.Add($tb)
+        $script:E5BandLabels += $tb
+    }
+    $script:E5BandWidth = $Width
+}
+
+function Update-E5WindowBand {
+    param([object]$Spec, [object]$Status)
+
+    if (($null -eq $Spec) -or ($null -eq $Status)) { return }
+    $canvas = $script:E5BandCanvas
+    if ($null -eq $canvas) { return }
+
+    $width = [double]$canvas.ActualWidth
+    if ($width -lt 20) { $width = 263.0 }
+    if (($script:E5BandBuiltHost -ne $canvas) -or ([Math]::Abs($script:E5BandWidth - $width) -gt 0.5)) {
+        Initialize-E5WindowBand -Canvas $canvas -Width $width
+        $script:E5BandBuiltHost = $canvas
+    }
+
+    $colors = Get-SchemeColors -Spec $Spec -Status $Status
+    $offDay = -not [bool]$Status.IsPeakDay
+    $idleFill = [string]$colors.BandIdle
+    $peakFill = [string]$colors.BandPeak
+    for ($i = 0; $i -lt $script:E5BandSegments.Count; $i++) {
+        $fill = $idleFill
+        if (-not $offDay -and (($i -eq 1) -or ($i -eq 3))) { $fill = $peakFill }
+        $script:E5BandSegments[$i].Fill = ConvertTo-Brush $fill
+    }
+
+    if ($null -ne $script:E5BandCursor) {
+        $script:E5BandCursor.Fill = ConvertTo-Brush ([string]$colors.BandCursor)
+        $fraction = [double]$Status.DayFraction
+        if ($fraction -lt 0) { $fraction = 0.0 }
+        if ($fraction -gt 1) { $fraction = 1.0 }
+        $left = [Math]::Round($width * $fraction) - 1
+        if ($left -lt 0) { $left = 0 }
+        if ($left -gt ($width - 2)) { $left = $width - 2 }
+        [System.Windows.Controls.Canvas]::SetLeft($script:E5BandCursor, $left)
+    }
+    foreach ($label in $script:E5BandLabels) {
+        $label.Foreground = ConvertTo-Brush ([string]$colors.BandLabel)
+    }
 }
 

@@ -77,10 +77,12 @@ $script:SchemePalettes = @{
     'amber-crt' = @{
         Peak = @{ Accent = '#EAB366'; AccentSoft = '#EAB366'; BadgeBg = '#00000000'; Track = '#1AEAB366'; Segment = '#EAB366'; Glow = $true;
             Clock = '#FDE68A'; Week = '#EAB366'; Date = '#EAB366'; Status = '#EAB366'; Rate = '#EAB366';
-            CdLabel = '#EAB366'; CdValue = '#FDE68A'; Surface = '#262016'; Border = '#453721' }
+            CdLabel = '#8A6A2E'; CdValue = '#FDE68A'; Surface = '#262016'; Border = '#453721';
+            BandPeak = '#EAB366'; BandIdle = '#3A2B19'; BandCursor = '#FDE68A'; BandLabel = '#8A6A2E' }
         Idle = @{ Accent = '#92B09A'; AccentSoft = '#92B09A'; BadgeBg = '#00000000'; Track = '#1A92B09A'; Segment = '#92B09A'; Glow = $false;
             Clock = '#BBF7D0'; Week = '#92B09A'; Date = '#92B09A'; Status = '#92B09A'; Rate = '#92B09A';
-            CdLabel = '#92B09A'; CdValue = '#BBF7D0'; Surface = '#1C241E'; Border = '#2D3B32' }
+            CdLabel = '#7F9A85'; CdValue = '#BBF7D0'; Surface = '#1C241E'; Border = '#2D3B32';
+            BandPeak = '#92B09A'; BandIdle = '#1E2C24'; BandCursor = '#BBF7D0'; BandLabel = '#7F9A85' }
         Badge = 'tint'
     }
     # E4 双色瑞士分屏：左栏实色就是状态色（网页稿 #B45309 / #047857）
@@ -685,14 +687,14 @@ Add-Scheme @{
 
 Add-Scheme @{
     Key = 'e5'; Num = 'E5'; Name = 'E5 · 点阵液晶'
-    Hint = '暖棕黑底 + 琥珀液晶数字，屏槽框 + 双虚线分隔'
+    Hint = '暖棕黑底 + 琥珀液晶数字，屏槽 + 5 段价格带 + 底部日期/下一段'
     Layout = 'lcd'; Width = 315; Height = 180
     Tone = 'amber'; Palette = 'amber-crt'
     ClockFont = 'Courier New, Consolas, Microsoft YaHei UI'
-    ClockSize = 34
+    ClockSize = 38
     Surface = @{ Type = 'solid'; From = '#262016'; To = '#262016' }
     Border = '#453721'; BorderWidth = 2; Radius = 6; Margin = 10
-    BodyPad = '14,12,14,12'
+    BodyPad = '14,8,14,12'
     Timeline = $false; StatusDot = $false
     Shadow = @{ Blur = 20; Depth = 5; Opacity = 0.5; Color = '#000000' }
     Decor = @('lcdvig')
@@ -740,7 +742,7 @@ $script:SchemeTweaks = @{
     'e2b'     = @{ StatusSize = 13; DateInline = $true; RateSize = 13; StatusPillStyle = $true; CdIdle = '距空闲还有'; CdPeak = '距高峰还有' }
     'e3'      = @{ StatusSize = 11; DateInline = $true; PlainRate = $true; RateSize = 11; ClockSecSize = 34; CdIdle = '距空闲倒计时'; CdPeak = '距高峰倒计时'; Timeline = $false }
     'e4'      = @{ StatusSize = 15; DateInline = $true; PlainRate = $true; RateSize = 20; ClockSecSize = 32; CdIdle = '距空闲'; CdPeak = '距高峰'; Timeline = $false }
-    'e5'      = @{ StatusSize = 11; DateInline = $true; PlainRate = $true; RateSize = 11; StatusPillStyle = $true; ClockSecSize = 34; CdIdle = 'NEXT IDLE:'; CdPeak = 'NEXT PEAK:' }
+    'e5'      = @{ StatusSize = 10.5; DateInline = $true; PlainRate = $true; RateSize = 12; StatusPillStyle = $true; ClockSecSize = 34; CdIdle = 'NEXT IDLE'; CdPeak = 'NEXT PEAK' }
     # F1：倒计时带价格后缀
     'f1'      = @{ StatusSize = 12; DateInline = $true; PlainRate = $true; RateSize = 11; ClockSecSize = 26; CdIdle = '距入谷 (0.5×)'; CdPeak = '距登峰 (1.0×)' }
 }
@@ -2635,6 +2637,7 @@ function Install-Layout {
     $script:CdIcon = Find-LayoutElement 'CdIcon'
     $script:TzText = Find-LayoutElement 'TzText'
     $script:BrutalTimelineCanvas = Find-LayoutElement 'BrutalTimelineCanvas'
+    $script:E5BandCanvas = Find-LayoutElement 'E5BandCanvas'
     $script:PlateBox = Find-LayoutElement 'PlateBox'
     $script:PlateStatus = Find-LayoutElement 'PlateStatus'
     $script:PlateStatusEn = Find-LayoutElement 'PlateStatusEn'
