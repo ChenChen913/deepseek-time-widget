@@ -25,3 +25,15 @@ jobs:
       - name: 命令行冒烟测试
         shell: cmd
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PrintStatus
+
+  render:
+    name: 界面渲染冒烟（23 套方案）
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 离屏渲染全部界面方案
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Render.ps1
