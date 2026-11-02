@@ -142,7 +142,8 @@
 ├─ test/
 │  ├─ Test-Core.ps1        # 单元测试（79 项断言）
 │  ├─ Test-Schemes.ps1     # 界面方案数据校验（872 项断言）
-│  └─ Test-Render.ps1      # 23 套界面离屏渲染冒烟（93 项断言）
+│  ├─ Test-Render.ps1      # 23 套界面离屏渲染冒烟（93 项断言）
+│  └─ Test-Installer.ps1   # 安装包冒烟：安装、CLI、启动器、自启、卸载
 ├─ tools/
 │  ├─ make-icon.ps1        # 重新生成图标
 │  ├─ capture-schemes.ps1  # 逐方案离屏截图
@@ -177,6 +178,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Schemes.ps1
 # 23 套界面渲染冒烟（会短暂弹出挂件窗口，约 15 秒）
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Render.ps1
 
+# 安装包冒烟测试（先退出正在运行的挂件）
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Installer.ps1 -TestAutoStart
+
 # 构建安装包和便携版（需要 Inno Setup 6）
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps1 -Version 1.2.0
 
@@ -193,7 +197,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -Pri
 powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PreviewTime 2026-10-28T10:30:24+08:00 -UiScheme e2b -CapturePath .\e2b.png
 ```
 
-Release 工作流在推送 `v*` 标签时自动构建。仓库 Secrets 配置 `WINDOWS_CERTIFICATE_BASE64` 和 `WINDOWS_CERTIFICATE_PASSWORD` 后，会使用 `signtool` 给启动器和安装包签名；未配置证书时产物仍会构建，默认标记为预发布，人工核对后可改为正式版。
+Release 工作流在推送 `v*` 标签时自动构建，并在发布前跑安装包冒烟测试。仓库 Secrets 配置 `WINDOWS_CERTIFICATE_BASE64` 和 `WINDOWS_CERTIFICATE_PASSWORD` 后，会使用 `signtool` 给启动器和安装包签名；未配置证书时产物仍会构建，默认标记为预发布，人工核对后可改为正式版。
+
+可选证书方案：SignPath Foundation（开源免费）、Certum 开源代码签名、Azure Trusted Signing、OV/EV 证书。EV 证书对 SmartScreen 信誉最直接，OV 证书需要下载量积累。
 
 ## 相关文档
 

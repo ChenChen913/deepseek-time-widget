@@ -60,6 +60,13 @@ jobs:
             .\tools\build-release.ps1 -Version $version
           }
 
+      - name: 安装包冒烟测试
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem -LiteralPath dist -Filter 'DeepSeekClock-Setup-v*.exe' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (-not $setup) { throw '找不到安装包' }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Installer.ps1 -SetupPath $setup.FullName -TestAutoStart
+
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
