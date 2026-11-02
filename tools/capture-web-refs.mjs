@@ -1,10 +1,12 @@
 // 把审查台里每个方案的原始设计稿「卡片本体」单独截出来，作为「以网页为准」的参照图。
-// 用法：NODE_PATH=C:/Users/11853/AppData/Roaming/npm/node_modules node tools/capture-web-refs.mjs
+// 用法：在仓库根目录执行 node tools/capture-web-refs.mjs，并确保已安装 playwright。
+// 可用 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH 指定 Chromium 路径，未指定时使用 playwright 默认浏览器。
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const ROOT = 'C:/Users/11853/Desktop/deepseek-time-widget-main';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEB = path.join(ROOT, 'design/_states/web');
 const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'design/_states/manifest.json'), 'utf8'));
 
@@ -20,8 +22,9 @@ const CARD_SEL = {
   code03: '.w-osci',
 };
 
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 const browser = await chromium.launch({
-  executablePath: 'C:/Users/11853/AppData/Local/ms-playwright/chromium-1248/chrome-win64/chrome.exe',
+  ...(executablePath ? { executablePath } : {}),
   args: ['--hide-scrollbars'],
 });
 const ctx = await browser.newContext({ deviceScaleFactor: 2, viewport: { width: 1440, height: 1000 } });
