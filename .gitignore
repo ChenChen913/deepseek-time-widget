@@ -1,3 +1,6 @@
+# 构建产物
+dist/
+
 # 运行数据 / 备份
 *.bak
 settings.json

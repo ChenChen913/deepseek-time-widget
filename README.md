@@ -35,7 +35,7 @@
 - **切换倒计时**：自动跨过午休、夜间、周末和法定节假日，跨天显示「N天 HH:MM:SS」
 - **23 套界面**：卡片右键「界面方案」随时切换，选中即生效并写入 `settings.json`，不用重启；其中 8 套共用通用卡片骨架，其余 15 套由 13 套专属模板渲染
 - **单实例**：重复启动不会开第二个窗口，而是把已在运行的挂件叫到前台
-- **快捷方式**：首次启动自动创建桌面和开始菜单快捷方式；卡片右键也能随时重建桌面快捷方式
+- **快捷方式**：安装版由安装向导创建；便携版首次启动自动创建；卡片右键也能随时重建桌面快捷方式
 - **托盘图标**：左键单击显示 / 隐藏挂件；右键打开深色 HUD 菜单，可置顶、开关开机自启、退出
 - **右键菜单**：卡片右键是自绘圆角玻璃面板，托盘右键是同风格深色面板，均替代系统默认菜单
 - **开机自启**：卡片或托盘菜单勾选即可，切换时不弹提示
@@ -92,17 +92,28 @@
 
 ## 快速开始
 
-**方式一：下载即用（推荐）**
+**方式一：安装包（推荐）**
 
-到 [Releases](https://github.com/ChenChen913/deepseek-time-widget/releases/latest) 下载 `DeepSeekClock-v*.zip`，解压到任意固定目录，双击 **`启动挂件.vbs`** 即可。解压后请保持文件夹结构完整。首次启动会自动创建桌面和开始菜单快捷方式。
+到 [Releases](https://github.com/ChenChen913/deepseek-time-widget/releases/latest) 下载 `DeepSeekClock-Setup-v*.exe`，双击按向导安装。默认安装到当前用户目录，不需要管理员权限；安装程序会创建桌面和开始菜单快捷方式，可选开机自启和安装完成后启动。
 
-**方式二：从源码运行**
+**方式二：便携版**
+
+下载 `DeepSeekClock-Portable-v*.zip`，解压到任意固定目录，双击 **`DeepSeekClock.exe`**。首次启动会自动创建快捷方式，可在右键菜单里管理。
+
+**方式三：从源码运行**
 
 1. 克隆或下载本仓库；
 2. 双击 **`启动挂件.vbs`**（静默启动）；如果系统禁用 VBScript，可双击 **`启动挂件.cmd`**；
 3. 挂件会出现在屏幕右下角，左键拖动可移动；首次启动会自动创建桌面和开始菜单快捷方式。卡片右键打开完整菜单（界面方案 / 置顶 / 开机自启 / 更新节假日数据 / 退出）。托盘图标左键显示 / 隐藏，右键打开快捷菜单（显示 / 隐藏、置顶、自启、退出）。
 
 要求：Windows 10 / 11，无需安装任何运行时。
+
+### 安装与卸载
+
+- 安装版默认装在 `%LOCALAPPDATA%\Programs\DeepSeekClock`，卸载入口在“设置 > 应用 > 已安装的应用”。
+- 设置、窗口位置和联网更新的节假日数据保存在 `%APPDATA%\DeepSeekClock`。覆盖升级不会清理这里；卸载时默认保留，安装程序会询问是否一并删除。
+- 安装版由安装程序管理快捷方式和开机自启；便携版和源码运行由挂件自己管理。
+- 安装包和启动器支持 Authenticode 签名。如果某次发布没有配置证书，Windows 可能提示“未知发布者”，请对照 Releases 里的 `SHA256SUMS.txt` 校验文件。
 
 ## 节假日数据与更新
 
@@ -115,10 +126,15 @@
 ## 文件结构
 
 ```
-├─ 启动挂件.vbs            # 静默启动器
-├─ 启动挂件.cmd            # 备用启动器
+├─ 启动挂件.vbs            # 源码运行启动器（发布包不再包含）
+├─ 启动挂件.cmd            # 备用启动器 / 故障排查
 ├─ DeepSeekClock.ps1       # 主程序（WPF 界面 + 交互）
 ├─ holidays.json           # 节假日数据
+├─ launcher/
+│  └─ DeepSeekClock.Launcher.cs  # C# 启动器，编译成 DeepSeekClock.exe
+├─ installer/
+│  ├─ DeepSeekClock.iss    # Inno Setup 6 安装脚本
+│  └─ Languages/           # 安装向导中文语言文件
 ├─ lib/
 │  ├─ DeepSeekTime.ps1     # 时段判断核心逻辑（纯函数）
 │  ├─ Schemes.ps1          # 界面方案引擎：23 份配方 + 3 套通用布局 + 15 个装饰器
@@ -131,7 +147,8 @@
 │  ├─ make-icon.ps1        # 重新生成图标
 │  ├─ capture-schemes.ps1  # 逐方案离屏截图
 │  ├─ capture-web-refs.mjs # 抓取网页原稿对照图（design/_states/web）
-│  └─ build-scheme-gallery.py  # 生成 design/all-schemes.html（方案清单在文件里）
+│  ├─ build-scheme-gallery.py  # 生成 design/all-schemes.html（方案清单在文件里）
+│  └─ build-release.ps1    # 构建安装包、便携版和 SHA256 校验值
 ├─ assets/                 # 图标
 ├─ docs/                   # 默认界面四态实际截图（README 使用）
 ├─ design/
@@ -141,7 +158,9 @@
 ├─ research/
 │  ├─ notes.md             # 节假日数据来源与三方核验记录
 │  └─ dsh-plugin.md        # DSH（DeepSeek Harness）插件方案调研
-├─ .github/workflows/      # CI：推送后自动跑核心测试、方案校验、23 套界面渲染冒烟和 CLI 冒烟
+├─ .github/workflows/
+│  ├─ test.yml             # CI：核心测试、方案校验、23 套界面渲染冒烟和 CLI 冒烟
+│  └─ release.yml          # 推送 v* 标签时自动构建并上传安装包、便携版和校验值
 ├─ LICENSE                 # MIT
 └─ README.md
 ```
@@ -158,6 +177,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Schemes.ps1
 # 23 套界面渲染冒烟（会短暂弹出挂件窗口，约 15 秒）
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\Test-Render.ps1
 
+# 构建安装包和便携版（需要 Inno Setup 6）
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps1 -Version 1.2.0
+
+# 带代码签名构建
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\build-release.ps1 -Version 1.2.0 -PfxPath .\cert.pfx -PfxPassword <密码>
+
 # 命令行查看当前状态（不弹界面）
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PrintStatus
 
@@ -167,6 +192,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -Pri
 # 生成某套方案的实际截图（离屏渲染，不弹窗口）
 powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PreviewTime 2026-10-28T10:30:24+08:00 -UiScheme e2b -CapturePath .\e2b.png
 ```
+
+Release 工作流在推送 `v*` 标签时自动构建。仓库 Secrets 配置 `WINDOWS_CERTIFICATE_BASE64` 和 `WINDOWS_CERTIFICATE_PASSWORD` 后，会使用 `signtool` 给启动器和安装包签名；未配置证书时产物仍会构建，但会标记为预发布。
 
 ## 相关文档
 

@@ -48,7 +48,12 @@ $script:SettingsPath = Join-Path $script:SettingsDir 'settings.json'
 # 联网更新后的节假日数据写到用户目录，避免程序装在 Program Files 等只读位置时写入失败
 $script:UserDataPath = Join-Path $script:SettingsDir 'holidays.json'
 $script:IconPath = Join-Path $script:AppDir 'assets\deepseek-clock.ico'
+$script:LauncherExePath = Join-Path $script:AppDir 'DeepSeekClock.exe'
 $script:LauncherPath = Join-Path $script:AppDir '启动挂件.vbs'
+$script:FallbackCmdPath = Join-Path $script:AppDir '启动挂件.cmd'
+# 安装包会在程序目录写入 install.marker；安装版跳过自动创建快捷方式，交给安装程序管理
+$script:InstallMarkerPath = Join-Path $script:AppDir 'install.marker'
+$script:IsInstalled = Test-Path -LiteralPath $script:InstallMarkerPath
 # 开机自启写进 HKCU 的 Run 键：注册表 Run 每次登录都会执行，
 # 而“启动”文件夹里的快捷方式在部分机器上会被系统跳过（本机实测就没执行过）
 $script:AutoStartRunKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
@@ -202,8 +207,24 @@ function Get-StartMenuShortcutPath {
     return (Join-Path $programs 'DeepSeek 时段挂件.lnk')
 }
 
-function Get-LauncherArguments {
-    return ('"' + $script:LauncherPath + '"')
+function Get-LauncherSpec {
+    # 安装包和便携版都优先使用 DeepSeekClock.exe，源码运行才回退到 VBS，最后回退到 CMD
+    if (Test-Path -LiteralPath $script:LauncherExePath) {
+        return [pscustomobject]@{
+            TargetPath = $script:LauncherExePath
+            Arguments  = ''
+        }
+    }
+    if (Test-Path -LiteralPath $script:LauncherPath) {
+        return [pscustomobject]@{
+            TargetPath = (Join-Path $env:SystemRoot 'System32\wscript.exe')
+            Arguments  = ('"' + $script:LauncherPath + '"')
+        }
+    }
+    return [pscustomobject]@{
+        TargetPath = (Join-Path $env:SystemRoot 'System32\cmd.exe')
+        Arguments  = ('/c "' + $script:FallbackCmdPath + '"')
+    }
 }
 
 function New-AppShortcut {
@@ -212,7 +233,8 @@ function New-AppShortcut {
     if (-not (Test-Path -LiteralPath $parentDir)) {
         New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
     }
-    New-ShortcutFile -ShortcutPath $ShortcutPath -TargetPath (Join-Path $env:SystemRoot 'System32\wscript.exe') -Arguments (Get-LauncherArguments) -WorkingDirectory $script:AppDir -Description $Description
+    $launcher = Get-LauncherSpec
+    New-ShortcutFile -ShortcutPath $ShortcutPath -TargetPath $launcher.TargetPath -Arguments $launcher.Arguments -WorkingDirectory $script:AppDir -Description $Description
     return $ShortcutPath
 }
 
@@ -231,7 +253,11 @@ function Install-AppShortcuts {
 
 function Get-AutoStartCommand {
     # Run 键里带空格 / 中文的路径必须加引号，登录时 Explorer 才会正确解析
-    return ('"' + (Join-Path $env:SystemRoot 'System32\wscript.exe') + '" "' + $script:LauncherPath + '"')
+    $launcher = Get-LauncherSpec
+    if ([string]::IsNullOrWhiteSpace($launcher.Arguments)) {
+        return ('"' + $launcher.TargetPath + '"')
+    }
+    return ('"' + $launcher.TargetPath + '" ' + $launcher.Arguments)
 }
 
 function Get-AutoStartRegistryValue {
@@ -643,19 +669,21 @@ if ((-not [string]::IsNullOrWhiteSpace($UiScheme)) -and ((-not [string]::IsNullO
     $script:Settings.UiScheme = $UiScheme
 }
 
-# 初次安装（或程序目录换了位置）时，自动创建桌面和开始菜单快捷方式
+# 便携版首次启动（或程序目录换了位置）时自动创建快捷方式；安装版由安装程序管理
 $script:InstallPathChanged = $false
 if ([string]::IsNullOrWhiteSpace($script:RequestedCapturePath) -and [string]::IsNullOrWhiteSpace($script:CycleCaptureDir)) {
-    $currentInstallPath = [System.IO.Path]::GetFullPath($script:AppDir)
-    if (-not [string]::Equals([string]$script:Settings.InstallPath, $currentInstallPath, [System.StringComparison]::OrdinalIgnoreCase)) {
-        try {
-            Install-AppShortcuts | Out-Null
-            $script:Settings.InstallPath = $currentInstallPath
-            $script:InstallPathChanged = $true
-        } catch { }
+    if (-not $script:IsInstalled) {
+        $currentInstallPath = [System.IO.Path]::GetFullPath($script:AppDir)
+        if (-not [string]::Equals([string]$script:Settings.InstallPath, $currentInstallPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+            try {
+                Install-AppShortcuts | Out-Null
+                $script:Settings.InstallPath = $currentInstallPath
+                $script:InstallPathChanged = $true
+            } catch { }
+        }
+        # 开机自启自检：把旧版“启动”文件夹快捷方式迁移到注册表 Run，程序目录变动时自动改写路径
+        Repair-AutoStartRegistration
     }
-    # 开机自启自检：把旧版“启动”文件夹快捷方式迁移到注册表 Run，程序目录变动时自动改写路径
-    Repair-AutoStartRegistration
 }
 
 $xamlText = @'
