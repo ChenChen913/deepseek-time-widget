@@ -2,15 +2,18 @@
   <img src="assets/icon-preview.png" width="120" alt="DeepSeek 时段挂件图标" />
 </p>
 
-# DeepSeek 时段挂件
+<h1 align="center">DeepSeek 时段挂件</h1>
 
-> Windows 桌面小挂件：一眼看清现在是 DeepSeek 的「高峰时段」还是「空闲时段」，以及还有多久切换。23 套界面可切换，只依赖 Windows 自带的 PowerShell 5.1 + WPF，**无第三方依赖**。
->
-> 非 DeepSeek 官方项目。
+<p align="center">
+  Windows 桌面小挂件：一眼看清现在是 DeepSeek 的「高峰时段」还是「空闲时段」，以及还有多久切换。23 套界面可切换，只依赖 Windows 自带的 PowerShell 5.1 + WPF，<strong>无第三方依赖</strong>。<br />
+  非 DeepSeek 官方项目。
+</p>
 
-[![test](https://github.com/ChenChen913/deepseek-time-widget/actions/workflows/test.yml/badge.svg)](https://github.com/ChenChen913/deepseek-time-widget/actions/workflows/test.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-2FB89A.svg)](LICENSE)
-[![Windows 10 / 11](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4.svg)](#快速开始)
+<p align="center">
+  <a href="https://github.com/ChenChen913/deepseek-time-widget/actions/workflows/test.yml"><img src="https://github.com/ChenChen913/deepseek-time-widget/actions/workflows/test.yml/badge.svg" alt="test" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2FB89A.svg" alt="License: MIT" /></a>
+  <a href="#快速开始"><img src="https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4.svg" alt="Windows 10 / 11" /></a>
+</p>
 
 <p align="center">
   <img src="docs/preview-peak.png" width="330" alt="高峰时段（默认界面实际截图）" />
