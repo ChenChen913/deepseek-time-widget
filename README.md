@@ -193,7 +193,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -Pri
 powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\DeepSeekClock.ps1 -PreviewTime 2026-10-28T10:30:24+08:00 -UiScheme e2b -CapturePath .\e2b.png
 ```
 
-Release 工作流在推送 `v*` 标签时自动构建。仓库 Secrets 配置 `WINDOWS_CERTIFICATE_BASE64` 和 `WINDOWS_CERTIFICATE_PASSWORD` 后，会使用 `signtool` 给启动器和安装包签名；未配置证书时产物仍会构建，但会标记为预发布。
+Release 工作流在推送 `v*` 标签时自动构建。仓库 Secrets 配置 `WINDOWS_CERTIFICATE_BASE64` 和 `WINDOWS_CERTIFICATE_PASSWORD` 后，会使用 `signtool` 给启动器和安装包签名；未配置证书时产物仍会构建，默认标记为预发布，人工核对后可改为正式版。
 
 ## 相关文档
 
