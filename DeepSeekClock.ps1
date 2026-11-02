@@ -19,6 +19,9 @@
 
 .PARAMETER InstallDesktopShortcut
   命令行用：创建/修复桌面快捷方式后退出。
+
+.PARAMETER InstallShortcuts
+  命令行用：创建/修复桌面和开始菜单快捷方式后退出。
 #>
 [CmdletBinding()]
 param(
@@ -28,6 +31,7 @@ param(
     [string]$UiScheme = '',
     [switch]$PrintStatus,
     [switch]$InstallDesktopShortcut,
+    [switch]$InstallShortcuts,
     [switch]$EnableAutoStart,
     [switch]$DisableAutoStart
 )
@@ -190,14 +194,39 @@ function Get-StartupShortcutPath {
     return (Join-Path $startup 'DeepSeek 时段挂件.lnk')
 }
 
+function Get-StartMenuShortcutPath {
+    $programs = [Environment]::GetFolderPath('Programs')
+    if ([string]::IsNullOrWhiteSpace($programs)) {
+        $programs = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+    }
+    return (Join-Path $programs 'DeepSeek 时段挂件.lnk')
+}
+
 function Get-LauncherArguments {
     return ('"' + $script:LauncherPath + '"')
 }
 
+function New-AppShortcut {
+    param([string]$ShortcutPath, [string]$Description)
+    $parentDir = Split-Path -Parent $ShortcutPath
+    if (-not (Test-Path -LiteralPath $parentDir)) {
+        New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+    }
+    New-ShortcutFile -ShortcutPath $ShortcutPath -TargetPath (Join-Path $env:SystemRoot 'System32\wscript.exe') -Arguments (Get-LauncherArguments) -WorkingDirectory $script:AppDir -Description $Description
+    return $ShortcutPath
+}
+
 function Create-DesktopShortcut {
-    $shortcutPath = Get-DesktopShortcutPath
-    New-ShortcutFile -ShortcutPath $shortcutPath -TargetPath (Join-Path $env:SystemRoot 'System32\wscript.exe') -Arguments (Get-LauncherArguments) -WorkingDirectory $script:AppDir -Description 'DeepSeek 计费时段挂件：显示当前高峰/空闲时段'
-    return $shortcutPath
+    return (New-AppShortcut -ShortcutPath (Get-DesktopShortcutPath) -Description 'DeepSeek 计费时段挂件：显示当前高峰/空闲时段')
+}
+
+function Create-StartMenuShortcut {
+    return (New-AppShortcut -ShortcutPath (Get-StartMenuShortcutPath) -Description 'DeepSeek 计费时段挂件：开始菜单入口')
+}
+
+function Install-AppShortcuts {
+    # 首次安装和程序目录搬家时都调用，重复调用只会覆盖成当前路径
+    return @((Create-DesktopShortcut), (Create-StartMenuShortcut))
 }
 
 function Get-AutoStartCommand {
@@ -396,7 +425,7 @@ function Update-HolidaysOnline {
 }
 
 function Load-Settings {
-    $settings = [pscustomobject]@{ Left = $null; Top = $null; Topmost = $true; LaunchCount = 0; UiScheme = 'default' }
+    $settings = [pscustomobject]@{ Left = $null; Top = $null; Topmost = $true; LaunchCount = 0; UiScheme = 'default'; InstallPath = '' }
     try {
         if (Test-Path -LiteralPath $script:SettingsPath) {
             $raw = Get-Content -LiteralPath $script:SettingsPath -Raw -Encoding UTF8
@@ -407,6 +436,7 @@ function Load-Settings {
                 if ($null -ne $json.Topmost) { $settings.Topmost = [bool]$json.Topmost }
                 if ($null -ne $json.LaunchCount) { $settings.LaunchCount = [int]$json.LaunchCount }
                 if (-not [string]::IsNullOrWhiteSpace([string]$json.UiScheme)) { $settings.UiScheme = [string]$json.UiScheme }
+                if (-not [string]::IsNullOrWhiteSpace([string]$json.InstallPath)) { $settings.InstallPath = [string]$json.InstallPath }
             }
         }
     } catch { }
@@ -434,6 +464,7 @@ function Save-Settings {
             Topmost     = [bool]$script:Window.Topmost
             LaunchCount = [int]$script:Settings.LaunchCount
             UiScheme    = [string]$script:Settings.UiScheme
+            InstallPath = [string]$script:Settings.InstallPath
         }
         $jsonText = $payload | ConvertTo-Json
         [System.IO.File]::WriteAllText($script:SettingsPath, $jsonText, (New-Object System.Text.UTF8Encoding($false)))
@@ -451,6 +482,13 @@ function ConvertFrom-PreviewTimeText {
 }
 
 # ============================ 命令行模式 ============================
+
+if ($InstallShortcuts) {
+    $shortcutPaths = @(Install-AppShortcuts)
+    Write-Output '已创建桌面和开始菜单快捷方式：'
+    foreach ($path in $shortcutPaths) { Write-Output ('  ' + $path) }
+    return
+}
 
 if ($InstallDesktopShortcut) {
     $shortcutPath = Create-DesktopShortcut
@@ -605,8 +643,18 @@ if ((-not [string]::IsNullOrWhiteSpace($UiScheme)) -and ((-not [string]::IsNullO
     $script:Settings.UiScheme = $UiScheme
 }
 
-# 开机自启自检：把旧版“启动”文件夹快捷方式迁移到注册表 Run，程序目录变动时自动改写路径
+# 初次安装（或程序目录换了位置）时，自动创建桌面和开始菜单快捷方式
+$script:InstallPathChanged = $false
 if ([string]::IsNullOrWhiteSpace($script:RequestedCapturePath) -and [string]::IsNullOrWhiteSpace($script:CycleCaptureDir)) {
+    $currentInstallPath = [System.IO.Path]::GetFullPath($script:AppDir)
+    if (-not [string]::Equals([string]$script:Settings.InstallPath, $currentInstallPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+        try {
+            Install-AppShortcuts | Out-Null
+            $script:Settings.InstallPath = $currentInstallPath
+            $script:InstallPathChanged = $true
+        } catch { }
+    }
+    # 开机自启自检：把旧版“启动”文件夹快捷方式迁移到注册表 Run，程序目录变动时自动改写路径
     Repair-AutoStartRegistration
 }
 
@@ -1602,6 +1650,11 @@ $script:Window.Add_Loaded({
             Place-WindowBottomRight
         }
         Update-Widget
+        # 首次安装创建快捷方式后立刻落盘安装路径，避免下次启动重复创建
+        if ($script:InstallPathChanged) {
+            try { Save-Settings } catch { }
+            $script:InstallPathChanged = $false
+        }
         if (-not [string]::IsNullOrWhiteSpace($script:CycleCaptureDir)) {
             Start-CycleCapture
         } elseif ($script:RequestedCapturePath) {
