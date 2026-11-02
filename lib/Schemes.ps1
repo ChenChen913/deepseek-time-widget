@@ -85,10 +85,11 @@ $script:SchemePalettes = @{
     }
     # E4 双色瑞士分屏：左栏实色就是状态色（网页稿 #B45309 / #047857）
     'swiss' = @{
-        Peak = @{ Accent = '#B45309'; AccentSoft = '#FBBF24'; BadgeBg = '#00000000'; Track = '#1AFFFFFF'; Segment = '#FBBF24'; Glow = $false;
-            CdLabel = '#71717A'; CdValue = '#FBBF24'; Clock = '#FAFAFA'; Date = '#A1A1AA' }
-        Idle = @{ Accent = '#047857'; AccentSoft = '#34D399'; BadgeBg = '#00000000'; Track = '#1AFFFFFF'; Segment = '#34D399'; Glow = $false;
-            CdLabel = '#71717A'; CdValue = '#34D399'; Clock = '#FAFAFA'; Date = '#A1A1AA' }
+        # A03 烧橙 + G03 深青：03 定稿的推荐配色，白字
+        Peak = @{ Accent = '#C2410C'; AccentSoft = '#F59E0B'; BadgeBg = '#00000000'; Track = '#1AFFFFFF'; Segment = '#F59E0B'; Glow = $false;
+            CdLabel = '#A1A1AA'; CdValue = '#F59E0B'; Clock = '#FAFAFA'; Date = '#A1A1AA' }
+        Idle = @{ Accent = '#0F766E'; AccentSoft = '#2DD4BF'; BadgeBg = '#00000000'; Track = '#1AFFFFFF'; Segment = '#2DD4BF'; Glow = $false;
+            CdLabel = '#A1A1AA'; CdValue = '#2DD4BF'; Clock = '#FAFAFA'; Date = '#A1A1AA' }
         Badge = 'tint'
     }
     # C6 色块：满版实色，文字用深墨色（网页稿 #E8A33A / #2FAE93）
@@ -2474,7 +2475,9 @@ function Apply-SchemeState {
         if ($null -ne $script:PlateStatus) { $script:PlateStatus.Foreground = ConvertTo-Brush '#FFFFFF' }
         if ($null -ne $script:PlateStatusEn) { $script:PlateStatusEn.Foreground = ConvertTo-Brush '#D9FFFFFF' }
         if ($null -ne $script:PlateRate) { $script:PlateRate.Foreground = ConvertTo-Brush '#FFFFFF' }
+        if ($null -ne $script:PlatePrice) { $script:PlatePrice.Foreground = ConvertTo-Brush '#D9FFFFFF' }
         if ($null -ne $script:PlateDay) { $script:PlateDay.Foreground = ConvertTo-Brush '#BFFFFFFF' }
+        if ($null -ne $script:PhaseFill) { $script:PhaseFill.Fill = ConvertTo-Brush ([string]$colors.CdValue) }
     }
     if ($null -ne $script:HudTopBar) {
         $script:HudTopBar.Fill = ConvertTo-Brush ([string]$colors.Accent)
@@ -2636,7 +2639,13 @@ function Install-Layout {
     $script:PlateStatus = Find-LayoutElement 'PlateStatus'
     $script:PlateStatusEn = Find-LayoutElement 'PlateStatusEn'
     $script:PlateRate = Find-LayoutElement 'PlateRate'
+    $script:PlatePrice = Find-LayoutElement 'PlatePrice'
     $script:PlateDay = Find-LayoutElement 'PlateDay'
+    $script:PhaseBar = Find-LayoutElement 'PhaseBar'
+    $script:PhaseTrack = Find-LayoutElement 'PhaseTrack'
+    $script:PhaseFill = Find-LayoutElement 'PhaseFill'
+    $script:PhaseStartText = Find-LayoutElement 'PhaseStartText'
+    $script:PhaseEndText = Find-LayoutElement 'PhaseEndText'
     $script:HalfRule = Find-LayoutElement 'HalfRule'
     $script:HalfFootText = Find-LayoutElement 'HalfFootText'
     $script:WinLeft = Find-LayoutElement 'WinLeft'

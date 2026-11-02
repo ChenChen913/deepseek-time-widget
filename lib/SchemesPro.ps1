@@ -457,7 +457,10 @@ $script:LayoutSplit = @'
             <TextBlock x:Name="PlateStatus" Text="高峰" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
             <TextBlock x:Name="PlateStatusEn" Text="PEAK" FontSize="10" Foreground="#D9FFFFFF" HorizontalAlignment="Center" Margin="0,2,0,0" />
           </StackPanel>
-          <TextBlock x:Name="PlateRate" Grid.Row="1" Text="1.0×" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock x:Name="PlateRate" Text="1.0×" FontSize="22" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+            <TextBlock x:Name="PlatePrice" Text="标准价" FontSize="8" Foreground="#D9FFFFFF" HorizontalAlignment="Center" Margin="0,2,0,0" />
+          </StackPanel>
           <TextBlock x:Name="PlateDay" Grid.Row="2" Text="工作日" FontSize="10" Foreground="#BFFFFFFF" HorizontalAlignment="Center" />
         </Grid>
       </Border>
@@ -473,22 +476,34 @@ $script:LayoutSplit = @'
           <Rectangle x:Name="StatusSquare" Width="0" Height="0" Fill="#B45309" Visibility="Collapsed" />
           <TextBlock x:Name="StatusText" Text="" FontSize="11" Foreground="#9CA3AF" Visibility="Collapsed" />
           <TextBlock x:Name="WeekText" Text="周三" FontSize="11" Foreground="#9CA3AF" Visibility="Collapsed" />
-          <TextBlock x:Name="DateText" Text="10月28日 周三 · 北京时间" FontSize="11" Foreground="#A1A1AA" />
+          <TextBlock x:Name="DateText" Text="10月28日 周三" FontSize="11" Foreground="#A1A1AA" />
         </StackPanel>
         <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="32" FontWeight="Bold" Foreground="#FAFAFA" VerticalAlignment="Center" />
-        <Border x:Name="CdBox" Grid.Row="2" CornerRadius="6" Background="#27272A" Padding="8,4">
-          <Grid>
+        <StackPanel Grid.Row="2">
+          <Grid x:Name="PhaseBar" Height="4">
+            <Rectangle x:Name="PhaseTrack" Height="4" Fill="#27272A" RadiusX="2" RadiusY="2" />
+            <Rectangle x:Name="PhaseFill" Height="4" Width="0" HorizontalAlignment="Left" Fill="#F59E0B" RadiusX="2" RadiusY="2" />
+          </Grid>
+          <Grid Margin="0,3,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="PhaseStartText" Text="09:00" FontSize="8" Foreground="#71717A" />
+            <TextBlock x:Name="PhaseEndText" Grid.Column="1" Text="12:00" FontSize="8" Foreground="#71717A" HorizontalAlignment="Right" />
+          </Grid>
+          <Grid x:Name="NextRow" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-              <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="11" Foreground="#71717A" />
+              <TextBlock x:Name="CountdownText" Text="距空闲" FontSize="10" Foreground="#A1A1AA" />
               <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#6B7280" Margin="8,0,0,0" Visibility="Collapsed" />
             </StackPanel>
-            <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="11" FontWeight="SemiBold" Foreground="#FBBF24" VerticalAlignment="Center" />
+            <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="13" FontWeight="Bold" Foreground="#F59E0B" VerticalAlignment="Center" />
           </Grid>
-        </Border>
+        </StackPanel>
         <Border x:Name="RateBadge" Grid.Row="2" Background="#00000000" BorderThickness="0" CornerRadius="0" Padding="0" Visibility="Collapsed">
           <TextBlock x:Name="RateText" Text="1.0×" FontSize="20" Foreground="#FBBF24" />
         </Border>
@@ -1907,6 +1922,10 @@ function Update-SchemeCustomText {
                 $script:PlateRate.Text = '0.5×'
                 if ($isPeak) { $script:PlateRate.Text = '1.0×' }
             }
+            if ($null -ne $script:PlatePrice) {
+                $script:PlatePrice.Text = '半价'
+                if ($isPeak) { $script:PlatePrice.Text = '标准价' }
+            }
             if ($null -ne $script:PlateDay) {
                 $script:PlateDay.Text = '工作日'
                 if ($Status.IsWeekend) { $script:PlateDay.Text = '全天可用' }
@@ -1914,10 +1933,23 @@ function Update-SchemeCustomText {
             }
             if ($null -ne $script:DateText) {
                 $line = [string]$Status.DateText + ' ' + [string]$Status.WeekText
-                if ($Status.IsWeekend) { $line = $line + ' · 全天空闲' }
-                elseif ($Status.IsHoliday) { $line = $line + ' · 节假日' }
-                else { $line = $line + ' · 北京时间' }
+                if ($script:Data.Years.Count -eq 0) { $line = $line + ' · 数据缺失' }
+                elseif (-not [bool]$Status.YearCovered) { $line = $line + ' · 数据待更新' }
                 $script:DateText.Text = $line
+            }
+            if ($null -ne $script:PhaseStartText) {
+                $script:PhaseStartText.Text = Format-PhaseClock -Time $Status.PhaseStart -Now $Status.Now
+            }
+            if ($null -ne $script:PhaseEndText) {
+                $script:PhaseEndText.Text = Format-PhaseClock -Time $Status.PhaseEnd -Now $Status.Now
+            }
+            if (($null -ne $script:PhaseBar) -and ($null -ne $script:PhaseFill)) {
+                $barW = [double]$script:PhaseBar.ActualWidth
+                if ($barW -lt 20) { $barW = 190.0 }
+                $progress = [double]$Status.PhaseProgress
+                if ($progress -lt 0) { $progress = 0.0 }
+                if ($progress -gt 1) { $progress = 1.0 }
+                $script:PhaseFill.Width = [Math]::Round($barW * $progress, 2)
             }
         }
         'e3' {

@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E4 · 03 右栏阶段进度 · 调色盘与去框</title>
+<style>
+  :root{
+    --bg:#0b0b0d;
+    --panel:#141417;
+    --panel2:#18181b;
+    --ink:#f4f4f5;
+    --muted:#a1a1aa;
+    --line:#27272a;
+    --line2:#3f3f46;
+    --amber:#f59e0b;
+    --amber-soft:#fbbf24;
+    --green:#10b981;
+    --green-soft:#34d399;
+    /* 默认试色：A03 烧橙 + G03 深青（白字） */
+    --peak-plate:#c2410c;
+    --peak-ink:#ffffff;
+    --peak-muted:rgba(255,255,255,.78);
+    --peak-accent:#f59e0b;
+    --idle-plate:#0f766e;
+    --idle-ink:#ffffff;
+    --idle-muted:rgba(255,255,255,.78);
+    --idle-accent:#2dd4bf;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{
+    font-family:"Segoe UI","Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1120px;margin:0 auto;padding:48px 32px 64px}
+  .eyebrow{
+    display:inline-block;
+    margin:0 0 12px;
+    padding:3px 8px;
+    border:1px solid var(--line2);
+    color:var(--amber-soft);
+    font-size:10.5px;
+    font-weight:800;
+    letter-spacing:.12em;
+  }
+  h1{
+    max-width:900px;
+    margin:0;
+    font-size:36px;
+    line-height:1.16;
+    font-weight:800;
+    letter-spacing:-.03em;
+  }
+  .lede{
+    max-width:830px;
+    margin:16px 0 0;
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.85;
+  }
+  .lede strong{color:var(--ink)}
+  .brief{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+    margin-top:28px;
+  }
+  .brief-item{
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:14px 15px;
+  }
+  .brief-item .tag{
+    display:inline-block;
+    padding:1px 6px;
+    border:1px solid var(--line2);
+    color:var(--amber-soft);
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.08em;
+  }
+  .brief-item h3{margin:9px 0 0;font-size:13.5px;line-height:1.4;font-weight:800}
+  .brief-item p{margin:5px 0 0;color:var(--muted);font-size:12.5px;line-height:1.7}
+  .brief-item code{
+    font-family:"Cascadia Mono",Consolas,monospace;
+    font-size:11px;
+    color:#e4e4e7;
+    background:#202024;
+    border:1px solid var(--line);
+    padding:0 4px;
+  }
+  .section{
+    margin-top:50px;
+    padding-top:28px;
+    border-top:1px solid var(--line2);
+  }
+  .section-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:24px;
+    margin-bottom:22px;
+  }
+  .section-head .eyebrow{margin:0 0 8px}
+  .section h2{margin:0;font-size:24px;line-height:1.3;font-weight:800;letter-spacing:-.01em}
+  .side{color:var(--muted);font-size:12.5px;line-height:1.7;text-align:right}
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    height:25px;
+    padding:0 8px;
+    border:1px solid var(--line2);
+    color:var(--ink);
+    font-size:10.5px;
+    font-weight:800;
+  }
+  .chip.opt{background:var(--peak-plate);border-color:var(--peak-plate);color:#fff}
+  /* ---------- 卡片 ---------- */
+  .frame{
+    --s:1.2;
+    position:relative;
+    width:calc(330px * var(--s));
+    height:calc(175px * var(--s));
+  }
+  .e4-widget{
+    position:absolute;
+    top:0;
+    left:0;
+    width:330px;
+    height:175px;
+    padding:10px;
+    transform:scale(var(--s));
+    transform-origin:top left;
+  }
+  .e4-card{
+    width:100%;
+    height:100%;
+    display:grid;
+    grid-template-columns:86px 1fr;
+    background:#18181b;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 16px 34px rgba(0,0,0,.5);
+  }
+  .e4-plate{
+    position:relative;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    padding:10px 12px;
+    border-radius:9px 0 0 9px;
+  }
+  .e4-plate.peak{background:var(--peak-plate)}
+  .e4-plate.idle{background:var(--idle-plate)}
+  .e4-status{text-align:center}
+  .e4-status b{
+    display:block;
+    font-size:13px;
+    line-height:1.3;
+    font-weight:800;
+    white-space:nowrap;
+  }
+  .e4-status span{
+    display:block;
+    margin-top:2px;
+    font-size:10px;
+    line-height:1.3;
+    letter-spacing:.04em;
+  }
+  .e4-plate.peak .e4-status b,
+  .e4-plate.peak .e4-rate{color:var(--peak-ink)}
+  .e4-plate.peak .e4-status span,
+  .e4-plate.peak .e4-price,
+  .e4-plate.peak .e4-day{color:var(--peak-muted)}
+  .e4-plate.idle .e4-status b,
+  .e4-plate.idle .e4-rate{color:var(--idle-ink)}
+  .e4-plate.idle .e4-status span,
+  .e4-plate.idle .e4-price,
+  .e4-plate.idle .e4-day{color:var(--idle-muted)}
+  .e4-rate-wrap{
+    flex:1 1 auto;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .e4-rate{
+    font-size:22px;
+    line-height:1.2;
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+  }
+  .e4-price{
+    margin-top:2px;
+    font-size:8px;
+    line-height:1.3;
+    letter-spacing:.08em;
+    white-space:nowrap;
+  }
+  .e4-day{
+    font-size:10px;
+    line-height:1.3;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .e4-right{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    padding:14px 16px;
+    background:#121215;
+    border-radius:0 9px 9px 0;
+  }
+  .e4-date{
+    color:#a1a1aa;
+    font-size:11px;
+    line-height:1.4;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .e4-clockwrap{
+    flex:1 1 auto;
+    min-height:0;
+    display:flex;
+    align-items:center;
+  }
+  .e4-clock{
+    color:#fafafa;
+    font-size:32px;
+    line-height:1.1;
+    font-weight:800;
+    letter-spacing:.01em;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .e4-phase{margin-top:4px}
+  .e4-phase-track{
+    position:relative;
+    height:4px;
+    background:#27272a;
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .e4-phase-fill{height:100%;border-radius:2px}
+  .e4-phase-fill.peak{background:var(--peak-accent)}
+  .e4-phase-fill.idle{background:var(--idle-accent)}
+  .e4-phase-labels{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:3px;
+    color:#71717a;
+    font-size:8px;
+    line-height:1.2;
+    font-variant-numeric:tabular-nums;
+  }
+  /* 倒计时：去框，只留一条 1px 分隔线 */
+  .e4-next{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:6px;
+    padding-top:0;
+  }
+  .e4-next-label{
+    color:#a1a1aa;
+    font-size:10px;
+    line-height:1.3;
+    white-space:nowrap;
+  }
+  .e4-next-value{
+    font-size:13px;
+    line-height:1.3;
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .e4-next-value.peak{color:var(--peak-accent)}
+  .e4-next-value.idle{color:var(--idle-accent)}
+  /* ---------- 试色台 ---------- */
+  .tryout{
+    display:grid;
+    grid-template-columns:400px 1fr;
+    gap:36px;
+    align-items:start;
+    margin-top:22px;
+  }
+  .live-stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+  .live-card .frame{--s:1.2}
+  .live-stack .selection{
+    padding:10px 12px;
+    border:1px solid var(--line2);
+    background:var(--panel);
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.7;
+  }
+  .live-stack .selection b{color:var(--ink);font-weight:800}
+  .pair-buttons{display:flex;flex-wrap:wrap;gap:8px}
+  .pair-btn{
+    appearance:none;
+    border:1px solid var(--line2);
+    background:var(--panel2);
+    color:var(--ink);
+    padding:7px 10px;
+    font-family:inherit;
+    font-size:11.5px;
+    font-weight:800;
+    line-height:1.3;
+    cursor:pointer;
+  }
+  .pair-btn:hover{border-color:var(--amber-soft)}
+  .pair-btn.ghost{color:var(--muted);font-weight:700}
+  .palette-stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+  .palette{
+    border:1px solid var(--line);
+    background:var(--panel);
+  }
+  .palette-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .palette-head h3{margin:0;font-size:13px;font-weight:800;line-height:1.3}
+  .palette-head span{color:var(--muted);font-size:10.5px;line-height:1.3}
+  .palette-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    padding:10px;
+  }
+  .swatch{
+    appearance:none;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    width:100%;
+    padding:6px 8px;
+    border:1px solid var(--line);
+    background:var(--panel2);
+    color:var(--ink);
+    font-family:inherit;
+    text-align:left;
+    cursor:pointer;
+  }
+  .swatch.selected{
+    border-color:var(--amber-soft);
+    box-shadow:inset 0 0 0 1px var(--amber-soft);
+  }
+  .swatch .dot{
+    flex:0 0 auto;
+    width:34px;
+    height:22px;
+    border:1px solid rgba(255,255,255,.18);
+  }
+  .swatch .meta{min-width:0;display:flex;flex-direction:column;gap:1px}
+  .swatch .meta b{font-size:11px;font-weight:800;line-height:1.2}
+  .swatch .meta em{
+    font-style:normal;
+    color:var(--muted);
+    font-size:9.5px;
+    line-height:1.2;
+    white-space:nowrap;
+  }
+  .swatch .meta small{
+    color:#71717a;
+    font-size:9px;
+    line-height:1.2;
+    white-space:nowrap;
+  }
+  .swatch .tag{
+    margin-left:auto;
+    color:var(--amber-soft);
+    font-size:8.5px;
+    font-weight:800;
+    line-height:1.2;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .swatch .tag.current{color:#a1a1aa}
+  /* ---------- 状态 ---------- */
+  .states{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:30px 34px;
+    margin-top:22px;
+  }
+  .state{min-width:0}
+  .state .frame{--s:1.1}
+  .state-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .state-note{margin:8px 0 0;color:var(--muted);font-size:12px;line-height:1.7}
+  /* ---------- 实现 ---------- */
+  .impl{
+    margin-top:20px;
+    border:1px solid var(--line2);
+    background:var(--panel);
+  }
+  .impl-head{
+    padding:10px 16px;
+    background:var(--panel2);
+    color:var(--amber-soft);
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.07em;
+  }
+  .impl ul{margin:0;padding:14px 16px 14px 34px}
+  .impl li{margin:5px 0;color:var(--muted);font-size:12.5px;line-height:1.75}
+  .impl code{
+    font-family:"Cascadia Mono",Consolas,monospace;
+    font-size:11.5px;
+    color:#e4e4e7;
+    background:#202024;
+    border:1px solid var(--line);
+    padding:0 4px;
+  }
+  .closing{
+    margin-top:34px;
+    padding:18px 20px;
+    border:1px solid var(--line2);
+    background:var(--panel);
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.85;
+  }
+  .closing p{margin:0 0 8px}
+  .closing p:last-child{margin-bottom:0}
+  .closing strong{color:var(--ink);font-weight:800}
+  footer{
+    display:flex;
+    justify-content:space-between;
+    gap:24px;
+    margin-top:42px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+    color:#71717a;
+    font-size:11.5px;
+    font-weight:600;
+    line-height:1.7;
+  }
+  @media (max-width:900px){
+    .page{padding:36px 20px 48px}
+    h1{font-size:29px}
+    .brief{grid-template-columns:1fr}
+    .tryout{grid-template-columns:1fr;gap:26px}
+    .live-stack{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+    .live-card .frame{--s:1.05}
+    .live-stack .selection,.pair-buttons{grid-column:1/-1}
+    .states{grid-template-columns:1fr}
+    .state .frame{--s:1.1}
+    .section-head{display:block}
+    .side{margin-top:8px;text-align:left}
+    footer{display:block}
+  }
+  @media (max-width:560px){
+    .live-stack{grid-template-columns:1fr}
+    .live-card .frame{--s:1.2}
+    .palette-grid{grid-template-columns:1fr}
+    .frame,.state .frame{--s:1}
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <span class="eyebrow">E4 · 03 右栏阶段进度 / 定向深化</span>
+    <h1>给 03 换一块更顺眼的色，把倒计时从框里拿出来</h1>
+    <p class="lede">
+      以你选中的 <strong>03 右栏阶段进度</strong> 为基础：左栏给 <strong>8 个黄/橙 + 8 个绿</strong>，
+      编号 A01–A08 / G01–G08，点选即试色；右栏倒计时去掉圆角凹槽，改成“左标签 + 右数值”的裸排，
+      不再留横线。大钟、阶段进度、<strong>330×175</strong> 尺寸都不动。
+    </p>
+
+    <div class="brief">
+      <article class="brief-item">
+        <span class="tag">基底</span>
+        <h3>03 的阶段进度保留</h3>
+        <p>日期、大钟、4px 阶段进度、倒计时四层；大钟仍是主角。</p>
+      </article>
+      <article class="brief-item">
+        <span class="tag">调色盘</span>
+        <h3>8 黄/橙 + 8 绿，点选即应用</h3>
+        <p>每个色带自己的<strong>板色 / 字色 / 强调色</strong>；亮色自动切黑字。右侧可实时试色。</p>
+      </article>
+      <article class="brief-item">
+        <span class="tag">去框</span>
+        <h3>倒计时不再装进凹槽</h3>
+        <p>去掉底色、圆角和四边框，也不再留横线；标签左、数值右，直接裸排。</p>
+      </article>
+    </div>
+  </header>
+
+  <section class="section" aria-label="03 试色台">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">03 定稿 · 实时试色</span>
+        <h2>点色块，两张卡会立刻换色</h2>
+      </div>
+      <p class="side">默认 A03 + G03 · 白字<br>点右边的 A / G 编号即可切换</p>
+    </div>
+
+    <div class="tryout">
+      <div class="live-stack">
+        <div class="live-card">
+          <div class="frame">
+            <div class="e4-widget">
+              <div class="e4-card">
+                <div class="e4-plate peak">
+                  <div class="e4-status"><b>高峰</b><span>PEAK</span></div>
+                  <div class="e4-rate-wrap"><div class="e4-rate">1.0×</div><div class="e4-price">标准价</div></div>
+                  <div class="e4-day">工作日</div>
+                </div>
+                <div class="e4-right">
+                  <div class="e4-date">10月28日 周三</div>
+                  <div class="e4-clockwrap"><div class="e4-clock">10:30:24</div></div>
+                  <div class="e4-phase">
+                    <div class="e4-phase-track"><div class="e4-phase-fill peak" style="width:50%"></div></div>
+                    <div class="e4-phase-labels"><span>09:00</span><span>12:00</span></div>
+                  </div>
+                  <div class="e4-next">
+                    <span class="e4-next-label">距空闲</span>
+                    <span class="e4-next-value peak">01:29:36</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="live-card">
+          <div class="frame">
+            <div class="e4-widget">
+              <div class="e4-card">
+                <div class="e4-plate idle">
+                  <div class="e4-status"><b>空闲</b><span>IDLE</span></div>
+                  <div class="e4-rate-wrap"><div class="e4-rate">0.5×</div><div class="e4-price">半价</div></div>
+                  <div class="e4-day">工作日</div>
+                </div>
+                <div class="e4-right">
+                  <div class="e4-date">10月28日 周三</div>
+                  <div class="e4-clockwrap"><div class="e4-clock">20:15:00</div></div>
+                  <div class="e4-phase">
+                    <div class="e4-phase-track"><div class="e4-phase-fill idle" style="width:15%"></div></div>
+                    <div class="e4-phase-labels"><span>18:00</span><span>次日 09:00</span></div>
+                  </div>
+                  <div class="e4-next">
+                    <span class="e4-next-label">距高峰</span>
+                    <span class="e4-next-value idle">12:45:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="selection" id="selection">正在加载试色…</div>
+        <div class="pair-buttons">
+          <button type="button" class="pair-btn" data-pair="A03,G03">A03 + G03 · 深橙 / 深青</button>
+          <button type="button" class="pair-btn" data-pair="A04,G05">A04 + G05 · 亮黄 / 翡翠</button>
+          <button type="button" class="pair-btn ghost" data-pair="A02,G01">A02 + G01 · 当前</button>
+        </div>
+      </div>
+
+      <div class="palette-stack">
+        <div class="palette">
+          <div class="palette-head"><h3>高峰 · 黄 / 橙</h3><span>A01–A08 · 白字/黑字自动切换</span></div>
+          <div class="palette-grid">
+            <button type="button" class="swatch" data-family="peak" data-id="A01" data-name="深琥珀" data-plate="#92400E" data-ink="#FFFFFF" data-muted="rgba(255,255,255,.78)" data-accent="#FBBF24">
+              <span class="dot" style="background:#92400E"></span>
+              <span class="meta"><b>A01</b><em>深琥珀</em><small>#92400E · 白字</small></span>
+            </button>
+            <button type="button" class="swatch" data-family="peak" data-id="A02" data-name="焦糖" data-plate="#B45309" data-ink="#FFFFFF" data-muted="rgba(255,255,255,.78)" data-accent="#FBBF24">
+              <span class="dot" style="background:#B45309"></span>
+              <span class="meta"><b>A02</b><em>焦糖</em><small>#B45309 · 白字</small></span>
+              <span class="tag current">当前</span>
+            </button>
+            <button type="button" class="swatch" data-family="peak" data-id="A03" data-name="烧橙" data-plate="#C2410C" data-ink="#FFFFFF" data-muted="rgba(255,255,255,.78)" data-accent="#F59E0B">
+              <span class="dot" style="background:#C2410C"></span>
+              <span class="meta"><b>A03</b><em>烧橙</em><small>#C2410C · 白字</small></span>
+              <span class="tag">推荐</span>
+            </button>
+            <button type="button" class="swatch" data-family="peak" data-id="A04" data-name="琥珀" data-plate="#D97706" data-ink="#1A1206" data-muted="rgba(26,18,6,.72)" data-accent="#FDE68A">
+              <span class="dot" style="background:#D97706"></span>
+              <span class="meta"><b>A04</b><em>琥珀</em><small>#D97706 · 黑字</small></span>
+              <span class="tag">亮色推荐</span>
+            </button>
+            <button type="button" class="swatch" data-family="peak" data-id="A05" data-name="古金" data-plate="#B7791F" data-ink="#1A1206" data-muted="rgba(26,18,6,.72)" data-accent="#FDE68A">
+              <span class="dot" style="background:#B7791F"></span>
+              <span class="meta"><b>A05</b><em>古金</em><small>#B7791F · 黑字</small></span>
+            </button>
+            <button type="button" class="swatch" data-family="peak" data-id="A06" data-name="芥末" data-plate="#CA8A04" data-ink="#1A1206" data-muted="rgba(26,18,6,.72)" data-accent="#FDE68A">
+              <span class="dot" style="background:#CA8A04"></span>
+              <span class="meta"><b>A06</b><em>芥末</em><small>#CA8A04 · 黑字</small></span>
+            </button>
+            <button type="button" class="swatch" data-family="peak" data-id="A07" data-name="亮橙" data-plate="#EA580C" data-ink="#1A1206" data-muted="rgba(26,18,6,.72)" data-accent="#FDBA74">
+              <span class="dot" style="background:#EA580C"></span>
+              <span class="meta"><b>A07</b><em>亮橙</em><small>#EA580C · 黑字</small></span>
+            </button>
+            <button type="button" class="swatch" data-family="peak" data-id="A08" data-name="亮黄" data-plate="#F59E0B" data-ink="#1A1206" data-muted="rgba(26,18,6,.72)" data-accent="#FDE68A">
+              <span class="dot" style="background:#F59E0B"></span>
+              <span class="meta"><b>A08</b><em>亮黄</em><small>#F59E0B · 黑字</small></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="palette">
+          <div class="palette-head"><h3>空闲 · 绿</h3><span>G01–G08 · 白字/黑字自动切换</span></div>
+          <div class="palette-grid">
+            <button type="button" class="swatch" data-family="idle" data-id="G01" data-name="松绿" data-plate="#047857" data-ink="#FFFFFF" data-muted="rgba(255,255,255,.78)" data-accent="#34D399">
+              <span class="dot" style="background:#047857"></span>
+              <span class="meta"><b>G01</b><em>松绿</em><small>#047857 · 白字</small></span>
+              <span class="tag current">当前</span>
+            </button>
+            <button type="button" class="swatch" data-family="idle" data-id="G02" data-name="深松" data-plate="#065F46" data-ink="#FFFFFF" data-muted="rgba(255,255,255,.78)" data-accent="#6EE7B7">
+              <span class="dot" style="background:#065F46"></span>
+              <span class="meta"><b>G02</b><em>深松</em><small>#065F46 · 白字</small></span>
+            </button>
+            <button type="button" class="swatch" data-family="idle" data-id="G03" data-name="深青" data-plate="#0F766E" data-ink="#FFFFFF" data-muted="rgba(255,255,255,.78)" data-accent="#2DD4BF">
+              <span class="dot" style="background:#0F766E"></span>
+              <span class="meta"><b>G03</b><em>深青</em><small>#0F766E · 白字</small></span>
+              <span class="tag">推荐</span>
+            </button>
+            <button type="button" class="swatch" data-family="idle" data-id="G04" data-name="青绿" data-plate="#0D9488" data-ink="#062B20" data-muted="rgba(6,43,32,.72)" data-accent="#5EEAD4">
+              <span class="dot" style="background:#0D9488"></span>
+              <span class="meta"><b>G04</b><em>青绿</em><small>#0D9488 · 黑字</small></span>
+            </button>
+            <button type="button" class="swatch" data-family="idle" data-id="G05" data-name="翡翠" data-plate="#059669" data-ink="#062B20" data-muted="rgba(6,43,32,.72)" data-accent="#6EE7B7">
+              <span class="dot" style="background:#059669"></span>
+              <span class="meta"><b>G05</b><em>翡翠</em><small>#059669 · 黑字</small></span>
+              <span class="tag">亮色推荐</span>
+            </button>
+            <button type="button" class="swatch" data-family="idle" data-id="G06" data-name="森林" data-plate="#15803D" data-ink="#FFFFFF" data-muted="rgba(255,255,255,.78)" data-accent="#4ADE80">
+              <span class="dot" style="background:#15803D"></span>
+              <span class="meta"><b>G06</b><em>森林</em><small>#15803D · 白字</small></span>
+            </button>
+            <button type="button" class="swatch" data-family="idle" data-id="G07" data-name="深林" data-plate="#166534" data-ink="#FFFFFF" data-muted="rgba(255,255,255,.78)" data-accent="#86EFAC">
+              <span class="dot" style="background:#166534"></span>
+              <span class="meta"><b>G07</b><em>深林</em><small>#166534 · 白字</small></span>
+            </button>
+            <button type="button" class="swatch" data-family="idle" data-id="G08" data-name="亮翡翠" data-plate="#10B981" data-ink="#062B20" data-muted="rgba(6,43,32,.72)" data-accent="#6EE7B7">
+              <span class="dot" style="background:#10B981"></span>
+              <span class="meta"><b>G08</b><em>亮翡翠</em><small>#10B981 · 黑字</small></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-label="03 状态覆盖">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">03 · 状态覆盖</span>
+        <h2>四种状态都用同一套进度结构</h2>
+      </div>
+      <p class="side">颜色跟随上面的选择<br>倒计时全部无框</p>
+    </div>
+
+    <div class="states">
+      <article class="state">
+        <div class="state-head"><span class="chip opt">03 · 高峰</span><span class="side">330 × 175</span></div>
+        <div class="frame">
+          <div class="e4-widget">
+            <div class="e4-card">
+              <div class="e4-plate peak">
+                <div class="e4-status"><b>高峰</b><span>PEAK</span></div>
+                <div class="e4-rate-wrap"><div class="e4-rate">1.0×</div><div class="e4-price">标准价</div></div>
+                <div class="e4-day">工作日</div>
+              </div>
+              <div class="e4-right">
+                <div class="e4-date">10月28日 周三</div>
+                <div class="e4-clockwrap"><div class="e4-clock">10:30:24</div></div>
+                <div class="e4-phase">
+                  <div class="e4-phase-track"><div class="e4-phase-fill peak" style="width:50%"></div></div>
+                  <div class="e4-phase-labels"><span>09:00</span><span>12:00</span></div>
+                </div>
+                <div class="e4-next"><span class="e4-next-label">距空闲</span><span class="e4-next-value peak">01:29:36</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="state-note">阶段条 09:00–12:00，填充到 10:30；倒计时裸排。</p>
+      </article>
+
+      <article class="state">
+        <div class="state-head"><span class="chip opt">03 · 空闲</span><span class="side">330 × 175</span></div>
+        <div class="frame">
+          <div class="e4-widget">
+            <div class="e4-card">
+              <div class="e4-plate idle">
+                <div class="e4-status"><b>空闲</b><span>IDLE</span></div>
+                <div class="e4-rate-wrap"><div class="e4-rate">0.5×</div><div class="e4-price">半价</div></div>
+                <div class="e4-day">工作日</div>
+              </div>
+              <div class="e4-right">
+                <div class="e4-date">10月28日 周三</div>
+                <div class="e4-clockwrap"><div class="e4-clock">20:15:00</div></div>
+                <div class="e4-phase">
+                  <div class="e4-phase-track"><div class="e4-phase-fill idle" style="width:15%"></div></div>
+                  <div class="e4-phase-labels"><span>18:00</span><span>次日 09:00</span></div>
+                </div>
+                <div class="e4-next"><span class="e4-next-label">距高峰</span><span class="e4-next-value idle">12:45:00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="state-note">空闲段 18:00–次日 09:00，进度 15%；绿板跟随 G 选择。</p>
+      </article>
+
+      <article class="state">
+        <div class="state-head"><span class="chip opt">03 · 周末</span><span class="side">330 × 175</span></div>
+        <div class="frame">
+          <div class="e4-widget">
+            <div class="e4-card">
+              <div class="e4-plate idle">
+                <div class="e4-status"><b>周末</b><span>WEEKEND</span></div>
+                <div class="e4-rate-wrap"><div class="e4-rate">0.5×</div><div class="e4-price">半价</div></div>
+                <div class="e4-day">全天可用</div>
+              </div>
+              <div class="e4-right">
+                <div class="e4-date">10月31日 周六</div>
+                <div class="e4-clockwrap"><div class="e4-clock">12:00:00</div></div>
+                <div class="e4-phase">
+                  <div class="e4-phase-track"><div class="e4-phase-fill idle" style="width:28.6%"></div></div>
+                  <div class="e4-phase-labels"><span>周五 18:00</span><span>周一 09:00</span></div>
+                </div>
+                <div class="e4-next"><span class="e4-next-label">距高峰</span><span class="e4-next-value idle">1天 21:00:00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="state-note">周末跨段从周五 18:00 到周一 09:00；进度按当前时刻。</p>
+      </article>
+
+      <article class="state">
+        <div class="state-head"><span class="chip opt">03 · 节假日</span><span class="side">330 × 175</span></div>
+        <div class="frame">
+          <div class="e4-widget">
+            <div class="e4-card">
+              <div class="e4-plate idle">
+                <div class="e4-status"><b>国庆节</b><span>HOLIDAY</span></div>
+                <div class="e4-rate-wrap"><div class="e4-rate">0.5×</div><div class="e4-price">半价</div></div>
+                <div class="e4-day">放假全天</div>
+              </div>
+              <div class="e4-right">
+                <div class="e4-date">10月5日 周一</div>
+                <div class="e4-clockwrap"><div class="e4-clock">12:00:00</div></div>
+                <div class="e4-phase">
+                  <div class="e4-phase-track"><div class="e4-phase-fill idle" style="width:14.8%"></div></div>
+                  <div class="e4-phase-labels"><span>10月5日 00:00</span><span>10月8日 09:00</span></div>
+                </div>
+                <div class="e4-next"><span class="e4-next-label">距高峰</span><span class="e4-next-value idle">2天 21:00:00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="state-note">节日名接左栏顶部；长标签 8px 也能放进 190px 宽。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-label="实现">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">实现要点</span>
+        <h2>等你的 A / G 编号</h2>
+      </div>
+      <p class="side">这一稿只改 HTML 审阅页<br>没有动 PowerShell 代码</p>
+    </div>
+
+    <div class="impl">
+      <div class="impl-head">落地时要做的事</div>
+      <ul>
+        <li>把选中的 <code>plate / ink / muted / accent</code> 写进 E4 的 peak / idle 配色；左栏底色、文字色、阶段条、倒计时数值都跟着这一组走。</li>
+        <li>右栏把 <code>CdBox</code> 从 E4 的 03 结构里移除，换成 <code>NextRow</code>：左标签、右数值，无边框、无分隔线、无底色。</li>
+        <li>阶段条沿用 <code>PhaseProgress</code>，左右标 <code>PhaseStart / PhaseEnd</code>；大钟、日期、330×175 不变。</li>
+        <li>保留日期行的数据警告：2027 未覆盖时追加「· 数据待更新」，不要再整行写成「· 北京时间」。</li>
+      </ul>
+    </div>
+
+    <div class="closing">
+      <p><strong>你只需要回两个编号：</strong>比如 <code>A03 + G03</code>（深橙 / 深青，白字），或 <code>A04 + G05</code>（亮黄 / 翡翠，黑字）。也可以混搭，比如 A08 + G03。</p>
+      <p><strong>收到编号后：</strong>我把这组颜色和“倒计时去框”一起落进 E4，更新本机安装目录，并提交推送到 GitHub。</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>E4 · 03 右栏阶段进度 · 调色盘 + 去框 · 330 × 175</span>
+    <span>A01–A08 / G01–G08 · 点选即试色</span>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var swatches = Array.prototype.slice.call(document.querySelectorAll('.swatch'));
+  var selection = document.getElementById('selection');
+  var chosen = { peak: 'A03', idle: 'G03' };
+
+  function byId(family, id){
+    return swatches.filter(function(s){
+      return s.dataset.family === family && s.dataset.id === id;
+    })[0];
+  }
+
+  function applySwatch(btn){
+    if (!btn) { return; }
+    var family = btn.dataset.family;
+    root.style.setProperty('--' + family + '-plate', btn.dataset.plate);
+    root.style.setProperty('--' + family + '-ink', btn.dataset.ink);
+    root.style.setProperty('--' + family + '-muted', btn.dataset.muted);
+    root.style.setProperty('--' + family + '-accent', btn.dataset.accent);
+    chosen[family] = btn.dataset.id;
+    swatches.forEach(function(s){
+      if (s.dataset.family === family) { s.classList.toggle('selected', s === btn); }
+    });
+    updateSelection();
+  }
+
+  function updateSelection(){
+    var p = byId('peak', chosen.peak);
+    var g = byId('idle', chosen.idle);
+    if (!p || !g) { return; }
+    selection.innerHTML = '已选：高峰 <b>' + p.dataset.id + ' ' + p.dataset.name + '</b> ' + p.dataset.plate +
+      ' · 空闲 <b>' + g.dataset.id + ' ' + g.dataset.name + '</b> ' + g.dataset.plate +
+      '。点色块可继续换；两张卡会同步。';
+  }
+
+  swatches.forEach(function(s){
+    s.addEventListener('click', function(){ applySwatch(s); });
+  });
+
+  document.querySelectorAll('[data-pair]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pair = btn.dataset.pair.split(',');
+      applySwatch(byId('peak', pair[0]));
+      applySwatch(byId('idle', pair[1]));
+    });
+  });
+
+  applySwatch(byId('peak', chosen.peak));
+  applySwatch(byId('idle', chosen.idle));
+})();
+</script>
+</body>
+</html>
