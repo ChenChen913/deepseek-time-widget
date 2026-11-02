@@ -597,7 +597,7 @@ Add-Scheme @{
 
 Add-Scheme @{
     Key = 'd3'; Num = 'D3'; Name = 'D3 · K 线'
-    Hint = '24 根蜡烛，越高越贵；高峰橙红粗柱、空闲暗绿矮块'
+    Hint = '24 根蜡烛，高峰橙红、空闲青绿；周五 18:00 后切成跨周末条带，直到周一 09:00'
     Layout = 'candle'; Width = 340; Height = 204
     Tone = 'dark'; Palette = 'kline'
     ClockFont = 'Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI'
@@ -2613,6 +2613,7 @@ function Install-Layout {
     $script:ChipDot = Find-LayoutElement 'ChipDot'
     $script:StatusIconPath = Find-LayoutElement 'StatusIconPath'
     $script:DateBox = Find-LayoutElement 'DateBox'
+    $script:DayTag = Find-LayoutElement 'DayTag'
     $script:OrbHost = Find-LayoutElement 'OrbHost'
     $script:FootGrid = Find-LayoutElement 'FootGrid'
     $script:FootStack = Find-LayoutElement 'FootStack'

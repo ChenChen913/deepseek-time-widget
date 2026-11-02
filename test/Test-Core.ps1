@@ -193,6 +193,20 @@ $holidayGap = Get-TestStatus -Iso '2026-10-28T19:00:00+08:00' -Holidays $synthet
 Assert-AreEqual '2026-11-02T09:00:00+08:00' $holidayGap.NextChange.ToString('yyyy-MM-ddTHH:mm:sszzz') '连续节假日+周末后应跳到周一 09:00'
 Assert-AreEqual '4天 14:00:00' $holidayGap.NextChangeText '连续节假日+周末的倒计时文案'
 
+# K 线跨周末长空闲段：周五 18:00 -> 周一 09:00
+$bridgeFriday = Get-TestStatus -Iso '2026-10-30T18:00:00+08:00' -Holidays @()
+$bridgeBefore = Get-TestStatus -Iso '2026-10-30T17:59:59+08:00' -Holidays @()
+$bridgeSaturday = Get-TestStatus -Iso '2026-10-31T10:00:00+08:00' -Holidays @()
+$bridgeMondayBefore = Get-TestStatus -Iso '2026-11-02T08:59:59+08:00' -Holidays @()
+$bridgeMondayAfter = Get-TestStatus -Iso '2026-11-02T09:00:00+08:00' -Holidays @()
+$bridgeWeekday = Get-TestStatus -Iso '2026-10-28T20:15:00+08:00' -Holidays @()
+Assert-AreEqual $true (Test-WeekendBridge -Status $bridgeFriday) '周五 18:00 进入跨周末段'
+Assert-AreEqual $false (Test-WeekendBridge -Status $bridgeBefore) '周五 17:59:59 尚未进入跨周末段'
+Assert-AreEqual $true (Test-WeekendBridge -Status $bridgeSaturday) '周六仍在跨周末段'
+Assert-AreEqual $true (Test-WeekendBridge -Status $bridgeMondayBefore) '周一 08:59:59 仍在跨周末段'
+Assert-AreEqual $false (Test-WeekendBridge -Status $bridgeMondayAfter) '周一 09:00 退出跨周末段'
+Assert-AreEqual $false (Test-WeekendBridge -Status $bridgeWeekday) '普通工作日夜间不是跨周末段'
+
 # ---------- 6. 展示字段 ----------
 $peakStatus = Get-TestStatus -Iso '2026-10-28T10:00:00+08:00' -Holidays $script:RealHolidays -Years $script:RealYears
 Assert-AreEqual '高峰时段' $peakStatus.StatusText '高峰状态文案'

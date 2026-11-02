@@ -695,23 +695,29 @@ $script:LayoutCandle = @'
           <Border x:Name="RateBadge" Width="0" Height="0" Background="#00000000" BorderThickness="0" Visibility="Collapsed" />
         </StackPanel>
       </Grid>
-      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="34" FontWeight="Light" Foreground="#E9EDF3" Margin="0,6,0,0" />
-      <StackPanel x:Name="DateBox" Grid.Row="2" Orientation="Horizontal" Margin="0,3,0,0">
-        <TextBlock x:Name="DateText" Text="10月28日" FontSize="11.5" Foreground="#8B94A5" />
-        <TextBlock x:Name="WeekText" Text="周三" FontSize="11.5" Foreground="#8B94A5" Margin="6,0,0,0" />
-      </StackPanel>
-      <Border x:Name="CandleBox" Grid.Row="4" Height="44" Margin="0,4,0,0" Background="#00000000" />
-      <Grid Grid.Row="5" Margin="0,7,0,0">
+      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="34" FontWeight="Normal" Foreground="#E9EDF3" Margin="0,3,0,0" />
+      <Grid Grid.Row="2" Margin="0,2,0,0">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel x:Name="DateBox" Orientation="Horizontal">
+          <TextBlock x:Name="DateText" Text="10月28日" FontSize="11.5" Foreground="#8B94A5" />
+          <TextBlock x:Name="WeekText" Text="周三" FontSize="11.5" Foreground="#8B94A5" Margin="6,0,0,0" />
+        </StackPanel>
+        <TextBlock x:Name="DayTag" Grid.Column="1" Text="24H" FontSize="9" FontWeight="SemiBold" Foreground="#4E5665" Margin="8,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" />
+      </Grid>
+      <Border x:Name="CandleBox" Grid.Row="4" Height="44" Margin="0,3,0,0" Background="#00000000" />
+      <Grid Grid.Row="5" Margin="0,4,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <TextBlock x:Name="CountdownText" Text="距梁文谷" FontSize="11" Foreground="#5A6272" />
+          <TextBlock x:Name="CountdownText" Text="距梁文谷" FontSize="11" Foreground="#6B7586" />
           <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#4E5665" Margin="8,0,0,0" Visibility="Collapsed" />
         </StackPanel>
-        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="12.5" FontWeight="SemiBold" Foreground="#8B94A5" Margin="6,0,0,0" VerticalAlignment="Center" />
+        <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="13" FontWeight="SemiBold" Foreground="#C3CBD8" HorizontalAlignment="Right" VerticalAlignment="Center" />
       </Grid>
     </Grid>
     <Grid Visibility="Collapsed">
@@ -1189,6 +1195,10 @@ function Add-DecorScope {
 # 底部一条 1px 基线；当前那一根描 1.5px 白边。
 function Add-DecorKline {
     param($Layer, [double]$W, [double]$H, $Colors, $Status)
+    if (Test-WeekendBridge -Status $Status) {
+        Add-DecorWeekendBridge -Layer $Layer -W $W -H $H -Colors $Colors -Status $Status
+        return
+    }
     $box = Get-ElementBox -Element $script:CandleBox -FallbackW ($W - 30) -FallbackH 44
     $bx = [double]$box[0]; $by = [double]$box[1]
     $bw = [double]$box[2]; $bh = [double]$box[3]
@@ -1232,6 +1242,71 @@ function Add-DecorKline {
             } catch { }
         }
         [void]$Layer.Children.Add($bar)
+    }
+}
+
+# 跨周末长空闲段：24 根绿色柱按周五夜 / 周六 / 周日 / 周一早分组。
+# 与 E2B 的口径一致：从周五 18:00 到周一 09:00，倒计时指向周一高峰。
+function Add-DecorWeekendBridge {
+    param($Layer, [double]$W, [double]$H, $Colors, $Status)
+    $box = Get-ElementBox -Element $script:CandleBox -FallbackW ($W - 30) -FallbackH 44
+    $bx = [double]$box[0]; $by = [double]$box[1]
+    $bw = [double]$box[2]; $bh = [double]$box[3]
+    if ($bw -lt 20) { return }
+
+    $baseY = $by + $bh
+    $baseline = New-LineShape -X1 $bx -Y1 ($baseY - 0.5) -X2 ($bx + $bw) -Y2 ($baseY - 0.5) -Color '#24FFFFFF' -Thickness 1
+    [void]$Layer.Children.Add($baseline)
+
+    $groups = @(
+        [pscustomobject]@{ Label = '周五'; Count = 2 },
+        [pscustomobject]@{ Label = '周六'; Count = 9 },
+        [pscustomobject]@{ Label = '周日'; Count = 9 },
+        [pscustomobject]@{ Label = '周一'; Count = 4 }
+    )
+    $groupGap = 6.0
+    $barGap = 2.0
+    $barW = ($bw - $groupGap * 3.0 - $barGap * 20.0) / 24.0
+    if ($barW -lt 2) { $barW = 2 }
+    $barH = $bh * 0.55
+    $activeIndex = [int][Math]::Floor([double]$Status.PhaseProgress * 24.0)
+    if ($activeIndex -lt 0) { $activeIndex = 0 }
+    if ($activeIndex -gt 23) { $activeIndex = 23 }
+
+    $x = $bx
+    $barIndex = 0
+    foreach ($group in $groups) {
+        $groupWidth = $group.Count * $barW + ($group.Count - 1) * $barGap
+        $label = New-Object System.Windows.Controls.TextBlock
+        $label.Text = [string]$group.Label
+        $label.FontSize = 8
+        $label.Foreground = New-BrushSafe '#4E5665'
+        $label.TextAlignment = [System.Windows.TextAlignment]::Center
+        $label.Width = $groupWidth
+        [System.Windows.Controls.Canvas]::SetLeft($label, $x)
+        [System.Windows.Controls.Canvas]::SetTop($label, ($by + 1))
+        [void]$Layer.Children.Add($label)
+
+        for ($i = 0; $i -lt $group.Count; $i++) {
+            $barX = $x + $i * ($barW + $barGap)
+            $bar = New-RectShape -X $barX -Y ($baseY - $barH) -W $barW -H $barH -Color ([string]$Colors.Accent) -Radius 1
+            $bar.Opacity = 0.58
+            if ($barIndex -eq $activeIndex) {
+                $bar.Stroke = New-BrushSafe '#FFFFFF'
+                $bar.StrokeThickness = 1.5
+                try {
+                    $glow = New-Object System.Windows.Media.Effects.DropShadowEffect
+                    $glow.BlurRadius = 8
+                    $glow.ShadowDepth = 0
+                    $glow.Opacity = 0.5
+                    $glow.Color = [System.Windows.Media.ColorConverter]::ConvertFromString('#FFFFFF')
+                    $bar.Effect = $glow
+                } catch { }
+            }
+            [void]$Layer.Children.Add($bar)
+            $barIndex++
+        }
+        $x += $groupWidth + $groupGap
     }
 }
 
@@ -1878,11 +1953,37 @@ function Update-SchemeCustomText {
             }
         }
         'd3' {
+            $isWeekendBridge = Test-WeekendBridge -Status $Status
             if ($null -ne $script:StatusText) {
-                $script:StatusText.Text = '梁文谷时段'
-                if ($isPeak) { $script:StatusText.Text = '梁文峰时段' }
+                if ($isWeekendBridge) {
+                    $script:StatusText.Text = '梁文谷 · 跨周末'
+                } else {
+                    $script:StatusText.Text = '梁文谷时段'
+                    if ($isPeak) { $script:StatusText.Text = '梁文峰时段' }
+                }
             }
-            if ($null -ne $script:RateText) { $script:RateText.Text = '0.5'; if ($isPeak) { $script:RateText.Text = '1.0' } }
+            if ($null -ne $script:RateText) {
+                $script:RateText.Text = '0.5'
+                if ($isPeak) { $script:RateText.Text = '1.0' }
+            }
+            if ($null -ne $script:CountdownText) {
+                if ($isWeekendBridge) {
+                    $script:CountdownText.Text = '距周一高峰'
+                } elseif ($isPeak) {
+                    $script:CountdownText.Text = '距梁文谷'
+                } else {
+                    $script:CountdownText.Text = '距梁文峰'
+                }
+            }
+            if ($null -ne $script:DayTag) {
+                if ($isWeekendBridge) {
+                    $script:DayTag.Text = Format-PhaseClock -Time $Status.PhaseEnd -Now $Status.PhaseStart
+                    $script:DayTag.Foreground = ConvertTo-Brush '#2FB89A'
+                } else {
+                    $script:DayTag.Text = '24H'
+                    $script:DayTag.Foreground = ConvertTo-Brush '#4E5665'
+                }
+            }
             if ($null -ne $script:DateText) { $script:DateText.Text = [string]$Status.DateText }
             if ($null -ne $script:WeekText) { $script:WeekText.Text = [string]$Status.WeekText }
         }

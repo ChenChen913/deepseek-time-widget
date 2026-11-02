@@ -280,3 +280,22 @@ function Get-DeepSeekTimeStatus {
         PeakWindows     = $peakWindows
     }
 }
+
+# K 线方案的跨周末长空闲段：周五 18:00 -> 周一 09:00。
+# 用当前连续段的真实起止判断，不依赖 IsWeekend，因此周五傍晚和周一早上也能命中。
+function Test-WeekendBridge {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Status
+    )
+    if ($null -eq $Status) { return $false }
+    $start = $Status.PhaseStart
+    $end = $Status.PhaseEnd
+    if (($null -eq $start) -or ($null -eq $end)) { return $false }
+    $fridayStart = ($start.DayOfWeek -eq [System.DayOfWeek]::Friday) -and
+        ($start.Hour -eq 18) -and ($start.Minute -eq 0) -and ($start.Second -eq 0)
+    $mondayEnd = ($end.DayOfWeek -eq [System.DayOfWeek]::Monday) -and
+        ($end.Hour -eq 9) -and ($end.Minute -eq 0) -and ($end.Second -eq 0)
+    return ($fridayStart -and $mondayEnd)
+}
