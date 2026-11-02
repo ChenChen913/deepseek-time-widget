@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/icon-preview.png" width="120" alt="DeepSeek 时段挂件图标" />
+</p>
+
 # DeepSeek 时段挂件
 
 > Windows 桌面小挂件：一眼看清现在是 DeepSeek 的「高峰时段」还是「空闲时段」，以及还有多久切换。23 套界面可切换，只依赖 Windows 自带的 PowerShell 5.1 + WPF，**无第三方依赖**。
