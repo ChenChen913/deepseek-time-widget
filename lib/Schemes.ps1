@@ -56,8 +56,8 @@ $script:SchemePalettes = @{
     }
     'brutal' = @{
         # 网页稿：高峰徽章琥珀底黑字，空闲徽章翠绿底白字；倒计时数字跟着状态变色
-        Peak = @{ Accent = '#F59E0B'; AccentSoft = '#B45309'; BadgeBg = '#F59E0B'; Track = '#22000000'; Segment = '#111111'; Glow = $false; Status = '#000000'; Rate = '#111111'; CdLabel = '#111111'; CdValue = '#B45309'; Fg = '#111111'; Clock = '#000000'; Date = '#000000'; Week = '#000000' }
-        Idle = @{ Accent = '#10B981'; AccentSoft = '#047857'; BadgeBg = '#10B981'; Track = '#22000000'; Segment = '#111111'; Glow = $false; Status = '#FFFFFF'; Rate = '#111111'; CdLabel = '#111111'; CdValue = '#047857'; Fg = '#111111'; Clock = '#000000'; Date = '#000000'; Week = '#000000' }
+        Peak = @{ Accent = '#F59E0B'; AccentSoft = '#B45309'; BadgeBg = '#F59E0B'; Track = '#22000000'; Segment = '#111111'; Glow = $false; Status = '#000000'; Rate = '#FFFFFF'; CdLabel = '#FFFFFF'; CdValue = '#F59E0B'; Fg = '#111111'; Clock = '#000000'; Date = '#000000'; Week = '#000000' }
+        Idle = @{ Accent = '#10B981'; AccentSoft = '#047857'; BadgeBg = '#10B981'; Track = '#22000000'; Segment = '#111111'; Glow = $false; Status = '#FFFFFF'; Rate = '#FFFFFF'; CdLabel = '#FFFFFF'; CdValue = '#10B981'; Fg = '#111111'; Clock = '#000000'; Date = '#000000'; Week = '#000000' }
         Badge = 'solid'
     }
     'lcd' = @{
@@ -2038,9 +2038,13 @@ function Apply-SchemeSurface {
         }
     }
 
-    # HUD 底部倒计时外框：E2 保留描边和淡底，E2B 完全去掉框线与色差
+    # 底部倒计时外框：E3 固定黑底压条；E2 保留描边和淡底，E2B 完全去掉框线与色差
     if ($null -ne $script:CdBox) {
-        if ([bool]$Spec.HudCdBox) {
+        if ([string]$Spec.Key -eq 'e3') {
+            $script:CdBox.Background = ConvertTo-Brush '#111111'
+            $script:CdBox.BorderBrush = ConvertTo-Brush '#111111'
+            $script:CdBox.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1.5
+        } elseif ([bool]$Spec.HudCdBox) {
             $script:CdBox.Background = ConvertTo-Brush '#05FFFFFF'
             $script:CdBox.BorderBrush = ConvertTo-Brush '#0DFFFFFF'
             $script:CdBox.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1
@@ -2627,6 +2631,7 @@ function Install-Layout {
     $script:DateIcon = Find-LayoutElement 'DateIcon'
     $script:CdIcon = Find-LayoutElement 'CdIcon'
     $script:TzText = Find-LayoutElement 'TzText'
+    $script:BrutalTimelineCanvas = Find-LayoutElement 'BrutalTimelineCanvas'
     $script:PlateBox = Find-LayoutElement 'PlateBox'
     $script:PlateStatus = Find-LayoutElement 'PlateStatus'
     $script:PlateStatusEn = Find-LayoutElement 'PlateStatusEn'

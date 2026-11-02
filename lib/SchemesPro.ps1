@@ -539,12 +539,12 @@ $script:LayoutBrutal = @'
             <TextBlock x:Name="StatusText" Text="高峰时段 PEAK" FontSize="11" FontWeight="Bold" Foreground="#000000" />
           </StackPanel>
         </Border>
-        <Border x:Name="RateBadge" Grid.Column="1" Background="#E2E8F0" BorderBrush="#111111" BorderThickness="1.5" CornerRadius="0" Padding="5,2" VerticalAlignment="Center">
-          <TextBlock x:Name="RateText" Text="1.0×" FontSize="11" FontWeight="Bold" Foreground="#111111" />
+        <Border x:Name="RateBadge" Grid.Column="1" Background="#111111" BorderBrush="#111111" BorderThickness="1.5" CornerRadius="0" Padding="5,2" VerticalAlignment="Center">
+          <TextBlock x:Name="RateText" Text="1.0×" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
         </Border>
       </Grid>
-      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="34" FontWeight="Black" Foreground="#111111" Margin="0,4,0,4" />
-      <Border Grid.Row="2" BorderBrush="#111111" BorderThickness="0,0,0,2" Padding="0,0,0,4">
+      <TextBlock x:Name="ClockText" Grid.Row="1" Text="10:30:24" FontSize="34" FontWeight="Black" Foreground="#111111" Margin="0,2,0,2" />
+      <Border Grid.Row="2" BorderBrush="#111111" BorderThickness="0" Padding="0,0,0,4">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -557,17 +557,18 @@ $script:LayoutBrutal = @'
           <TextBlock x:Name="TzText" Grid.Column="1" Text="北京时间" FontSize="11" FontWeight="Bold" Foreground="#111111" HorizontalAlignment="Right" />
         </Grid>
       </Border>
-      <Border x:Name="CdBox" Grid.Row="4" BorderBrush="#111111" BorderThickness="1.5" Background="#F1F5F9" Padding="8,4">
+      <Canvas x:Name="BrutalTimelineCanvas" Grid.Row="3" Height="25" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+      <Border x:Name="CdBox" Grid.Row="4" BorderBrush="#111111" BorderThickness="1.5" Background="#111111" Padding="8,2">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock x:Name="CountdownText" Text="距空闲倒计时" FontSize="11" FontWeight="Bold" Foreground="#111111" />
-            <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#52525B" Margin="8,0,0,0" Visibility="Collapsed" />
+            <TextBlock x:Name="CountdownText" Text="距空闲倒计时" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+            <TextBlock x:Name="HintText" Text="拖动 / 右键" FontSize="9" Foreground="#94A3B8" Margin="8,0,0,0" Visibility="Collapsed" />
           </StackPanel>
-          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="11" FontWeight="Bold" Foreground="#B45309" VerticalAlignment="Center" />
+          <TextBlock x:Name="CountdownValue" Grid.Column="1" Text="01:29:36" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" VerticalAlignment="Center" />
         </Grid>
       </Border>
     </Grid>
@@ -1939,6 +1940,7 @@ function Update-SchemeCustomText {
                     else { $script:TzText.Text = '数据待更新' }
                 }
             }
+            Update-BrutalTimeline -Spec $Spec -Status $Status
         }
         'd6' {
             if ($null -ne $script:StatusText) {
@@ -2336,5 +2338,122 @@ function Update-SchemeCustomTick {
             Add-DecorHudProgress -Layer $script:DecorHost -W ([double]$script:Card.ActualWidth) -H ([double]$script:Card.ActualHeight) -Colors $colors -Status $Status -Spec $Spec
         }
     }
+}
+
+# ============================ E3 24 小时价格轴 ============================
+# 24 根硬边块：高峰黄、空闲灰、非高峰日浅绿；当前小时黑块白槽（非高峰日绿块白槽）。
+# 只在小时 / 状态变化时重绘，不跟着秒针每秒重建元素。
+$script:BrutalBuiltHost = $null
+$script:BrutalBlocks = @()
+$script:BrutalLabels = @()
+$script:BrutalWidth = 0.0
+$script:BrutalHour = -1
+$script:BrutalState = ''
+
+function Initialize-BrutalTimeline {
+    param([object]$Canvas, [double]$Width)
+
+    if (($null -eq $Canvas) -or ($Width -lt 20)) { return }
+    $Canvas.Children.Clear()
+    $script:BrutalBlocks = @()
+    $script:BrutalLabels = @()
+
+    $gap = 2.0
+    $cellW = ($Width - (23.0 * $gap)) / 24.0
+    for ($i = 0; $i -lt 24; $i++) {
+        $inner = New-Object System.Windows.Controls.Border
+        $inner.BorderBrush = ConvertTo-Brush '#FFFFFF'
+        $inner.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1
+        $inner.Background = ConvertTo-Brush '#00000000'
+        $inner.Visibility = [System.Windows.Visibility]::Collapsed
+
+        $cell = New-Object System.Windows.Controls.Border
+        $cell.Width = $cellW
+        $cell.Height = 13.0
+        $cell.BorderBrush = ConvertTo-Brush '#111111'
+        $cell.BorderThickness = New-Object System.Windows.Thickness -ArgumentList 1
+        $cell.Background = ConvertTo-Brush '#E5E7EB'
+        $cell.Child = $inner
+
+        [System.Windows.Controls.Canvas]::SetLeft($cell, ($i * ($cellW + $gap)))
+        [System.Windows.Controls.Canvas]::SetTop($cell, 0.0)
+        [void]$Canvas.Children.Add($cell)
+        $script:BrutalBlocks += @{ Cell = $cell; Inner = $inner }
+    }
+
+    $texts = @('00', '06', '12', '18', '24')
+    $positions = @(0.0, 0.25, 0.5, 0.75, 1.0)
+    for ($i = 0; $i -lt $texts.Count; $i++) {
+        $tb = New-Object System.Windows.Controls.TextBlock
+        $tb.Text = [string]$texts[$i]
+        $tb.FontSize = 8.0
+        $tb.FontWeight = [System.Windows.FontWeights]::Bold
+        $tb.Foreground = ConvertTo-Brush '#52525B'
+        $tb.FontFamily = $script:ClockText.FontFamily
+        $tb.Measure([System.Windows.Size]::new([double]::PositiveInfinity, [double]::PositiveInfinity))
+        $labelW = [double]$tb.DesiredSize.Width
+        $x = $Width * [double]$positions[$i]
+        if ($i -eq 0) { $x = 0.0 }
+        elseif ($i -eq ($texts.Count - 1)) { $x = $Width - $labelW }
+        else { $x = $x - ($labelW / 2.0) }
+        [System.Windows.Controls.Canvas]::SetLeft($tb, $x)
+        [System.Windows.Controls.Canvas]::SetTop($tb, 14.0)
+        [void]$Canvas.Children.Add($tb)
+        $script:BrutalLabels += $tb
+    }
+    $script:BrutalWidth = $Width
+}
+
+function Update-BrutalTimeline {
+    param([object]$Spec, [object]$Status)
+
+    if (($null -eq $Spec) -or ($null -eq $Status)) { return }
+    $canvas = $script:BrutalTimelineCanvas
+    if ($null -eq $canvas) { return }
+
+    $width = [double]$canvas.ActualWidth
+    if ($width -lt 20) { $width = 262.0 }
+    if (($script:BrutalBuiltHost -ne $canvas) -or ([Math]::Abs($script:BrutalWidth - $width) -gt 0.5)) {
+        Initialize-BrutalTimeline -Canvas $canvas -Width $width
+        $script:BrutalBuiltHost = $canvas
+        $script:BrutalHour = -1
+        $script:BrutalState = ''
+    }
+
+    $nowHour = [int]$Status.Now.Hour
+    $offDay = -not [bool]$Status.IsPeakDay
+    $stateKey = 'peak'
+    if ($offDay) { $stateKey = 'off' }
+    if (($script:BrutalHour -eq $nowHour) -and ($script:BrutalState -eq $stateKey)) { return }
+
+    $peakWindows = @($Status.PeakWindows)
+    for ($hour = 0; $hour -lt 24; $hour++) {
+        $isPeak = $false
+        if (-not $offDay) {
+            foreach ($window in $peakWindows) {
+                $start = [double]$window.Start * 24.0
+                $end = [double]$window.End * 24.0
+                if (($hour -ge $start) -and ($hour -lt $end)) { $isPeak = $true; break }
+            }
+        }
+
+        $fill = '#E5E7EB'
+        if ($offDay) { $fill = '#D1FAE5' }
+        elseif ($isPeak) { $fill = '#F59E0B' }
+
+        $item = $script:BrutalBlocks[$hour]
+        $item['Cell'].Background = ConvertTo-Brush $fill
+        $item['Inner'].Visibility = [System.Windows.Visibility]::Collapsed
+
+        if ($hour -eq $nowHour) {
+            $nowFill = '#111111'
+            if ($offDay) { $nowFill = '#10B981' }
+            $item['Cell'].Background = ConvertTo-Brush $nowFill
+            $item['Inner'].Visibility = [System.Windows.Visibility]::Visible
+        }
+    }
+
+    $script:BrutalHour = $nowHour
+    $script:BrutalState = $stateKey
 }
 
